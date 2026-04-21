@@ -32,21 +32,17 @@ jobs:
       - name: 📦 安裝相依套件
         run: |
           python -m pip install --upgrade pip
-          if [ -f stockcatcher/requirements.txt ]; then
-            pip install -r stockcatcher/requirements.txt
-          else
-            # 如果找不到檔案，則手動安裝核心套件
-            pip install fugle-marketdata requests python-dotenv line-bot-sdk
-          fi
+          # 直接指定安裝這四個核心套件，最保險
+          pip install fugle-marketdata requests python-dotenv line-bot-sdk
 
-      # 4. 執行主程式 (指向子資料夾中的 scanner.py)
       - name: 🚀 啟動 StockCatcher 監控引擎
         env:
-          # 將你先前在 GitHub Settings 填寫的 Secrets 映射進環境變數
           FUGLE_API_KEY: ${{ secrets.FUGLE_API_KEY }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        # 核心指令：進入資料夾執行或是直接指定路徑執行
-        run: python stockcatcher/scanner.py
+        run: |
+          # 關鍵：先進入資料夾，再執行程式，這樣才不會找不到 line_test.py
+          cd stockcatcher
+          python scanner.py
