@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import requests # 確保檔案最上方有 import requests
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from fugle_marketdata import WebSocketClient, RestClient
@@ -17,138 +18,63 @@ stock_info_map = {}
 
 # --- 2. 核心功能：抓取今日目標清單 ---
 def get_top_stocks_info(api_key):
-    print("🔍 正在偵測今日盤中強勢熱門股...")
-    rest_client = RestClient(api_key=api_key)
+    print("🔍 正在嘗試多重路徑抓取今日強勢熱門股...")
+    headers = {"X-API-KEY": api_key}
     
-    try:
-        # 正確的拼字：rankings
-        rankings = rest_client.stock.intraday.rankings(type='volumes')
-        candidates = [item['symbol'] for item in rankings][:50]
-        print(f"📈 成功取得熱門股清單 (共 {len(candidates)} 檔)")
-    except Exception as e:
-        print(f"⚠️ 無法取得即時排行 ({e})，切換至備用清單...")
-        candidates = ["2330", "2455", "2313", "5222", "6568", "2303", "2382", "3231"]
+    # 這是目前最有可能的兩個 v0.3 正確路徑
+    possible_urls = [
+        # 1. 最標準的 v0.3 即時排行路徑
+        "https://api.fugle.tw/marketdata/v0.3/stock/intraday/rankings/volumes",
+        # 2. 舊版的 query string 格式
+        "https://api.fugle.tw/marketdata/v0.3/stock/intraday/rankings?type=volumes",
+        # 3. 如果是新版 v1.0
+        "https://api.fugle.tw/marketdata/v1.0/stock/intraday/rankings/volumes"
+    ]
+    
+    candidates = []
+    
+    for url in possible_urls:
+        try:
+            print(f"📡 嘗試連線：{url}")
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                # 取得前 50 檔代號
+                candidates = [item['symbol'] for item in data.get('data', [])][:50]
+                if candidates:
+                    print(f"✨ 成功！從路徑找到 {len(candidates)} 檔標的")
+                    break # 抓到就跳出迴圈
+            else:
+                print(f"💡 此路徑狀態碼: {response.status_code}")
+        except Exception as e:
+            print(f"❓ 連線異常: {e}")
 
+    # --- 最終防線：如果 API 都沒回應 ---
+    if not candidates:
+        print("🚩 警告：API 路徑皆無法連通，切換至備用候選名單。")
+        # 幫你更新了更強大的備用名單
+        candidates = ["2330", "2317", "2454", "2603", "2609", "2303", "2382", "3231", "2455", "3037"]
+
+    # --- 下載個股基本資料 ---
+    from fugle_marketdata import RestClient
+    rest_client = RestClient(api_key=api_key)
     mapping = {}
     print("📦 正在下載個股基本面資料...")
+    
     for symbol in candidates:
         try:
             meta = rest_client.stock.intraday.meta(symbol=symbol)
-            # 更加穩健的名稱抓取
             name = meta.get("nameZh") or meta.get("name") or symbol
             mapping[symbol] = {
                 "name": name,
                 "industry": meta.get("industryZh") or "其他",
-                "themes": "量能激增強勢股"
+                "themes": "動態監控標的"
             }
             time.sleep(0.05) 
         except:
             mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "監控中"}
 
-    # 這裡會印出名稱，讓你確認有沒有抓到中文
     print(f"✅ 初始化完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:5])} ...")
-    return mapping
-    """
-    自動化清單功能：
-    1. 優先從富果 API 抓取今日成交量前 50 大熱門股。
-    2. 自動抓取每隻個股的中文名稱與產業分類。
-    3. 若 API 失敗則自動啟用備援名單，確保系統不中斷。
-    """
-    print("🔍 正在偵測今日盤中強勢熱門股...")
-    rest_client = RestClient(api_key=api_key)
-    
-    # --- 步驟 1：抓取熱門清單 ---
-    try:
-        # 修正拼字：rankings (原本多了一個 s)
-        rankings = rest_client.stock.intraday.rankings(type='volumes')
-        candidates = [item['symbol'] for item in rankings][:50]
-        print(f"📈 成功從富果 API 取得最新熱門股清單 (共 {len(candidates)} 檔)")
-    except Exception as e:
-        print(f"⚠️ 無法取得即時排行 ({e})，切換至備用候選名單...")
-        # 備用名單 (涵蓋權值與熱門股)
-        candidates = [
-            "2455", "2317", "5222", "6568", "2609", "2303", "2382", "3231", 
-            "2357", "2881", "2882", "1605", "2618", "2610", "1513", "1519"
-        ]
-
-    # --- 步驟 2：抓取詳細個股資訊 (名稱與產業) ---
-    mapping = {}
-    print("📦 正在下載個股基本面資料 (名稱、產業)...")
-    
-    for symbol in candidates:
-        try:
-            # 取得個股元數據 (Meta)
-            meta = rest_client.stock.intraday.meta(symbol=symbol)
-            
-            # 強化名稱抓取邏輯，確保中文能正常顯示
-            # 優先取 nameZh (繁體中文)，若無則取 name，最後才用代號
-            name = meta.get("nameZh") or meta.get("name") or symbol
-            industry = meta.get("industryZh") or "其他"
-            
-            mapping[symbol] = {
-                "name": name,
-                "industry": industry,
-                "themes": "量能激增強勢股" # 這裡可以固定，或未來擴充
-            }
-            
-            # 💡 蘇蘇的小撇步：在循環中加入微小停頓 (0.05秒)，防止被 API 伺服器誤認成攻擊
-            time.sleep(0.05) 
-            
-        except Exception as e:
-            # 如果單一標的抓取失敗，保留代號繼續執行，不讓整台車停下來
-            mapping[symbol] = {
-                "name": symbol, 
-                "industry": "未知", 
-                "themes": "動態監控標的"
-            }
-            continue
-
-    # 取得前 5 檔作為預覽顯示在螢幕上
-    names_preview = [m['name'] for m in mapping.values()][:5]
-    print(f"✅ 初始化完成！目前監控：{', '.join(names_preview)} ...等 {len(mapping)} 檔")
-    
-    return mapping
-    """
-    優先從富果 API 抓取成交量排行，失敗時才使用備用名單。
-    """
-    print("🔍 正在偵測今日盤中強勢熱門股...")
-    rest_client = RestClient(api_key=api_key)
-    
-    # 1. 嘗試抓取「成交量排行」 (Volumes Ranking)
-    try:
-        # 抓取前 50 檔熱門股 (免費版建議先從 50 檔開始，比較穩定)
-        # 註：富果 API rankings 參數：type='volumes' 代表成交量
-        rankings = rest_client.stock.intraday.rankings(type='volumes')
-        candidates = [item['symbol'] for item in rankings][:50] 
-        print(f"📈 成功從 API 取得最新熱門股清單 (前 {len(candidates)} 檔)")
-    except Exception as e:
-        print(f"⚠️ 無法取得即時排行 ({e})，切換至備用候選名單...")
-        # 備用名單 (Fallback List)
-        candidates = [
-            "2330", "2455", "6568", "5222", "2609", "2303", "2382", "3231", 
-            "2357", "2881", "2882", "1605", "2618", "2610", "1513", "1519"
-        ]
-
-    # 2. 抓取這 50 檔股票的詳細資訊 (名稱、產業)
-    mapping = {}
-    print("📦 正在下載個股基本面資料...")
-    
-    for symbol in candidates:
-        try:
-            # 取得個股元數據 (Meta)
-            meta = rest_client.stock.intraday.meta(symbol=symbol)
-            mapping[symbol] = {
-                "name": meta.get("nameZh", symbol),
-                "industry": meta.get("industryZh", "其他"),
-                "themes": "量能激增強勢股" # 這裡可以根據排行類型動態修改
-            }
-            # 稍微停頓避免被富果伺服器阻擋 (Rate Limit)
-            time.sleep(0.05) 
-        except Exception as e:
-            mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "動態監控"}
-            continue
-
-    print(f"✅ 初始化完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:5])} ...等 {len(mapping)} 檔")
     return mapping
 # --- 3. 策略判斷：處理每一筆即時報價 ---
 def handle_message(message):
