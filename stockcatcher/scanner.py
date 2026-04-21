@@ -53,7 +53,7 @@ def get_top_stocks_info(api_key):
     if not candidates:
         print("🚩 警告：API 路徑皆無法連通，切換至備用候選名單。")
         # 幫你更新了更強大的備用名單
-        candidates = ["2330", "2317", "2454", "2603", "2609", "2303", "2382", "3231", "2455", "3037"]
+        candidates = ["2313", "2455", "6568", "5222", "2609", "2303", "2382", "3231", "2455", "3037"]
 
     # --- 下載個股基本資料 ---
     from fugle_marketdata import RestClient
