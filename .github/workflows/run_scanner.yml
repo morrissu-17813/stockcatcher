@@ -1,0 +1,52 @@
+name: StockCatcher_Daily_Action
+
+# 設定啟動觸發條件
+on:
+  schedule:
+    # 這裡使用的是 UTC 時間 (台北時間 - 8 小時)
+    # '55 0 * * 1-5' 代表台北時間週一至週五 08:55 啟動
+    - cron: '55 0 * * 1-5'
+  
+  # 允許你在 GitHub 網頁上手動點擊啟動 (測試用)
+  workflow_dispatch:
+
+jobs:
+  run-stockcatcher:
+    # 使用最新的 Ubuntu 虛擬機環境
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 下載你的專案程式碼
+      - name: 📁 檢出專案代碼
+        uses: actions/checkout@v3
+
+      # 2. 安裝 Python 環境
+      - name: 🐍 設定 Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          # 快取套件可以加快下次執行的速度
+          cache: 'pip'
+
+      # 3. 安裝必要套件 (指向子資料夾中的 requirements.txt)
+      - name: 📦 安裝相依套件
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f stockcatcher/requirements.txt ]; then
+            pip install -r stockcatcher/requirements.txt
+          else
+            # 如果找不到檔案，則手動安裝核心套件
+            pip install fugle-marketdata requests python-dotenv line-bot-sdk
+          fi
+
+      # 4. 執行主程式 (指向子資料夾中的 scanner.py)
+      - name: 🚀 啟動 StockCatcher 監控引擎
+        env:
+          # 將你先前在 GitHub Settings 填寫的 Secrets 映射進環境變數
+          FUGLE_API_KEY: ${{ secrets.FUGLE_API_KEY }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        # 核心指令：進入資料夾執行或是直接指定路徑執行
+        run: python stockcatcher/scanner.py
