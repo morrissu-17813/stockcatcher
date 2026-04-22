@@ -2,6 +2,9 @@ import os
 import json
 import time
 import requests # 確保檔案最上方有 import requests
+import re
+# import pandas as pd
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from fugle_marketdata import WebSocketClient, RestClient
@@ -16,65 +19,146 @@ FUGLE_API_KEY = os.getenv("FUGLE_API_KEY")
 monitor_data = {}
 stock_info_map = {}
 
+def send_tg_msg(message):
+    """ 發送訊息到 Telegram """
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    
+    # 檢查有沒有設定金鑰，沒設定就不發送
+    if not token or not chat_id:
+        print("⚠️ 找不到 Telegram Token 或 Chat ID，略過發送。")
+        return
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+    
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code == 200:
+            print("📤 Telegram 訊息發送成功！")
+        else:
+            print(f"❌ TG 發送失敗，狀態碼：{response.status_code}, 回應：{response.text}")
+    except Exception as e:
+        print(f"❌ TG 連線異常：{e}")
 # --- 2. 核心功能：抓取今日目標清單 ---
-def get_top_stocks_info(api_key):
-    print("🔍 正在嘗試多重路徑抓取今日強勢熱門股...")
-    headers = {"X-API-KEY": api_key}
-    
-    # 這是目前最有可能的兩個 v0.3 正確路徑
-    possible_urls = [
-        # 1. 最標準的 v0.3 即時排行路徑
-        "https://api.fugle.tw/marketdata/v0.3/stock/intraday/rankings/volumes",
-        # 2. 舊版的 query string 格式
-        "https://api.fugle.tw/marketdata/v0.3/stock/intraday/rankings?type=volumes",
-        # 3. 如果是新版 v1.0
-        "https://api.fugle.tw/marketdata/v1.0/stock/intraday/rankings/volumes"
-    ]
-    
-    candidates = []
-    
-    for url in possible_urls:
-        try:
-            print(f"📡 嘗試連線：{url}")
-            response = requests.get(url, headers=headers, timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                # 取得前 50 檔代號
-                candidates = [item['symbol'] for item in data.get('data', [])][:50]
-                if candidates:
-                    print(f"✨ 成功！從路徑找到 {len(candidates)} 檔標的")
-                    break # 抓到就跳出迴圈
-            else:
-                print(f"💡 此路徑狀態碼: {response.status_code}")
-        except Exception as e:
-            print(f"❓ 連線異常: {e}")
+def fetch_yahoo_rankings():
+    """ 爬取 Yahoo 奇摩股市 - 成交量排行 (防呆過濾版) """
+    try:
+        print("🌐 正在從 Yahoo 奇摩股市抓取成交量排行...")
+        url = "https://tw.stock.yahoo.com/rank/volume"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        res = requests.get(url, headers=headers, timeout=10)
+        
+        # 準備一個空的容器裝代號
+        candidates = []
+        
+        # --- 方法 1：從網址路徑提取 (最精準) ---
+        soup = BeautifulSoup(res.text, 'html.parser')
+        links = soup.find_all('a', href=True)
+        for link in links:
+            href = link['href']
+            # 尋找包含 /stock/ 或 /quote/ 後接數字的路徑
+            match = re.search(r'/(?:stock|quote)/(\d{4,6})', href)
+            if match:
+                s = match.group(1)  # 抓到代號了
+                # 🛡️ 關鍵過濾：長度必須為 4 且不是年份
+                if len(s) == 4 and s not in ['2024', '2025', '2026']:
+                    if s not in candidates:
+                        candidates.append(s)
+        
+        # --- 方法 2：如果方法 1 沒抓到，改用文字掃描 (最暴力) ---
+        if not candidates:
+            print("⚠️ 路徑提取失敗，嘗試文字掃描法...")
+            # 尋找全文中所有 4 到 6 位的數字
+            all_numbers = re.findall(r'\b\d{4,6}\b', res.text)
+            # 🛡️ 關鍵過濾：長度必須為 4 且不是年份
+            candidates = [n for n in all_numbers if len(n) == 4 and n not in ['2024', '2025', '2026']]
 
-    # --- 最終防線：如果 API 都沒回應 ---
+        # 移除重複項並只取前 50 檔
+        final_list = list(dict.fromkeys(candidates))[:50]
+        
+        if final_list:
+            print(f"✨ 成功！經過過濾後提取到 {len(final_list)} 檔純淨標的")
+            return final_list
+        else:
+            print("🚩 Yahoo 頁面目前無有效數據")
+            return []
+            
+    except Exception as e:
+        # 這裡會印出具體的錯誤原因，方便我們除錯
+        print(f"❌ Yahoo 抓取異常: {e}")
+        return []
+def fetch_finmind_rankings(token=""):
+    """ 從 FinMind 抓取今日熱門股 (輕量版，不需 pandas) """
+    try:
+        print("📊 正在從 FinMind 抓取今日熱門標的...")
+        url = "https://api.finmindtrade.com/api/v4/data"
+        parameter = {
+            "dataset": "TaiwanStockHot", 
+            "token": token
+        }
+        resp = requests.get(url, params=parameter)
+        data = resp.json()
+        if data.get('msg') == 'success':
+            # 直接從 list of dict 中取出 stock_id
+            raw_list = [item['stock_id'] for item in data.get('data', [])]
+            # 去重並取前 50
+            return list(dict.fromkeys(raw_list))[:50]
+        return []
+    except Exception as e:
+        print(f"❌ FinMind 抓取失敗: {e}")
+        return []
+def get_top_stocks_info(api_key, finmind_token=""):
+    print("🚀 [混合模式] 啟動多源選股引擎...")
+    
+    # 核心指定標的 (你的必看名單)
+    my_must_watch = ["2313", "2455", "6568", "5222","2340","6261"]
+    
+    # --- 策略：層級式抓取 ---
+    # 1. 先試 Yahoo (最即時)
+    candidates = fetch_yahoo_rankings()
+    
+    # 2. Yahoo 失敗則試 FinMind
     if not candidates:
-        print("🚩 警告：API 路徑皆無法連通，切換至備用候選名單。")
-        # 幫你更新了更強大的備用名單
-        candidates = ["2313", "2455", "6568", "5222", "2609", "2303", "2382", "3231", "2455", "3037"]
+        candidates = fetch_finmind_rankings(finmind_token)
+        
+    # 3. 若都失敗，才用富果官方 (或備援)
+    if not candidates:
+        print("⚠️ 外部來源皆失敗，嘗試富果官方 API...")
+        # ... 這裡放你原本的富果排行抓取邏輯 ...
+        pass
 
-    # --- 下載個股基本資料 ---
-    from fugle_marketdata import RestClient
+    # 合併清單：必看 4 檔 + 抓到的熱門股 (去重)
+    final_list = list(dict.fromkeys(my_must_watch + (candidates or [])))[:50]
+    
+    # 最終備援防線
+    if not final_list:
+        final_list = my_must_watch + ["2330", "2317", "2454", "2603", "2609"]
+
+    # --- 呼叫富果 API 獲取 Meta 資訊 (這部分權限通常沒問題) ---
     rest_client = RestClient(api_key=api_key)
     mapping = {}
-    print("📦 正在下載個股基本面資料...")
+    print(f"📦 正在透過富果 API 同步 {len(final_list)} 檔個股 Meta 資料...")
     
-    for symbol in candidates:
+    for symbol in final_list:
         try:
             meta = rest_client.stock.intraday.meta(symbol=symbol)
-            name = meta.get("nameZh") or meta.get("name") or symbol
             mapping[symbol] = {
-                "name": name,
-                "industry": meta.get("industryZh") or "其他",
-                "themes": "動態監控標的"
+                "name": meta.get("nameZh", symbol),
+                "industry": meta.get("industryZh", "其他"),
+                "themes": "外部排行強勢股"
             }
             time.sleep(0.05) 
         except:
-            mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "監控中"}
+            mapping[symbol] = {"name": symbol, "industry": "未知"}
 
-    print(f"✅ 初始化完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:5])} ...")
+    print(f"✅ 選股完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:8])}...")
     return mapping
 # --- 3. 策略判斷：處理每一筆即時報價 ---
 def handle_message(message):
@@ -96,7 +180,9 @@ def handle_message(message):
         quote = data.get("data", {})
         symbol = quote.get("symbol")
         price = quote.get("lastPrice")
-        
+        if symbol and price:
+            # 💡 [關鍵偵錯行]：這行會讓你在 GitHub Log 看到即時跳動的數字
+            print(f"📡 [收訊正常] {symbol} 目前價: {price}")
         if not symbol or price is None:
             return
 
@@ -194,6 +280,7 @@ def main():
     stock.on("close", lambda: print("🔌 連線已關閉"))
 
     print("🚀 StockCatcher 啟動中，等待數據...")
+    send_tg_msg("🤖 機器人回報：目前已進入守候模式，等待明早開盤！")
     stock.connect()
 
 if __name__ == "__main__":
