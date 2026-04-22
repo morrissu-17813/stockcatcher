@@ -19,11 +19,11 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 📦 強制更新並安裝套件
+      - name: 📦 安裝相依套件
         run: |
           python -m pip install --upgrade pip
-          # 💡 蘇蘇提醒：這裡使用 --upgrade 確保抓到最新版 SDK，解決 AttributeError
-          pip install --upgrade fugle-marketdata requests python-dotenv line-bot-sdk
+          # 💡 蘇蘇提醒：直接把要用的套件寫在這裡，保證雲端一定會裝到
+          pip install beautifulsoup4 pandas requests fugle-marketdata python-dotenv line-bot-sdk
 
       - name: 🚀 啟動 StockCatcher 監控引擎
         env:
@@ -33,6 +33,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          # 💡 蘇蘇提醒：必須先 cd 進入子資料夾，否則程式會找不到 line_test.py
+          # 💡 根據你的錯誤路徑，嘗試進入正確的資料夾
+          # 如果你的 scanner.py 在 stockcatcher 資料夾裡，就執行下面這行
           cd stockcatcher
           python scanner.py
