@@ -5,6 +5,7 @@ import requests # 確保檔案最上方有 import requests
 import re
 # import pandas as pd
 from bs4 import BeautifulSoup
+from datetime import time as dtime
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from fugle_marketdata import WebSocketClient, RestClient
@@ -156,7 +157,7 @@ def get_top_stocks_info(api_key, finmind_token=""):
             }
             time.sleep(0.05) 
         except:
-            mapping[symbol] = {"name": symbol, "industry": "未知"}
+           mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "觀察中"}
 
     print(f"✅ 選股完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:8])}...")
     return mapping
@@ -182,7 +183,7 @@ def handle_message(message):
         price = quote.get("lastPrice")
         if symbol and price:
             # 💡 [關鍵偵錯行]：這行會讓你在 GitHub Log 看到即時跳動的數字
-            print(f"📡 [收訊正常] {symbol} 目前價: {price}")
+           print(f"📡 [收訊正常] {symbol} 目前價: {price}", flush=True)
         if not symbol or price is None:
             return
 
@@ -195,7 +196,7 @@ def handle_message(message):
         end_time = datetime.strptime("13:30", "%H:%M").time()
 
         # A. 09:00 ~ 09:15 紀錄區間高低
-        if start_time <= now <= check_time:
+        if dtime(9, 0) <= now <= dtime(9, 15):
             if price > monitor_data[symbol]["high"]:
                 monitor_data[symbol]["high"] = price
             if price < monitor_data[symbol]["low"]:
@@ -206,8 +207,8 @@ def handle_message(message):
                 print(f"🕒 [紀錄中] {info['name']} 區間高: {monitor_data[symbol]['high']}")
 
         # B. 09:15 ~ 13:30 判斷突破
-        elif check_time < now <= end_time:
-        # elif True:  # 測試用，強制進入判斷
+        # elif dtime(9, 15) < now <= dtime(13, 30):
+        elif True:  # 測試用，強制進入判斷
             if not monitor_data[symbol]["triggered"] and monitor_data[symbol]["high"] > 0:
                 h15 = monitor_data[symbol]["high"]
                 l15 = monitor_data[symbol]["low"]
@@ -215,21 +216,25 @@ def handle_message(message):
                 # 多頭突破
                 if price > h15:
                     print(f"🚀 {info['name']} 多頭突破！現價: {price}")
-                    stop_loss = max(l15, round(h15 * 0.975, 2)) # 停損設在 15 分低或 2.5% 處
-                    # 1. 保留原本的 Line 推播
+                    stop_loss = max(l15, round(h15 * 0.975, 2))
+                    
+                    # 💡 使用 .get() 安全取值
+                    s_industry = info.get('industry', '未知')
+                    s_themes = info.get('themes', '觀察中')
+
                     send_3k_alert(
                         stock_id=f"{symbol} {info['name']}",
                         trend="📈 盤中 3K 多頭突破",
                         price=price,
                         limit_price=h15,
                         stop_loss=stop_loss,
-                        industry=info['industry'],
-                        themes=info['themes']
+                        industry=s_industry, # 改用安全變數
+                        themes=s_themes      # 改用安全變數
                     )
-                    # 2. 新增 Telegram 推播
+                    
                     send_tg_alert(
                         f"{symbol} {info['name']}", "盤中 3K 多頭突破", 
-                        price, h15, stop_loss, info['industry'], info['themes']
+                        price, h15, stop_loss, s_industry, s_themes
                     )
                     monitor_data[symbol]["triggered"] = True
                 
@@ -251,19 +256,28 @@ def handle_message(message):
 # --- 4. 主程式啟動 ---
 def main():
     global stock_info_map, monitor_data
-    
-    if not FUGLE_API_KEY:
-        print("❌ 錯誤：找不到 API Key，請檢查 .env 檔案。")
-        return
+    load_dotenv()
+    api_key = os.getenv("FUGLE_API_KEY")
 
     # 1. 取得標的與資訊
-    stock_info_map = get_top_stocks_info(FUGLE_API_KEY)
+    stock_info_map = get_top_stocks_info(api_key)
     
-    # 2. 初始化監控狀態
-    monitor_data = {
-        sid: {"high": 0, "low": 9999, "triggered": False} 
-        for sid in stock_info_map.keys()
-    }
+    # 2. 💡 [強化邏輯]：初始化監控狀態，並先用 REST 抓取目前的區間高低
+    rest_client = RestClient(api_key=api_key)
+    monitor_data = {}
+    
+    print("⏳ 正在初始化區間數據 (H15/L15)...")
+    for sid in stock_info_map.keys():
+        try:
+            # 抓取當日的日線/區間資料作為保險
+            quote = rest_client.stock.intraday.quote(symbol=sid)
+            day_high = quote.get("highPrice", 0)
+            day_low = quote.get("lowPrice", 9999)
+            
+            # 如果現在已經過 09:15，直接把目前的最高價當作基準
+            monitor_data[sid] = {"high": day_high, "low": day_low, "triggered": False}
+        except:
+            monitor_data[sid] = {"high": 0, "low": 9999, "triggered": False}
     
     # 3. 建立 WebSocket 連線
     client = WebSocketClient(api_key=FUGLE_API_KEY)
@@ -281,6 +295,30 @@ def main():
 
     print("🚀 StockCatcher 啟動中，等待數據...")
     send_tg_msg("🤖 機器人回報：目前已進入守候模式，等待明早開盤！")
+    # ---------------------------------------------------------
+    # 🧪 [模擬突破測試區] 
+    # ---------------------------------------------------------
+    print("🧪 正在進行 2313 模擬突破測試...", flush=True)
+    
+    # 1. 先手動給予 2313 一個低門檻的高點
+    monitor_data["2313"] = {"high": 10.0, "low": 5.0, "triggered": False}
+    
+    # 2. 準備一個「模擬訊息」，設定現價為 15 (大於高點 10)
+    mock_msg = {
+        "event": "data",
+        "resource": "stock.intraday.quote",
+        "data": {
+            "symbol": "2313",
+            "lastPrice": 15.0
+        }
+    }
+    
+    # 3. 直接呼叫 handle_message 餵食這筆假資料
+    handle_message(json.dumps(mock_msg))
+    print("🧪 模擬測資發送完成，請檢查 Telegram 是否收到通知！", flush=True)
+    # ---------------------------------------------------------
+
+    print("🚀 StockCatcher 啟動中，等待數據...")
     stock.connect()
 
 if __name__ == "__main__":

@@ -36,4 +36,4 @@ jobs:
           # 💡 根據你的錯誤路徑，嘗試進入正確的資料夾
           # 如果你的 scanner.py 在 stockcatcher 資料夾裡，就執行下面這行
           cd stockcatcher
-          python scanner.py
+          python -u scanner.py  # -u 會強迫 print 立即顯示
