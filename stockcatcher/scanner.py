@@ -147,17 +147,28 @@ def get_top_stocks_info(api_key, finmind_token=""):
     mapping = {}
     print(f"📦 正在透過富果 API 同步 {len(final_list)} 檔個股 Meta 資料...")
     
+   # 在 get_top_stocks_info 的 for 迴圈中
     for symbol in final_list:
         try:
-            meta = rest_client.stock.intraday.meta(symbol=symbol)
+            # 💡 1. 使用 ticker() 指令
+            data = rest_client.stock.intraday.ticker(symbol=symbol)
+            
+            # 💡 2. 使用新版鍵值：'name' 和 'industry'
+            s_name = data.get("name", symbol)
+            s_industry = data.get("industry", "其他")
+            
             mapping[symbol] = {
-                "name": meta.get("nameZh", symbol),
-                "industry": meta.get("industryZh", "其他"),
-                "themes": "外部排行強勢股"
+                "name": s_name,
+                "industry": s_industry,
+                "themes": "核心監控" if symbol in my_must_watch else "排行熱門股"
             }
-            time.sleep(0.05) 
-        except:
-           mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "觀察中"}
+            print(f"✅ {symbol} 同步成功：{s_name}")
+            time.sleep(0.1) 
+            
+        except Exception as e:
+            print(f"❌ {symbol} API 異常：{e}")
+            mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "觀察中"}
+        
 
     print(f"✅ 選股完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:8])}...")
     return mapping
@@ -189,11 +200,14 @@ def handle_message(message):
 
         info = stock_info_map.get(symbol, {"name": symbol, "industry": "未知", "themes": "觀察中"})
 
-        # 時間判斷邏輯        
-        now = now_tw.time()        
-        start_time = datetime.strptime("09:00", "%H:%M").time()
-        check_time = datetime.strptime("09:15", "%H:%M").time()
-        end_time = datetime.strptime("13:30", "%H:%M").time()
+       # --- 策略判斷邏輯開始 ---
+        now = now_tw.time()
+        
+        # 💡 先取出安全變數，避免後續多頭/空頭邏輯重複撰寫且噴錯
+        s_name = info.get('name', symbol)
+        s_industry = info.get('industry', '未知')
+        s_themes = info.get('themes', '觀察中')
+        s_full_name = f"{symbol} {s_name}"
 
         # A. 09:00 ~ 09:15 紀錄區間高低
         if dtime(9, 0) <= now <= dtime(9, 15):
@@ -202,57 +216,64 @@ def handle_message(message):
             if price < monitor_data[symbol]["low"]:
                 monitor_data[symbol]["low"] = price
             
-            # 每隔一段時間在終端機顯示一次紀錄狀態（避免洗屏）
+            # 每隔一段時間顯示紀錄狀態（增加 flush=True 確保 GitHub 日誌即時）
             if int(time.time()) % 10 == 0:
-                print(f"🕒 [紀錄中] {info['name']} 區間高: {monitor_data[symbol]['high']}")
+                print(f"🕒 [紀錄中] {s_name} 區間高: {monitor_data[symbol]['high']} / 區間低: {monitor_data[symbol]['low']}", flush=True)
 
-        # B. 09:15 ~ 13:30 判斷突破
-        # elif dtime(9, 15) < now <= dtime(13, 30):
-        elif True:  # 測試用，強制進入判斷
-            if not monitor_data[symbol]["triggered"] and monitor_data[symbol]["high"] > 0:
-                h15 = monitor_data[symbol]["high"]
-                l15 = monitor_data[symbol]["low"]
+        # B. 09:15 ~ 13:30 判斷突破 (測試模式下保留 or True)
+        elif dtime(9, 15) < now <= dtime(13, 30) or True:
+            data_entry = monitor_data[symbol]
+            
+            # 🛡️ 關鍵防錯：必須 high 有紀錄(>0) 且 low 有紀錄(<9999) 才進行判斷，避免開盤誤報
+            if not data_entry["triggered"] and data_entry["high"] > 0 and data_entry["low"] < 9999:
+                h15 = data_entry["high"]
+                l15 = data_entry["low"]
 
-                # 多頭突破
+                # 🚀 多頭突破
                 if price > h15:
-                    print(f"🚀 {info['name']} 多頭突破！現價: {price}")
-                    stop_loss = max(l15, round(h15 * 0.975, 2))
+                    print(f"🚀 {s_full_name} 多頭突破！現價: {price}", flush=True)
+                    stop_loss = max(l15, round(h15 * 0.975, 2)) # 停損設在 15 分低或 2.5% 處
                     
-                    # 💡 使用 .get() 安全取值
-                    s_industry = info.get('industry', '未知')
-                    s_themes = info.get('themes', '觀察中')
-
+                    # Line 推播
                     send_3k_alert(
-                        stock_id=f"{symbol} {info['name']}",
+                        stock_id=s_full_name,
                         trend="📈 盤中 3K 多頭突破",
                         price=price,
                         limit_price=h15,
                         stop_loss=stop_loss,
-                        industry=s_industry, # 改用安全變數
-                        themes=s_themes      # 改用安全變數
+                        industry=s_industry,
+                        themes=s_themes
                     )
                     
+                    # Telegram 推播
                     send_tg_alert(
-                        f"{symbol} {info['name']}", "盤中 3K 多頭突破", 
+                        s_full_name, "盤中 3K 多頭突破", 
                         price, h15, stop_loss, s_industry, s_themes
                     )
                     monitor_data[symbol]["triggered"] = True
                 
-                # 空頭跌破
+                # 💀 空頭跌破
                 elif price < l15:
-                    print(f"💀 {info['name']} 空頭跌破！現價: {price}")
+                    print(f"💀 {s_full_name} 空頭跌破！現價: {price}", flush=True)
                     stop_loss = min(h15, round(l15 * 1.025, 2))
+                    
+                    # Line 推播
                     send_3k_alert(
-                        stock_id=f"{symbol} {info['name']}",
+                        stock_id=s_full_name,
                         trend="📉 盤中 3K 空頭跌破",
                         price=price,
                         limit_price=l15,
                         stop_loss=stop_loss,
-                        industry=info['industry'],
-                        themes=info['themes']
+                        industry=s_industry, # 已修正：使用安全變數
+                        themes=s_themes      # 已修正：使用安全變數
+                    )
+                    
+                    # Telegram 推播 (如果你的 send_tg_alert 有支援跌破也請補上)
+                    send_tg_alert(
+                        s_full_name, "盤中 3K 空頭跌破", 
+                        price, l15, stop_loss, s_industry, s_themes
                     )
                     monitor_data[symbol]["triggered"] = True
-
 # --- 4. 主程式啟動 ---
 def main():
     global stock_info_map, monitor_data
@@ -293,7 +314,6 @@ def main():
     stock.on("error", lambda err: print(f"❌ 錯誤: {err}"))
     stock.on("close", lambda: print("🔌 連線已關閉"))
 
-    print("🚀 StockCatcher 啟動中，等待數據...")
     send_tg_msg("🤖 機器人回報：目前已進入守候模式，等待明早開盤！")
     # ---------------------------------------------------------
     # 🧪 [模擬突破測試區] 
@@ -317,9 +337,20 @@ def main():
     handle_message(json.dumps(mock_msg))
     print("🧪 模擬測資發送完成，請檢查 Telegram 是否收到通知！", flush=True)
     # ---------------------------------------------------------
-
-    print("🚀 StockCatcher 啟動中，等待數據...")
-    stock.connect()
+    try:
+        print("🚀 StockCatcher 已就位，正在監控即時報價...", flush=True)
+        # 程式會停在下面這行，直到「連線中斷」或「手動關閉」
+        stock.connect() 
+        
+    except KeyboardInterrupt:
+        print("\n👋 收到停止指令，準備安全退出...")
+    except Exception as e:
+        print(f"❌ 運行中發生錯誤: {e}")
+    finally:
+        # 💡 只有當上面的「監控狀態」結束了，才會來這裡清場
+        if hasattr(stock, 'disconnect'):
+            print("🔌 正在歸還 API 連線額度...", flush=True)
+            stock.disconnect()
 
 if __name__ == "__main__":
     main()
