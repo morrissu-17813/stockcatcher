@@ -338,19 +338,26 @@ def main():
     print("🧪 模擬測資發送完成，請檢查 Telegram 是否收到通知！", flush=True)
     # ---------------------------------------------------------
     try:
-        print("🚀 StockCatcher 已就位，正在監控即時報價...", flush=True)
-        # 程式會停在下面這行，直到「連線中斷」或「手動關閉」
-        stock.connect() 
+        print("🚀 StockCatcher 進入監控模式，準備接手即時數據...", flush=True)
         
-    except KeyboardInterrupt:
-        print("\n👋 收到停止指令，準備安全退出...")
+        # 💡 關鍵：啟動連線
+        stock.connect()
+        
+        # 如果 stock.connect() 因為 SDK 設計不會「卡住」程式
+        # 我們要在這裡加一個「人工防護網」
+        import time
+        while True:
+            # 每 10 分鐘檢查一次連線狀態 (視 SDK 支援度而定)
+            # 或者單純讓程式在這邊無限迴圈，直到 GitHub 6 小時限制到期
+            time.sleep(600) 
+            print("📡 偵察機維持守候中...", flush=True)
+
     except Exception as e:
-        print(f"❌ 運行中發生錯誤: {e}")
+        print(f"❌ 運行中斷，錯誤原因: {e}", flush=True)
+        send_tg_msg(f"⚠️ 偵察機異常中斷：{e}")
     finally:
-        # 💡 只有當上面的「監控狀態」結束了，才會來這裡清場
-        if hasattr(stock, 'disconnect'):
-            print("🔌 正在歸還 API 連線額度...", flush=True)
-            stock.disconnect()
+        print("🔌 正在安全關閉連線...", flush=True)
+        stock.disconnect()
 
 if __name__ == "__main__":
     main()
