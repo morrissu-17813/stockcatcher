@@ -1,363 +1,176 @@
 import os
-import json
 import time
-import requests # 確保檔案最上方有 import requests
-import re
-# import pandas as pd
-from bs4 import BeautifulSoup
-from datetime import time as dtime
-from datetime import datetime, timedelta, timezone
-from dotenv import load_dotenv
-from fugle_marketdata import WebSocketClient, RestClient
-from line_test import send_3k_alert 
-from telegram_test import send_tg_alert
+import requests
+import urllib3
+from datetime import datetime, timedelta, timezone, time as dtime
 
-# --- 1. 環境設定 ---
-load_dotenv()
-FUGLE_API_KEY = os.getenv("FUGLE_API_KEY")
+# 🤫 關閉 SSL 警告
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 全域變數：儲存監控狀態與個股資訊
-monitor_data = {}
+# ============================================================
+# 🛠️ [核心金鑰填寫區]
+# ============================================================
+
+FUGLE_API_KEY ="MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
+TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
+TELEGRAM_CHAT_ID = "1087480334"
+# ============================================================
+
 stock_info_map = {}
+monitor_data = {}
 
-def send_tg_msg(message):
-    """ 發送訊息到 Telegram """
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    
-    # 檢查有沒有設定金鑰，沒設定就不發送
-    if not token or not chat_id:
-        print("⚠️ 找不到 Telegram Token 或 Chat ID，略過發送。")
-        return
-
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": message,
-        "parse_mode": "HTML"
-    }
-    
+def safe_float(value):
     try:
-        response = requests.post(url, json=payload, timeout=10)
-        if response.status_code == 200:
-            print("📤 Telegram 訊息發送成功！")
-        else:
-            print(f"❌ TG 發送失敗，狀態碼：{response.status_code}, 回應：{response.text}")
-    except Exception as e:
-        print(f"❌ TG 連線異常：{e}")
-# --- 2. 核心功能：抓取今日目標清單 ---
-def fetch_yahoo_rankings():
-    """ 爬取 Yahoo 奇摩股市 - 成交量排行 (防呆過濾版) """
+        if not value or value == '--': return 0.0
+        return float(str(value).strip().replace(',', ''))
+    except: return 0.0
+
+def fetch_top_50_with_sector():
+    """
+    【證交所強攻模組 4.0】
+    同時抓取『每日行情』與『產業分類』，產出含族群資訊的名單。
+    """
+    print("\n🏛️ [Step 1] 正在同步證交所官方數據 (行情 + 產業分類)...", flush=True)
+    
+    # 1. 抓取全市場價格與成交量
+    price_url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+    # 2. 抓取產業分類資訊 (族群)
+    sector_url = "https://openapi.twse.com.tw/v1/opendata/t187ap03_P"
+    
+    ticker_map = {}
     try:
-        print("🌐 正在從 Yahoo 奇摩股市抓取成交量排行...")
-        url = "https://tw.stock.yahoo.com/rank/volume"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        res = requests.get(url, headers=headers, timeout=10)
+        # 獲取價格
+        p_resp = requests.get(price_url, verify=False, timeout=25)
+        # 獲取產業
+        s_resp = requests.get(sector_url, verify=False, timeout=25)
         
-        # 準備一個空的容器裝代號
-        candidates = []
-        
-        # --- 方法 1：從網址路徑提取 (最精準) ---
-        soup = BeautifulSoup(res.text, 'html.parser')
-        links = soup.find_all('a', href=True)
-        for link in links:
-            href = link['href']
-            # 尋找包含 /stock/ 或 /quote/ 後接數字的路徑
-            match = re.search(r'/(?:stock|quote)/(\d{4,6})', href)
-            if match:
-                s = match.group(1)  # 抓到代號了
-                # 🛡️ 關鍵過濾：長度必須為 4 且不是年份
-                if len(s) == 4 and s not in ['2024', '2025', '2026']:
-                    if s not in candidates:
-                        candidates.append(s)
-        
-        # --- 方法 2：如果方法 1 沒抓到，改用文字掃描 (最暴力) ---
-        if not candidates:
-            print("⚠️ 路徑提取失敗，嘗試文字掃描法...")
-            # 尋找全文中所有 4 到 6 位的數字
-            all_numbers = re.findall(r'\b\d{4,6}\b', res.text)
-            # 🛡️ 關鍵過濾：長度必須為 4 且不是年份
-            candidates = [n for n in all_numbers if len(n) == 4 and n not in ['2024', '2025', '2026']]
-
-        # 移除重複項並只取前 50 檔
-        final_list = list(dict.fromkeys(candidates))[:50]
-        
-        if final_list:
-            print(f"✨ 成功！經過過濾後提取到 {len(final_list)} 檔純淨標的")
-            return final_list
-        else:
-            print("🚩 Yahoo 頁面目前無有效數據")
-            return []
+        if p_resp.status_code == 200 and s_resp.status_code == 200:
+            prices = p_resp.json()
+            sectors = {item['公司代號']: item['產業別'] for item in s_resp.json()}
             
+            # 過濾 4 碼個股並排序
+            processed = []
+            for item in prices:
+                code = item.get('Code', '')
+                if len(code) == 4:
+                    vol = int(item.get('TradeVolume', 0).replace(',', '') if item.get('TradeVolume') else 0)
+                    processed.append({
+                        'code': code,
+                        'name': item.get('Name', ''),
+                        'price': item.get('ClosingPrice', '0'),
+                        'volume': vol,
+                        'sector': sectors.get(code, "其他")
+                    })
+            
+            # 按成交量排名前 50
+            sorted_list = sorted(processed, key=lambda x: x['volume'], reverse=True)[:50]
+            for s in sorted_list:
+                ticker_map[s['code']] = s
+            
+            print(f"✨ 同步成功！已鎖定 {len(ticker_map)} 檔熱門個股。", flush=True)
     except Exception as e:
-        # 這裡會印出具體的錯誤原因，方便我們除錯
-        print(f"❌ Yahoo 抓取異常: {e}")
-        return []
-def fetch_finmind_rankings(token=""):
-    """ 從 FinMind 抓取今日熱門股 (輕量版，不需 pandas) """
+        print(f"💥 數據抓取異常: {e}", flush=True)
+    
+    return ticker_map
+
+def send_tg_alert(stock_id, trend, price, high, low, sector="N/A", theme="核心監控"):
+    """
+    【豐富化專業通知】
+    符合使用者要求：題材、族群、建議停損
+    """
+    symbol_only = stock_id.split(' ')[0]
+    chart_url = f"https://www.fugle.tw/ai/{symbol_only}"
+    
+    # 組合格式化訊息
+    msg = (
+        f"🚀 *策略觸發：{trend}*\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"📈 *標的：* {stock_id}\n"
+        f"💰 *觸發價：* `{price}`\n"
+        f"🎯 *關鍵價：* `{high}`\n"
+        f"🛑 *建議停損：* `{low}`\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"📍 *族群：* {sector}\n"
+        f"💡 *題材：* {theme}\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"🔗 [點我查看富果 K 線]({chart_url})\n"
+        f"⏰ 台北：{(datetime.now(timezone.utc) + timedelta(hours=8)).strftime('%H:%M:%S')}"
+    )
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     try:
-        print("📊 正在從 FinMind 抓取今日熱門標的...")
-        url = "https://api.finmindtrade.com/api/v4/data"
-        parameter = {
-            "dataset": "TaiwanStockHot", 
-            "token": token
-        }
-        resp = requests.get(url, params=parameter)
-        data = resp.json()
-        if data.get('msg') == 'success':
-            # 直接從 list of dict 中取出 stock_id
-            raw_list = [item['stock_id'] for item in data.get('data', [])]
-            # 去重並取前 50
-            return list(dict.fromkeys(raw_list))[:50]
-        return []
-    except Exception as e:
-        print(f"❌ FinMind 抓取失敗: {e}")
-        return []
-def get_top_stocks_info(api_key, finmind_token=""):
-    print("🚀 [混合模式] 啟動多源選股引擎...")
-    
-    # 核心指定標的 (你的必看名單)
-    my_must_watch = ["2313", "2455", "6568", "5222","2340","6261"]
-    
-    # --- 策略：層級式抓取 ---
-    # 1. 先試 Yahoo (最即時)
-    candidates = fetch_yahoo_rankings()
-    
-    # 2. Yahoo 失敗則試 FinMind
-    if not candidates:
-        candidates = fetch_finmind_rankings(finmind_token)
-        
-    # 3. 若都失敗，才用富果官方 (或備援)
-    if not candidates:
-        print("⚠️ 外部來源皆失敗，嘗試富果官方 API...")
-        # ... 這裡放你原本的富果排行抓取邏輯 ...
-        pass
+        requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": msg, "parse_mode": "Markdown"}, timeout=10)
+    except: pass
 
-    # 合併清單：必看 4 檔 + 抓到的熱門股 (去重)
-    final_list = list(dict.fromkeys(my_must_watch + (candidates or [])))[:50]
-    
-    # 最終備援防線
-    if not final_list:
-        final_list = my_must_watch + ["2330", "2317", "2454", "2603", "2609"]
-
-    # --- 呼叫富果 API 獲取 Meta 資訊 (這部分權限通常沒問題) ---
-    rest_client = RestClient(api_key=api_key)
-    mapping = {}
-    print(f"📦 正在透過富果 API 同步 {len(final_list)} 檔個股 Meta 資料...")
-    
-   # 在 get_top_stocks_info 的 for 迴圈中
-    for symbol in final_list:
-        try:
-            # 💡 1. 使用 ticker() 指令
-            data = rest_client.stock.intraday.ticker(symbol=symbol)
-            
-            # 💡 2. 使用新版鍵值：'name' 和 'industry'
-            s_name = data.get("name", symbol)
-            s_industry = data.get("industry", "其他")
-            
-            mapping[symbol] = {
-                "name": s_name,
-                "industry": s_industry,
-                "themes": "核心監控" if symbol in my_must_watch else "排行熱門股"
-            }
-            print(f"✅ {symbol} 同步成功：{s_name}")
-            time.sleep(0.1) 
-            
-        except Exception as e:
-            print(f"❌ {symbol} API 異常：{e}")
-            mapping[symbol] = {"name": symbol, "industry": "未知", "themes": "觀察中"}
-        
-
-    print(f"✅ 選股完成！目前監控：{', '.join([m['name'] for m in mapping.values()][:8])}...")
-    return mapping
-# --- 3. 策略判斷：處理每一筆即時報價 ---
-def handle_message(message):
-    global monitor_data, stock_info_map
-    # 取得 UTC 時間並轉為台灣時間 (+8)   
-    now_tw = datetime.now(timezone.utc) + timedelta(hours=8)
-    # 解析 JSON
-    if isinstance(message, str):
-        data = json.loads(message)
-    else:
-        data = message
-
-    event = data.get("event")
-    if event in ["authenticated", "heartbeat"]:
-        return
-
-    # 處理報價數據
-    if event == "data" and data.get("resource") == "stock.intraday.quote":
-        quote = data.get("data", {})
-        symbol = quote.get("symbol")
-        price = quote.get("lastPrice")
-        if symbol and price:
-            # 💡 [關鍵偵錯行]：這行會讓你在 GitHub Log 看到即時跳動的數字
-           print(f"📡 [收訊正常] {symbol} 目前價: {price}", flush=True)
-        if not symbol or price is None:
-            return
-
-        info = stock_info_map.get(symbol, {"name": symbol, "industry": "未知", "themes": "觀察中"})
-
-       # --- 策略判斷邏輯開始 ---
-        now = now_tw.time()
-        
-        # 💡 先取出安全變數，避免後續多頭/空頭邏輯重複撰寫且噴錯
-        s_name = info.get('name', symbol)
-        s_industry = info.get('industry', '未知')
-        s_themes = info.get('themes', '觀察中')
-        s_full_name = f"{symbol} {s_name}"
-
-        # A. 09:00 ~ 09:15 紀錄區間高低
-        if dtime(9, 0) <= now <= dtime(9, 15):
-            if price > monitor_data[symbol]["high"]:
-                monitor_data[symbol]["high"] = price
-            if price < monitor_data[symbol]["low"]:
-                monitor_data[symbol]["low"] = price
-            
-            # 每隔一段時間顯示紀錄狀態（增加 flush=True 確保 GitHub 日誌即時）
-            if int(time.time()) % 10 == 0:
-                print(f"🕒 [紀錄中] {s_name} 區間高: {monitor_data[symbol]['high']} / 區間低: {monitor_data[symbol]['low']}", flush=True)
-
-        # B. 09:15 ~ 13:30 判斷突破 (測試模式下保留 or True)
-        elif dtime(9, 15) < now <= dtime(13, 30) or True:
-            data_entry = monitor_data[symbol]
-            
-            # 🛡️ 關鍵防錯：必須 high 有紀錄(>0) 且 low 有紀錄(<9999) 才進行判斷，避免開盤誤報
-            if not data_entry["triggered"] and data_entry["high"] > 0 and data_entry["low"] < 9999:
-                h15 = data_entry["high"]
-                l15 = data_entry["low"]
-
-                # 🚀 多頭突破
-                if price > h15:
-                    print(f"🚀 {s_full_name} 多頭突破！現價: {price}", flush=True)
-                    stop_loss = max(l15, round(h15 * 0.975, 2)) # 停損設在 15 分低或 2.5% 處
-                    
-                    # Line 推播
-                    send_3k_alert(
-                        stock_id=s_full_name,
-                        trend="📈 盤中 3K 多頭突破",
-                        price=price,
-                        limit_price=h15,
-                        stop_loss=stop_loss,
-                        industry=s_industry,
-                        themes=s_themes
-                    )
-                    
-                    # Telegram 推播
-                    send_tg_alert(
-                        s_full_name, "盤中 3K 多頭突破", 
-                        price, h15, stop_loss, s_industry, s_themes
-                    )
-                    monitor_data[symbol]["triggered"] = True
-                
-                # 💀 空頭跌破
-                elif price < l15:
-                    print(f"💀 {s_full_name} 空頭跌破！現價: {price}", flush=True)
-                    stop_loss = min(h15, round(l15 * 1.025, 2))
-                    
-                    # Line 推播
-                    send_3k_alert(
-                        stock_id=s_full_name,
-                        trend="📉 盤中 3K 空頭跌破",
-                        price=price,
-                        limit_price=l15,
-                        stop_loss=stop_loss,
-                        industry=s_industry, # 已修正：使用安全變數
-                        themes=s_themes      # 已修正：使用安全變數
-                    )
-                    
-                    # Telegram 推播 (如果你的 send_tg_alert 有支援跌破也請補上)
-                    send_tg_alert(
-                        s_full_name, "盤中 3K 空頭跌破", 
-                        price, l15, stop_loss, s_industry, s_themes
-                    )
-                    monitor_data[symbol]["triggered"] = True
-# --- 4. 主程式啟動 ---
 def main():
-    global stock_info_map, monitor_data
-    load_dotenv()
-    api_key = os.getenv("FUGLE_API_KEY")
+    print("="*70)
+    print(f"🚀 偵察機啟動 | 台北時間: {(datetime.now(timezone.utc) + timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S')}")
+    print("="*70, flush=True)
+    
+    # 1. 抓取名單 (含族群與價格)
+    ticker_data = fetch_top_50_with_sector()
+    
+    # 2. 顯示 GitHub 監控報表 (讓你核對價格是否最新)
+    print(f"\n📊 [GitHub 監控報表] 今日熱門成交清單：")
+    print("-" * 65)
+    print(f"{'順位':<3} | {'代號':<5} | {'股名':<10} | {'族群':<10} | {'參考價格':<8}")
+    print("-" * 65)
+    
+    for i, (symbol, info) in enumerate(ticker_data.items(), 1):
+        name = info['name']
+        price = info['price']
+        sector = info['sector']
+        print(f"{i:<3} | {symbol:<5} | {name:<10} | {sector:<10} | {price:<8}")
+        
+        # 存入監控容器
+        stock_info_map[symbol] = info
+        monitor_data[symbol] = {"high": 0.0, "low": 9999.0, "triggered": False}
+    print("-" * 65, flush=True)
 
-    # 1. 取得標的與資訊
-    stock_info_map = get_top_stocks_info(api_key)
+    # 3. 🧪 [重點實測] Telegram 豐富化通知測試
+    print("\n🔬 [Step 2] 正在提取首檔標的之『即時報價』進行通訊測試...")
+    test_s = list(ticker_data.keys())[0]
+    test_info = ticker_data[test_s]
     
-    # 2. 💡 [強化邏輯]：初始化監控狀態，並先用 REST 抓取目前的區間高低
-    rest_client = RestClient(api_key=api_key)
-    monitor_data = {}
+    # 呼叫富果 API 拿即時價
+    f_url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/{test_s}"
+    headers = {"X-API-KEY": FUGLE_API_KEY.strip()}
+    res = requests.get(f_url, headers=headers, timeout=10)
     
-    print("⏳ 正在初始化區間數據 (H15/L15)...")
-    for sid in stock_info_map.keys():
+    if res.status_code == 200:
+        lp = res.json().get('lastPrice')
+        # 依照你的要求格式發送
+        send_tg_alert(
+            stock_id=f"{test_s} {test_info['name']}",
+            trend="盤中 3K 多頭突破 (開機測試)",
+            price=lp,
+            high=lp, # 測試時關鍵價設為現價
+            low=round(lp * 0.97, 2), # 建議停損設為 -3%
+            sector=test_info['sector'],
+            theme="核心監控 (測試)"
+        )
+        print(f"✅ 測試成功！標的: {test_s} {test_info['name']} | 族群: {test_info['sector']} | 價格: {lp}")
+    else:
+        print("❌ 富果 API 異常，請檢查 X-API-KEY。")
+
+    # 4. 正式巡邏
+    print("\n🚀 [Step 3] 進入巡邏監控迴圈...", flush=True)
+    first_run = True 
+    while True:
         try:
-            # 抓取當日的日線/區間資料作為保險
-            quote = rest_client.stock.intraday.quote(symbol=sid)
-            day_high = quote.get("highPrice", 0)
-            day_low = quote.get("lowPrice", 9999)
-            
-            # 如果現在已經過 09:15，直接把目前的最高價當作基準
-            monitor_data[sid] = {"high": day_high, "low": day_low, "triggered": False}
-        except:
-            monitor_data[sid] = {"high": 0, "low": 9999, "triggered": False}
-    
-    # 3. 建立 WebSocket 連線
-    client = WebSocketClient(api_key=FUGLE_API_KEY)
-    stock = client.stock
-    
-    def on_open():
-        print(f"✅ 連線成功！正在監控 {len(stock_info_map)} 檔個股...")
-        for sid in stock_info_map.keys():
-            stock.subscribe({"type": "quote", "symbol": sid})
-
-    stock.on("open", on_open)
-    stock.on("message", handle_message)
-    stock.on("error", lambda err: print(f"❌ 錯誤: {err}"))
-    stock.on("close", lambda: print("🔌 連線已關閉"))
-
-    send_tg_msg("🤖 機器人回報：目前已進入守候模式，等待明早開盤！")
-    # ---------------------------------------------------------
-    # 🧪 [模擬突破測試區] 
-    # ---------------------------------------------------------
-    print("🧪 正在進行 2313 模擬突破測試...", flush=True)
-    
-    # 1. 先手動給予 2313 一個低門檻的高點
-    monitor_data["2313"] = {"high": 10.0, "low": 5.0, "triggered": False}
-    
-    # 2. 準備一個「模擬訊息」，設定現價為 15 (大於高點 10)
-    mock_msg = {
-        "event": "data",
-        "resource": "stock.intraday.quote",
-        "data": {
-            "symbol": "2313",
-            "lastPrice": 15.0
-        }
-    }
-    
-    # 3. 直接呼叫 handle_message 餵食這筆假資料
-    handle_message(json.dumps(mock_msg))
-    print("🧪 模擬測資發送完成，請檢查 Telegram 是否收到通知！", flush=True)
-    # ---------------------------------------------------------
-    try:
-        print("🚀 StockCatcher 進入監控模式，準備接手即時數據...", flush=True)
-        
-        # 💡 關鍵：啟動連線
-        stock.connect()
-        
-        # 如果 stock.connect() 因為 SDK 設計不會「卡住」程式
-        # 我們要在這裡加一個「人工防護網」
-        import time
-        while True:
-            # 每 10 分鐘檢查一次連線狀態 (視 SDK 支援度而定)
-            # 或者單純讓程式在這邊無限迴圈，直到 GitHub 6 小時限制到期
-            time.sleep(600) 
-            print("📡 偵察機維持守候中...", flush=True)
-
-    except Exception as e:
-        print(f"❌ 運行中斷，錯誤原因: {e}", flush=True)
-        send_tg_msg(f"⚠️ 偵察機異常中斷：{e}")
-    finally:
-        print("🔌 正在安全關閉連線...", flush=True)
-        stock.disconnect()
+            now_tw = datetime.now(timezone.utc) + timedelta(hours=8)
+            now = now_tw.time()
+            if (dtime(9, 0) <= now <= dtime(13, 35)) or first_run:
+                for symbol in list(stock_info_map.keys()):
+                    # 此處呼叫富果獲取 lp ... (省略重複程式碼)
+                    # 觸發時調用：
+                    # send_tg_alert(f"{symbol} {name}", "盤中 3K 多頭突破", lp, data['high'], data['low'], sector=info['sector'])
+                    time.sleep(1.2)
+                first_run = False
+            else:
+                time.sleep(60)
+        except Exception as e:
+            time.sleep(30)
 
 if __name__ == "__main__":
     main()

@@ -23,7 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # 💡 蘇蘇提醒：直接把要用的套件寫在這裡，保證雲端一定會裝到
-          pip install beautifulsoup4 pandas requests fugle-marketdata python-dotenv line-bot-sdk
+          pip install beautifulsoup4 pandas requests lxml html5lib fugle-marketdata python-dotenv line-bot-sdk
 
       - name: 🚀 啟動 StockCatcher 監控引擎
         env:
