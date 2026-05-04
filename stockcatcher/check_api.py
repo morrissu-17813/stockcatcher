@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+import json
 import urllib3
 from datetime import datetime, timedelta, timezone, time as dtime
 from typing import Dict, List, Any, Optional
@@ -16,11 +17,14 @@ class Config:
     FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
     FUGLE_API_KEY ="MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
-    TELEGRAM_CHAT_ID = "1087480334"
+    TELEGRAM_CHAT_ID = "-1003613268841"
 
 
 
     # 📈 策略監控參數
+    # --- 選股池配額設定 ---
+    TSE_QUOTA = 90  # 上市增加至 90 檔
+    OTC_QUOTA = 40   # 上櫃增加至 40 檔
     VOL_EST_THRESHOLD = 1.6          # 預估量比門檻 (1.6x)
     STOP_LOSS_RATIO = 0.95           # 預設停損比率 (現價 -5%)
     POOL_REFRESH_INTERVAL = 1200     # 股池更新頻率 (每 20 分鐘刷新熱門榜)
@@ -143,74 +147,96 @@ def send_tg_alert(stock_id: str, strategy: str, price: float, high: float, low: 
         print(f"⚠️ Telegram 發送失敗: {e}", flush=True)
 
 # ------------------------------------------------------------
-# 🏛️ 市場同步模組 (Dynamic Pool Engine)
+# 🏛️ 市場同步模組 (100:50 精準配額優化版)
 # ------------------------------------------------------------
-
 def sync_market_pool():
     """ 
-    執行股池同步：強化日期回溯邏輯以應對長假真空期
-    確保日誌清楚顯示 [市場] 類別，並將測試標位置頂
+    [架構說明]：
+    1. 實作 100:50 配額制：總計監控全市場 150 檔最活躍標的。
+    2. 資料源：直接對接 TWSE 與 TPEx 官方 OpenAPI，排除第三方延遲與權限問題。
     """
     tw_now = get_now_tw()
-    print(f"\n🛰️ [{tw_now.strftime('%H:%M:%S')}] 啟動全市場動態掃描 (上市+上櫃)...", flush=True)
+    print(f"\n" + "="*60)
+    print(f"🛰️ [{tw_now.strftime('%H:%M:%S')}] 啟動動態掃描 (配額：上市 {Config.TSE_QUOTA} / 上櫃 {Config.OTC_QUOTA})")
+    print("="*60, flush=True)
     
-    combined_pool = []
-    # 1. 抓取上市排行 (TSE OpenAPI)
+    tse_pool = []
+    otc_pool = []
+    
+    # --- Part 1: 上市排行同步 (TWSE) ---
     try:
-        res = requests.get("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL", timeout=15, verify=False)
-        if res.status_code == 200:
-            for i in res.json():
+        tse_url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+        tse_res = requests.get(tse_url, timeout=15, verify=False)
+        if tse_res.status_code == 200:
+            for i in tse_res.json():
                 code = i.get('Code', '')
                 if len(code) == 4:
-                    combined_pool.append({'code': code, 'vol': int(i.get('TradeVolume', '0').replace(',', '') or 0) // 1000, 'm': '上市'})
+                    # 處理字串格式成交量並轉換為張數
+                    vol_str = str(i.get('TradeVolume', '0')).replace(',', '')
+                    vol = int(vol_str) // 1000
+                    tse_pool.append({'code': code, 'vol': vol, 'm': '上市'})
     except Exception as e:
-        print(f"⚠️ 上市資料抓取失敗: {e}", flush=True)
+        print(f"⚠️ TWSE 連線異常: {e}")
 
-    # 2. 抓取上櫃排行 (OTC) - 自動回溯 10 天
-    fm_url = "https://api.finmindtrade.com/api/v4/data"
-    found_otc = False
-    for offset in range(10): 
-        target_date = (tw_now - timedelta(days=offset)).strftime('%Y-%m-%d')
-        params = {"dataset": "TaiwanStockPrice", "start_date": target_date, "token": Config.FINMIND_TOKEN}
-        try:
-            fm_res = requests.get(fm_url, params=params, timeout=15).json()
-            data = fm_res.get('data', [])
-            if data:
-                print(f"📊 OTC 資料採樣成功，日期: {target_date}", flush=True)
-                for item in data:
-                    code = item.get('stock_id', '')
-                    # 確保是上櫃且不在上市清單中
-                    info = global_stock_info.get(code, {})
-                    if info.get('market') == '上櫃' and len(code) == 4:
-                        v = item.get('Trading_Volume') or item.get('trading_volume') or 0
-                        combined_pool.append({'code': code, 'vol': v // 1000, 'm': '上櫃'})
-                found_otc = True
-                break 
-        except: pass
+    # --- Part 2: 上櫃排行同步 (TPEx) ---
+    try:
+        otc_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
+        otc_res = requests.get(otc_url, timeout=15, verify=False)
+        if otc_res.status_code == 200:
+            for item in otc_res.json():
+                code = str(item.get('SecuritiesCompanyCode', '')).strip()
+                if len(code) == 4:
+                    # TPEx 格式相容性處理 (Float/Comma)
+                    vol_raw = str(item.get('TradingVolume', '0')).replace(',', '')
+                    vol = int(float(vol_raw)) // 1000
+                    otc_pool.append({'code': code, 'vol': vol, 'm': '上櫃'})
+            print(f"📊 TPEx 官方數據同步成功 (共 {len(otc_pool)} 筆)")
+    except Exception as e:
+        print(f"❌ TPEx 連線異常: {e}")
 
-    if not found_otc:
-        print("⚠️ 警告：無法獲取 OTC 資料，請確認連假後資料是否已更新。", flush=True)
+    # --- Part 3: 執行配額排序與資料結構初始化 ---
+    # 分別按成交量 (vol) 進行降冪排序，確保選出最熱門標的
+    top_tse = sorted(tse_pool, key=lambda x: x['vol'], reverse=True)[:Config.TSE_QUOTA]
+    top_otc = sorted(otc_pool, key=lambda x: x['vol'], reverse=True)[:Config.OTC_QUOTA]
+    
+    final_list = top_tse + top_otc
+    
+    # 測試標的 9999 永遠置入，方便驗證系統通知
+    test_stocks = [{'code': '9999', 'm': '測試', 'vol': 1000}]
 
-    # 3. 排序並置頂測試標的
-    top_list = sorted(combined_pool, key=lambda x: x['vol'], reverse=True)[:Config.MAX_MONITOR_LIMIT]
-    test_stocks = [{'code': '9999', 'm': '測試', 'vol': 1000}, {'code': '9998', 'm': '測試', 'vol': 1000}]
-
-    for item in (test_stocks + top_list):
+    for item in (test_stocks + final_list):
         code = item['code']
-        info = global_stock_info.get(code, {'name': '偵測中', 'industry': item.get('m')})
+        # 從全域映射資料 (init_global_mapping) 獲取靜態資訊
+        info = global_stock_info.get(code, {'name': '偵測中', 'industry': '未知'})
+        
+        # 僅針對尚未在池子中的標的進行初始化，避免覆蓋掉盤中已記錄的 High/Low
         if code not in stock_info_map:
-            # 💡 在此處執行題材判定並存入映射表
+            theme = get_refined_theme(code) # 題材辨識
+            
             stock_info_map[code] = {
                 'name': info['name'], 
-                'market': item.get('m'), 
-                'theme': get_refined_theme(code)
+                'market': item['m'], 
+                'theme': theme
             }
-            monitor_data[code] = {"high": 110.0 if "999" in code else 0.0, "low": 95.0 if "999" in code else 9999.0, "y_vol": 1000, "trig_p": False, "trig_v": False, "trig_c": False}
+            # 初始化監控狀態機，y_vol 將作為盤中 1.6 倍預估量的分母
+            monitor_data[code] = {
+                "high": 110.0 if "999" in code else 0.0, 
+                "low": 95.0 if "999" in code else 9999.0, 
+                "y_vol": item['vol'] if item['vol'] > 0 else 1000, 
+                "trig_p": False, # 價格觸發標記
+                "trig_v": False, # 量能觸發標記
+                "trig_c": False  # 複合觸發標記 (價+量)
+            }
     
-    tse_c = len([x for x in stock_info_map.values() if x['market'] == '上市'])
-    otc_c = len([x for x in stock_info_map.values() if x['market'] == '上櫃'])
-    print(f"✅ 同步完成！目前池子：{len(stock_info_map)} 檔 (上市:{tse_c}, 上櫃:{otc_c})。", flush=True)
-
+    # --- 輸出同步統計摘要 ---
+    tse_actual = len([x for x in stock_info_map.values() if x['market'] == '上市'])
+    otc_actual = len([x for x in stock_info_map.values() if x['market'] == '上櫃'])
+    
+    print("-" * 60)
+    print(f"✅ 同步完成！目前全域池子：{len(stock_info_map)} 檔")
+    print(f"   - 上市 (TSE) 成功入庫: {tse_actual} / 100")
+    print(f"   - 上櫃 (OTC) 成功入庫: {otc_actual} / 50")
+    print("="*60, flush=True)
 # ------------------------------------------------------------
 # 🏁 主程序入口 (Main Loop)
 # ------------------------------------------------------------
@@ -224,7 +250,7 @@ def main():
     sync_market_pool()     
 
     # 💡 重要修復：在進入迴圈前初始化時間變數
-    last_sync_time = time.time()
+    last_sync_time = time.time()  # 初始化同步時間
 
     # 💡 啟動測試通知：僅在此發送一次，確保題材顯示正常
     test_theme = get_refined_theme("9999")
@@ -279,7 +305,7 @@ def main():
 
             except Exception: pass
             time.sleep(Config.API_THROTTLE_SLEEP)
-        time.sleep(20)
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
