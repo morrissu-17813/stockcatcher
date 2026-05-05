@@ -1,311 +1,294 @@
 import os
 import time
 import requests
-import json
 import urllib3
+import pandas as pd
 from datetime import datetime, timedelta, timezone, time as dtime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Set
 
-# 🤫 隱藏 SSL 警告，保持生產環境日誌整潔
+# 🤫 隱藏 SSL 警告，保持 Console 輸出專業
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ============================================================
 # ⚙️ [系統配置區]
 # ============================================================
 class Config:
-    # 🔐 憑證管理：使用環境變數或預留位置，禁止硬編碼 API Key
+    # 🔐 憑證管理：請透過環境變數注入，嚴禁 Hardcode
     FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
     FUGLE_API_KEY ="MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
-    TELEGRAM_CHAT_ID = "-1003613268841"
+    TELEGRAM_CHAT_ID = "1087480334"
 
+    # 🛠️ [測試模式] True 時允許非交易時段模擬資料
+    TEST_MODE = True 
 
+    # 📈 選股池配額 [90 上市 : 30 上櫃 : 20 權證標的]
+    TSE_QUOTA = 90
+    OTC_QUOTA = 30
+    WARRANT_QUOTA = 20
+    OTC_VOL_THRESHOLD = 500 # 💡 上櫃成交量硬性門檻 (張)
 
-    # 📈 策略監控參數
-    # --- 選股池配額設定 ---
-    TSE_QUOTA = 90  # 上市增加至 90 檔
-    OTC_QUOTA = 40   # 上櫃增加至 40 檔
-    VOL_EST_THRESHOLD = 1.6          # 預估量比門檻 (1.6x)
-    STOP_LOSS_RATIO = 0.95           # 預設停損比率 (現價 -5%)
-    POOL_REFRESH_INTERVAL = 1200     # 股池更新頻率 (每 20 分鐘刷新熱門榜)
-    MAX_MONITOR_LIMIT = 100          # 同時監控上限 (上市+上櫃)
-    API_THROTTLE_SLEEP = 1.2         # 節流時間 (避免觸發 API Rate Limit)
-
-    # ⏰ 時間控制邏輯
-    RECORD_END_TIME = dtime(9, 15)   # 3K 區間紀錄截止 (09:00-09:15)
-    START_MONITOR_TIME = dtime(9, 16)# 策略突破觸發起始時間 (09:16起)
-
-    HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-
-# 🏆 強化題材映射字典：結合名稱、產業、概念標籤
-THEME_KEYWORDS = {
-    "AI伺服器/零組件": ["廣達", "緯創", "技嘉", "英業達", "緯穎", "鴻海", "電腦及週邊設備業", "營邦", "勤誠", "南俊"],
-    "半導體/IC設計": ["台積電", "聯發科", "世芯", "創意", "智原", "半導體業", "昇陽半導體", "聯電", "旺宏", "2344"],
-    "CoWoS/先進封裝": ["弘塑", "辛耘", "萬潤", "均華", "志聖", "其他電子業"],
-    "液冷/散熱模組": ["雙鴻", "奇鋐", "建準", "尼得科超眾", "晟銘電", "電子零組件業", "高力"],
-    "矽光子/CPO": ["波若威", "上詮", "聯鈞", "光聖", "通信網路業", "華星光"],
-    "低軌衛星/航太": ["華通", "昇達科", "啟碁", "耀華", "金像電", "元太", "邑錡", "全新", "2455", "2313"]
-}
+    # 🎯 策略參數
+    VOL_EST_THRESHOLD = 1.6 
+    STOP_LOSS_RATIO = 0.95  
+    
+    # ⏰ 時間控制點
+    MARKET_OPEN = dtime(9, 0)
+    RECOVERY_THRESHOLD = dtime(9, 15) 
+    MARKET_CLOSE = dtime(13, 35)
+    
+    # 🏎️ 效能控制
+    API_THROTTLE_SLEEP = 1.2    # 標的間隔 (1.2s)
+    ROUND_INTERVAL_SLEEP = 10   # 💡 每一輪掃描結束後休眠時間 (10s)
 
 # 全域狀態記憶體
-global_stock_info: Dict[str, Dict] = {} # 代號 -> {名稱, 產業, 市場, 題材清單}
-stock_info_map: Dict[str, Any] = {}     # 監控池資訊
-monitor_data: Dict[str, Any] = {}       # 監控池價量數據
+global_stock_info = {} 
+stock_info_map = {}     
+monitor_data = {}       
+warrant_target_list = set()
 
 # ------------------------------------------------------------
-# 🛠️ 基礎工具函式 (Utils)
+# 🛠️ 蘇蘇的防禦性工具函式 (Safety Utilities)
 # ------------------------------------------------------------
+
+def safe_cast(val: Any, to_type: type, default: Any = 0) -> Any:
+    """ 解決轉型崩潰，確保 API 回傳資料型態安全 """
+    try:
+        if val is None or str(val).strip() == "": return default
+        return to_type(float(str(val).replace(',', '').strip()))
+    except: return default
 
 def get_now_tw() -> datetime:
     """ 獲取台北標準時間 (UTC+8) """
     return datetime.now(timezone.utc) + timedelta(hours=8)
 
-def get_passed_minutes() -> float:
-    """ 計算開盤至今經過的分鐘數 (09:00 起算) """
-    now = get_now_tw()
-    start = now.replace(hour=9, minute=0, second=0, microsecond=0)
-    passed = (now - start).total_seconds() / 60
-    return max(1, min(270, passed))
+def is_valid_stock(sid: str, info: dict) -> bool:
+    """ 💡 強力過濾器：排除金融股與 ETF """
+    sid_str = str(sid)
+    if len(sid_str) != 4 or sid_str.startswith("00"): return False
+    # 產業別檢查
+    industry = info.get('industry', '')
+    if any(k in industry for k in ["金融", "保險"]): return False 
+    return True
+
+# ------------------------------------------------------------
+# 🏛️ 資料採集與修復模組 (Data Pipeline)
+# ------------------------------------------------------------
+
+def api_get_json(url: str) -> Any:
+    """ 安全的 API 請求封裝，防止 Expecting value 報錯 """
+    try:
+        res = requests.get(url, verify=False, timeout=10)
+        if res.status_code == 200 and 'application/json' in res.headers.get('Content-Type', ''):
+            return res.json()
+    except: pass
+    return None
 
 def init_global_mapping():
-    """ 
-    建立全市場名冊映射與題材庫
-    解決「上櫃資料缺失」與「題材不完整」的核心機制
-    """
-    print("📡 正在同步全市場基本資料與概念題材 (FinMind)...", flush=True)
-    url = "https://api.finmindtrade.com/api/v4/data"
-    try:
-        # 1. 抓取名冊 (包含名稱與官方產業分類)
-        res_info = requests.get(url, params={"dataset": "TaiwanStockInfo", "token": Config.FINMIND_TOKEN}, timeout=15).json()
-        for item in res_info.get('data', []):
-            industry = item['industry_category']
-            global_stock_info[item['stock_id']] = {
-                'name': item['stock_name'],
-                'industry': industry,
-                'market': '上市' if industry == '上市' else '上櫃',
-                'concept': []
+    """ 同步名冊：建立產業別與名稱資料庫 """
+    print("📡 正在同步全市場名冊 (FinMind)...", flush=True)
+    url = f"https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockInfo&token={Config.FINMIND_TOKEN}"
+    data = api_get_json(url)
+    if data:
+        for item in data.get('data', []):
+            global_stock_info[str(item['stock_id'])] = {
+                'name': item['stock_name'], 'industry': item['industry_category']
             }
-        # 2. 抓取概念股資料集，強化市場題材識別度
-        res_concept = requests.get(url, params={"dataset": "TaiwanStockConcept", "token": Config.FINMIND_TOKEN}, timeout=15).json()
-        for item in res_concept.get('data', []):
-            sid = item.get('stock_id')
-            if sid in global_stock_info:
-                global_stock_info[sid]['concept'].append(item.get('stock_concept', ''))
         print(f"✅ 名冊同步完成，共計 {len(global_stock_info)} 檔標的。", flush=True)
-    except Exception as e:
-        print(f"❌ 名冊同步失敗: {e}", flush=True)
 
-def get_refined_theme(code: str) -> str:
-    """ 多維度模糊比對題材，優先匹配熱點關鍵字 """
-    info = global_stock_info.get(code, {})
-    name, industry = info.get('name', ''), info.get('industry', '')
-    concepts_list = info.get('concept', [])
-    concepts_str = "".join(concepts_list)
-    search_str = f"{code}{name}{industry}{concepts_str}"
+def load_official_warrant_targets():
+    """ 💡 從官方來源獲取 20 檔不重複權證熱門標的 """
+    print("📡 正在獲取官方熱門權證標的快照...", flush=True)
+    temp_warrant_map = {}
     
-    # 1. 優先權比對：自定義熱點關鍵字
-    for theme, keywords in THEME_KEYWORDS.items():
-        if any(kw in search_str for kw in keywords): return theme
-        
-    # 2. 次要權比對：顯示抓取到的第一個核心概念
-    if concepts_list: return concepts_list[0]
+    t_data = api_get_json("https://openapi.twse.com.tw/v1/exchangeReport/TWT48U_ALL")
+    o_data = api_get_json("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_warrant_quotes")
     
-    return "熱門成交追蹤"
+    for source in [t_data, o_data]:
+        if source:
+            for i in source:
+                underlying = i.get('UnderlyingIdentifier', '').strip()
+                vol = safe_cast(i.get('TradeVolume'), int)
+                if len(underlying) == 4:
+                    temp_warrant_map[underlying] = temp_warrant_map.get(underlying, 0) + vol
+
+    sorted_warrants = sorted(temp_warrant_map.items(), key=lambda x: x[1], reverse=True)
+    for sid, _ in sorted_warrants:
+        if is_valid_stock(sid, global_stock_info.get(sid, {})):
+            warrant_target_list.add(sid)
+        if len(warrant_target_list) >= Config.WARRANT_QUOTA: break
+            
+    # 💡 保底機制：防止半夜資料為空 (Warrant Quota Check)
+    if len(warrant_target_list) < Config.WARRANT_QUOTA:
+        backup = ["2330", "2317", "2454", "2308", "3017", "3231", "2382", "6669", "3037", "2357", 
+                  "1513", "1519", "2603", "2609", "2455", "2313", "3034", "8046", "3711"]
+        for s in backup:
+            if len(warrant_target_list) < Config.WARRANT_QUOTA: warrant_target_list.add(s)
+    print(f"✅ 權證池載入完成: {len(warrant_target_list)} 檔。", flush=True)
+
+def sync_market_pool():
+    """ 💡 分流同步：上櫃量能 500 張硬性篩選與金融股排除 """
+    print(f"🛰️ [{get_now_tw().strftime('%H:%M:%S')}] 啟動配額同步程序...", flush=True)
+    tse_raw, otc_raw = [], []
+
+    # 1. 上市 (TSE)
+    t_data = api_get_json("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL")
+    if t_data:
+        for i in t_data:
+            sid = i.get('Code')
+            if is_valid_stock(sid, global_stock_info.get(sid, {})):
+                vol = safe_cast(i.get('TradeVolume'), int) // 1000 # 股轉張
+                tse_raw.append({'code': sid, 'vol': vol, 'market': '上市'})
+
+    # 2. 上櫃 (OTC) - 💡 加入 500 張硬過濾
+    o_data = api_get_json("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes")
+    if o_data:
+        for i in o_data:
+            sid = i.get('SecuritiesCompanyCode', '').strip()
+            if is_valid_stock(sid, global_stock_info.get(sid, {})):
+                vol = safe_cast(i.get('TradingVolume'), int) // 1000
+                # 💡 只保留成交量 >= 500 張的標的
+                if vol >= Config.OTC_VOL_THRESHOLD:
+                    otc_raw.append({'code': sid, 'vol': vol, 'market': '上櫃'})
+    
+    top_tse = sorted(tse_raw, key=lambda x: x['vol'], reverse=True)[:Config.TSE_QUOTA]
+    top_otc = sorted(otc_raw, key=lambda x: x['vol'], reverse=True)[:Config.OTC_QUOTA]
+    
+    # 上櫃保底 (深夜 API 資料缺失時啟動)
+    if len(top_otc) == 0 and Config.TEST_MODE:
+        backup_otc = ["8069", "5483", "6488", "3105", "3293", "6274", "3529", "5347", "8299"]
+        for s in backup_otc:
+            if len(top_otc) < Config.OTC_QUOTA:
+                top_otc.append({'code': s, 'vol': 501, 'market': '上櫃'})
+
+    print(f"📊 [同步檢查] 上市: {len(top_tse)} 檔 | 上櫃: {len(top_otc)} 檔 | 權證: {len(warrant_target_list)} 檔", flush=True)
+    
+    # 建立總監控清單
+    all_final_list = [{'code': s, 'vol': 1000, 'market': '權證'} for s in list(warrant_target_list)]
+    all_final_list += top_tse + top_otc
+
+    for item in all_final_list:
+        code = item['code']
+        if code not in stock_info_map:
+            info = global_stock_info.get(code, {'name': '搜尋中', 'industry': '熱門成交'})
+            stock_info_map[code] = {'name': info['name'], 'market': item['market'], 'industry': info['industry']}
+            monitor_data[code] = {"high": 0.0, "low": 9999.0, "y_vol": item['vol'], "trig": False}
 
 # ------------------------------------------------------------
-# 📡 數據通訊與警報 (Alerts)
+# 📡 警報與通訊 (Alert Engine)
 # ------------------------------------------------------------
 
-def send_tg_alert(stock_id: str, strategy: str, price: float, high: float, low: float, est_ratio: float, theme: str = "追蹤中"):
-    """ 發送 Telegram 通知，包含停損點計算與即時圖表連結 """
-    code = stock_id.split(' ')[0]
-    chart_url = f"https://www.fugle.tw/ai/{code}"
-    # 計算停損價位：觸發價之 -5%
-    stop_loss = round(price * Config.STOP_LOSS_RATIO, 2)
-    
-    header = "🔥【價量齊揚】" if "+" in strategy else "🚀【價格突破】" if "3K" in strategy else "📊【量能激增】"
-    if "🧪" in strategy: header = "🧪【啟動測試】"
+def send_tg_alert(sid: str, strategy: str, lp: float, high: float, low: float, ratio: float):
+    """ 💡 格式化 Telegram 通知：包含 3K 高低點、正式 nstock 連結、產業別 """
+    info = stock_info_map.get(sid, {'name': '測試標的', 'industry': '系統測試'})
+    # 💡 修正後的連結格式
+    nstock_url = f"https://www.nstock.tw/stock_info?stock_id={sid}"
+    header = "🚨【啟動測試】" if "測試" in strategy else "🔥【價量齊揚】"
 
     msg = (
-        f"{header}：{strategy}\n"
+        f"{header} {strategy}\n"
         f"━━━━━━━━━━━━━━\n"
-        f"📈 *標的：* {stock_id}\n"
-        f"💰 *現價：* `{price}` | 🛑 *停損：* `{stop_loss}`\n"
-        f"🎯 *區間：* `{high}` (高) / `{low}` (低)\n"
-        f"📊 *預估量比：* `{est_ratio}x`\n"
-        f"💡 *題材：* {theme}\n"
+        f"📈 *標的：* `{sid}` **{info['name']}**\n"
+        f"💰 *現價：* `{lp}`\n"
+        f"🎯 *3K高：* `{high}` | 🛡️ *3K低：* `{low}`\n"
+        f"📊 *預估量比：* `{ratio}x`\n"
+        f"🏷️ *產業別：* {info['industry']}\n"
         f"━━━━━━━━━━━━━━\n"
-        f"🔗 [點此顯示目前 K 線圖]({chart_url})\n"
+        f"🔗 [nstock 完整數據]({nstock_url})\n"
         f"⏰ {get_now_tw().strftime('%H:%M:%S')}"
     )
     try:
         url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage"
         requests.post(url, json={"chat_id": Config.TELEGRAM_CHAT_ID, "text": msg, "parse_mode": "Markdown"}, timeout=10)
-    except Exception as e:
-        print(f"⚠️ Telegram 發送失敗: {e}", flush=True)
+    except: pass
 
 # ------------------------------------------------------------
-# 🏛️ 市場同步模組 (100:50 精準配額優化版)
+# 💹 執行模組 (Execution)
 # ------------------------------------------------------------
-def sync_market_pool():
-    """ 
-    [架構說明]：
-    1. 實作 100:50 配額制：總計監控全市場 150 檔最活躍標的。
-    2. 資料源：直接對接 TWSE 與 TPEx 官方 OpenAPI，排除第三方延遲與權限問題。
-    """
-    tw_now = get_now_tw()
-    print(f"\n" + "="*60)
-    print(f"🛰️ [{tw_now.strftime('%H:%M:%S')}] 啟動動態掃描 (配額：上市 {Config.TSE_QUOTA} / 上櫃 {Config.OTC_QUOTA})")
-    print("="*60, flush=True)
-    
-    tse_pool = []
-    otc_pool = []
-    
-    # --- Part 1: 上市排行同步 (TWSE) ---
-    try:
-        tse_url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
-        tse_res = requests.get(tse_url, timeout=15, verify=False)
-        if tse_res.status_code == 200:
-            for i in tse_res.json():
-                code = i.get('Code', '')
-                if len(code) == 4:
-                    # 處理字串格式成交量並轉換為張數
-                    vol_str = str(i.get('TradeVolume', '0')).replace(',', '')
-                    vol = int(vol_str) // 1000
-                    tse_pool.append({'code': code, 'vol': vol, 'm': '上市'})
-    except Exception as e:
-        print(f"⚠️ TWSE 連線異常: {e}")
 
-    # --- Part 2: 上櫃排行同步 (TPEx) ---
-    try:
-        otc_url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
-        otc_res = requests.get(otc_url, timeout=15, verify=False)
-        if otc_res.status_code == 200:
-            for item in otc_res.json():
-                code = str(item.get('SecuritiesCompanyCode', '')).strip()
-                if len(code) == 4:
-                    # TPEx 格式相容性處理 (Float/Comma)
-                    vol_raw = str(item.get('TradingVolume', '0')).replace(',', '')
-                    vol = int(float(vol_raw)) // 1000
-                    otc_pool.append({'code': code, 'vol': vol, 'm': '上櫃'})
-            print(f"📊 TPEx 官方數據同步成功 (共 {len(otc_pool)} 筆)")
-    except Exception as e:
-        print(f"❌ TPEx 連線異常: {e}")
-
-    # --- Part 3: 執行配額排序與資料結構初始化 ---
-    # 分別按成交量 (vol) 進行降冪排序，確保選出最熱門標的
-    top_tse = sorted(tse_pool, key=lambda x: x['vol'], reverse=True)[:Config.TSE_QUOTA]
-    top_otc = sorted(otc_pool, key=lambda x: x['vol'], reverse=True)[:Config.OTC_QUOTA]
-    
-    final_list = top_tse + top_otc
-    
-    # 測試標的 9999 永遠置入，方便驗證系統通知
-    test_stocks = [{'code': '9999', 'm': '測試', 'vol': 1000}]
-
-    for item in (test_stocks + final_list):
-        code = item['code']
-        # 從全域映射資料 (init_global_mapping) 獲取靜態資訊
-        info = global_stock_info.get(code, {'name': '偵測中', 'industry': '未知'})
-        
-        # 僅針對尚未在池子中的標的進行初始化，避免覆蓋掉盤中已記錄的 High/Low
-        if code not in stock_info_map:
-            theme = get_refined_theme(code) # 題材辨識
-            
-            stock_info_map[code] = {
-                'name': info['name'], 
-                'market': item['m'], 
-                'theme': theme
-            }
-            # 初始化監控狀態機，y_vol 將作為盤中 1.6 倍預估量的分母
-            monitor_data[code] = {
-                "high": 110.0 if "999" in code else 0.0, 
-                "low": 95.0 if "999" in code else 9999.0, 
-                "y_vol": item['vol'] if item['vol'] > 0 else 1000, 
-                "trig_p": False, # 價格觸發標記
-                "trig_v": False, # 量能觸發標記
-                "trig_c": False  # 複合觸發標記 (價+量)
-            }
-    
-    # --- 輸出同步統計摘要 ---
-    tse_actual = len([x for x in stock_info_map.values() if x['market'] == '上市'])
-    otc_actual = len([x for x in stock_info_map.values() if x['market'] == '上櫃'])
-    
-    print("-" * 60)
-    print(f"✅ 同步完成！目前全域池子：{len(stock_info_map)} 檔")
-    print(f"   - 上市 (TSE) 成功入庫: {tse_actual} / 100")
-    print(f"   - 上櫃 (OTC) 成功入庫: {otc_actual} / 50")
-    print("="*60, flush=True)
-# ------------------------------------------------------------
-# 🏁 主程序入口 (Main Loop)
-# ------------------------------------------------------------
+def recover_3k_data(target_list: List[str]):
+    """ 3K 高低點補課：透過 Fugle Candles API 追溯 """
+    print(f"🔄 正在為 {len(target_list)} 檔標的高低點執行 3K 補課...", flush=True)
+    for sid in target_list:
+        try:
+            url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{sid}"
+            res = requests.get(url, headers={"X-API-KEY": Config.FUGLE_API_KEY.strip()}, timeout=10).json()
+            candles = res.get('candles', [])
+            # 過濾 09:15 前數據
+            v_highs = [c['high'] for c in candles if c['time'].split('T')[1][:5] <= "09:15"]
+            v_lows = [c['low'] for c in candles if c['time'].split('T')[1][:5] <= "09:15"]
+            if v_highs:
+                monitor_data[sid]['high'] = max(v_highs)
+                monitor_data[sid]['low'] = min(v_lows)
+        except: pass
 
 def main():
-    print("="*80, flush=True)
-    print(f"🛡️ 偵察機啟動 | 蘇蘇的天機選股系統 | {get_now_tw().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
-    print("="*80, flush=True)
+    print("="*90)
+    print(f"🛡️ 偵察機升空 | V26.0 | {get_now_tw().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("="*90, flush=True)
 
-    init_global_mapping()  
-    sync_market_pool()     
-
-    # 💡 重要修復：在進入迴圈前初始化時間變數
-    last_sync_time = time.time()  # 初始化同步時間
-
-    # 💡 啟動測試通知：僅在此發送一次，確保題材顯示正常
-    test_theme = get_refined_theme("9999")
-    send_tg_alert("9999 系統測試標的", "🧪 偵察機啟動完成通訊測試", 125.0, 110.0, 95.0, 3.0, test_theme)
+    # 1. 系統初始化
+    init_global_mapping() 
+    load_official_warrant_targets() 
+    sync_market_pool()
     
+    # 2. 💡 啟動即測試：驗證資料呈現與通訊連結
+    send_tg_alert("2330", "啟動與 3K 突破通道驗證", 1000.0, 990.0, 970.0, 2.5)
+
+    # 3. 補課判定 (09:15 後啟動執行)
+    now_time = get_now_tw().time()
+    if now_time > Config.RECOVERY_THRESHOLD:
+        recover_3k_data(list(stock_info_map.keys()))
+
     while True:
         tw_now = get_now_tw()
-        now_time = tw_now.time()
-        passed_min = get_passed_minutes()
+        if not Config.TEST_MODE and not (Config.MARKET_OPEN <= tw_now.time() <= Config.MARKET_CLOSE):
+            print(f"💤 非交易時段...", end='\r')
+            time.sleep(10); continue
 
-        if time.time() - last_sync_time > Config.POOL_REFRESH_INTERVAL:
-            sync_market_pool()
-            last_sync_time = time.time()
+        # 看板標題
+        print(f"\n[掃描週期: {tw_now.strftime('%H:%M:%S')}]")
+        print(f"{'代號名稱':<12} | {'市場':<4} | {'現價':<8} | {'量比':<6} | {'3K高':<8} | {'3K低':<8}")
+        print("-" * 88)
 
-        print(f"\n[掃描輪次: {tw_now.strftime('%H:%M:%S')}]", flush=True)
-        print(f"{'代號名稱':<12} | {'市場':<4} | {'現價':<6} | {'量比':<5} | {'3K高':<6} | {'題材'}", flush=True)
-        print("-" * 85, flush=True)
+        # passed_min 計算
+        diff = (datetime.combine(tw_now.date(), tw_now.time()) - datetime.combine(tw_now.date(), dtime(9,0))).total_seconds() / 60
+        passed_min = max(1, min(270, diff))
 
-        for symbol in list(stock_info_map.keys()):
-            info, data = stock_info_map[symbol], monitor_data[symbol]
+        for sid in list(stock_info_map.keys()):
+            info, data = stock_info_map[sid], monitor_data[sid]
             try:
-                if "999" in symbol:
-                    quote = {"p": 125.0 if symbol=="9999" else 105.0, "v": 3000}
-                else:
-                    f_url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/{symbol}"
-                    res = requests.get(f_url, headers={"X-API-KEY": Config.FUGLE_API_KEY.strip()}, timeout=5)
-                    quote = {"p": res.json().get('lastPrice'), "v": res.json().get('total', {}).get('tradeVolume', 0)//1000} if res.status_code==200 else None
+                # 調用行情 API
+                f_url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/{sid}"
+                res = requests.get(f_url, headers={"X-API-KEY": Config.FUGLE_API_KEY.strip()}, timeout=5).json()
+                lp = res.get('lastPrice')
+                v = safe_cast(res.get('total', {}).get('tradeVolume'), int) // 1000
                 
-                if not quote or not quote['p']: continue
-                lp, v = quote['p'], quote['v']
-                est_ratio = round((v * (270 / passed_min)) / data['y_vol'], 2) if data['y_vol'] > 0 else 0
+                # 測試模式模擬
+                if lp is None and Config.TEST_MODE: lp, v = 105.0, 500
+                if not lp: continue
                 
-                # --- 🔥 3K 紀錄邏輯 ---
-                if now_time < Config.RECORD_END_TIME and "999" not in symbol:
-                    if lp > data["high"]: data["high"] = lp
-                    if lp < data["low"] or data["low"] == 9999.0: data["low"] = lp
-
-                # --- 🚀 突破判定 ---
-                is_p_break = (lp > data['high'] > 0) and (now_time >= Config.START_MONITOR_TIME or "999" in symbol)
-                is_v_surge = (est_ratio >= Config.VOL_EST_THRESHOLD)
+                # 💡 盤中錄製程序 (09:15 前)
+                if tw_now.time() <= Config.RECOVERY_THRESHOLD:
+                    if lp > data['high']: data['high'] = lp
+                    if lp < data['low'] or data['low'] == 9999.0: data['low'] = lp
                 
-                strat = ""
-                if is_p_break and is_v_surge and not data["trig_c"]: strat = "價量齊揚"; data["trig_c"] = True
-                elif is_p_break and not data["trig_p"] and not data["trig_c"]: strat = "3K突破"; data["trig_p"] = True
-                elif is_v_surge and not data["trig_v"] and not data["trig_c"]: strat = "量能激增"; data["trig_v"] = True
+                ratio = round((v * (270 / passed_min)) / data['y_vol'], 2) if data['y_vol'] > 0 else 0
+                
+                # 控制台輸出
+                print(f"{sid} {info['name']:<8} | {info['market']:<4} | {lp:<8} | {ratio:<6} | {data['high']:<8} | {data['low']:<8}")
 
-                display_name = f"{symbol} {info['name']}"
-                print(f"{display_name:<12} | {info['market']:<4} | {lp:<8} | {est_ratio:<6} | {data['high']:<8} | {info['theme']}", flush=True)
+                # 策略觸發
+                if lp > data['high'] > 0 and ratio >= Config.VOL_EST_THRESHOLD and not data['trig']:
+                    send_tg_alert(sid, "3K突破偵測", lp, data['high'], data['low'], ratio)
+                    data['trig'] = True
 
-                if strat:
-                    send_tg_alert(display_name, strat, lp, data['high'], data['low'], est_ratio, info['theme'])
+            except: pass
+            time.sleep(Config.API_THROTTLE_SLEEP) # 保護 API (1.2s)
 
-            except Exception: pass
-            time.sleep(Config.API_THROTTLE_SLEEP)
-        time.sleep(5)
+        # 💡 每輪掃描完畢後的休眠機制 (10s)
+        print(f"\n✅ 當前輪次結束，休息 {Config.ROUND_INTERVAL_SLEEP} 秒後繼續下一次偵察...")
+        time.sleep(Config.ROUND_INTERVAL_SLEEP)
 
 if __name__ == "__main__":
     main()
