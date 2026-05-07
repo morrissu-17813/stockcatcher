@@ -18,7 +18,7 @@ class Config:
     FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
     FUGLE_API_KEY ="MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
-    TELEGRAM_CHAT_ID = "-1003613268841"
+    TELEGRAM_CHAT_ID = "1087480334"
 
     # 🛠️ 運行模式
     TEST_MODE = True    # Debug 時為 True：模擬盤中報價看板顯示
@@ -31,7 +31,7 @@ class Config:
     OTC_VOL_THRESHOLD = 500 # 上櫃成交量最低門檻 (張)
 
     # 🎯 策略參數
-    VOL_EST_THRESHOLD = 1.6 # 1.6 倍預估量能異常
+    VOL_EST_THRESHOLD = 2.0 # 2.0 倍預估量能異常
     MARKET_OPEN = dtime(9, 0)
     RECOVERY_THRESHOLD = dtime(9, 15) # 3K 法基準判斷時間點
     MARKET_CLOSE = dtime(13, 35)
@@ -219,7 +219,7 @@ def send_tg_alert(sid: str, strategy: str, lp: float, high: float, low: float, r
         f"🚨【蘇蘇天機選股 - 訊號觸發】\n"
         f"🎯 *核心策略：* {strategy}\n"
         f"━━━━━━━━━━━━━━\n"
-        f"📈 *標的：* [**{sid} {info['name']}**]({nstock_url})\n"
+        f"📈 *標的：* [{sid} {info['name']}]({nstock_url})\n"
         f"💰 *現價：* `{lp}`\n"
         f"🎯 *3K高：* `{high}` | 🛡️ *3K低：* `{low}`\n"
         f"📊 *預估量比：* `{ratio}x`\n"
@@ -284,8 +284,18 @@ def main():
         print(f"{'股號股名':<16} | {'市場':<4} | {'現價':<8} | {'量比':<6} | {'3K高':<8} | {'3K低':<8} | {'產業別'}")
         print("-" * 115)
 
-        passed_min = max(1.0, min(270.0, (datetime.combine(tw_now.date(), tw_now.time()) - datetime.combine(tw_now.date(), Config.MARKET_OPEN)).total_seconds() / 60))
-
+        #passed_min = max(1.0, min(270.0, (datetime.combine(tw_now.date(), tw_now.time()) - datetime.combine(tw_now.date(), Config.MARKET_OPEN)).total_seconds() / 60))
+        # 判斷是否在開盤時段
+        if tw_now.time() < Config.MARKET_OPEN:
+        # 開盤前，強制讓分鐘數為 1 (或 0)，且不建議計算量能比
+         passed_min = 270.0
+        elif tw_now.time() > Config.MARKET_CLOSE: # 假設 CLOSE 是 13:30
+         passed_min = 270.0
+        else:
+        # 正常交易時段計算
+         passed_min = max(1.0, min(270.0, (datetime.combine(tw_now.date(), tw_now.time()) - datetime.combine(tw_now.date(), Config.MARKET_OPEN)).total_seconds() / 60))
+        
+      
         for sid in list(stock_info_map.keys()):
             info, data = stock_info_map[sid], monitor_data[sid]
             try:
@@ -295,10 +305,10 @@ def main():
                 
                 if res:
                     lp = res.get('lastPrice')
-                    v = safe_cast(res.get('total', {}).get('tradeVolume'), int) // 1000
+                    v = safe_cast(res.get('total', {}).get('tradeVolume'), int)
                 else: lp, v = None, 0
                 
-                if lp is None and Config.TEST_MODE: lp, v = 105.0, 500
+                if lp is None and Config.TEST_MODE: lp, v = 10.0, 500
                 if not lp: continue
                 
                 if tw_now.time() <= Config.RECOVERY_THRESHOLD:
@@ -306,19 +316,23 @@ def main():
                     if lp < data['low'] or data['low'] == 9999.0: data['low'] = lp
                 
                 ratio = round((v * (270 / passed_min)) / data['y_vol'], 2) if data['y_vol'] > 0 else 0
+                # 🔧 DEBUG：打印計算中間值，幫助診斷量能比
+                if ratio > 10:
+                    print(f"[DEBUG {sid}] v={v}, passed_min={passed_min}, y_vol={data['y_vol']}, ratio_calc=(v*270/passed_min)/y_vol=({v}*{270}/{passed_min})/{data['y_vol']}={ratio}")
                 print(f"{sid} {info['name']:<10} | {info['market']:<4} | {lp:<8} | {ratio:<6} | {data['high']:<8} | {data['low']:<8} | {info['industry']}")
 
                 # 策略判定
                 is_3k_break = lp > data['high'] > 0
                 is_vol_anomaly = ratio >= Config.VOL_EST_THRESHOLD
+                is_warrant = info['market'] == '權證'  # 權證只做 3K 突破，不做量能異常
                 
-                if is_3k_break and is_vol_anomaly and not data['trig_both']:
+                if is_3k_break and is_vol_anomaly and not data['trig_both'] and not is_warrant:
                     send_tg_alert(sid, "🔥 策略三：3K突破 + 量能異常 (價量齊揚)", lp, data['high'], data['low'], ratio)
                     data['trig_both'] = data['trig_3k'] = data['trig_vol'] = True
                 elif is_3k_break and not data['trig_3k']:
                     send_tg_alert(sid, "📈 策略一：3K 法突破偵測", lp, data['high'], data['low'], ratio)
                     data['trig_3k'] = True
-                elif is_vol_anomaly and not data['trig_vol']:
+                elif is_vol_anomaly and not data['trig_vol'] and not is_warrant:
                     send_tg_alert(sid, "📊 策略二：預估量能異常偵測", lp, data['high'], data['low'], ratio)
                     data['trig_vol'] = True
 
