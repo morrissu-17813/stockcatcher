@@ -1,9 +1,7 @@
 name: StockCatcher_Daily_Action
 
 on:
-  schedule:
-    # 台北時間週一至週五 08:55 啟動 (UTC 00:55)
-    - cron: '55 0 * * 1-5'
+  # 💡 蘇蘇修正：已移除 schedule 自動排程，避免因 GitHub 伺服器延遲導致的亂噴通知
   workflow_dispatch: # 允許手動測試
 
 jobs:

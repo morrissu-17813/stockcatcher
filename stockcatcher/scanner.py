@@ -31,7 +31,7 @@ class Config:
     OTC_VOL_THRESHOLD = 500 # 上櫃成交量最低門檻 (張)
 
     # 🎯 策略參數
-    VOL_EST_THRESHOLD = 2.0 # 2.0 倍預估量能異常
+    VOL_EST_THRESHOLD = 3.0 # 3.0 倍預估量能異常
     MARKET_OPEN = dtime(9, 0)
     RECOVERY_THRESHOLD = dtime(9, 15) # 3K 法基準判斷時間點
     MARKET_CLOSE = dtime(13, 35)
@@ -214,10 +214,15 @@ def sync_market_pool(warrant_count: int):
 def send_tg_alert(sid: str, strategy: str, lp: float, high: float, low: float, ratio: float):
     """ Telegram 發報：採用 Markdown 與外部連結 """
     info = stock_info_map.get(sid, {'name': '標的', 'industry': '產業'})
+   
+   # 動態識別標籤
+    is_warrant = (info.get('market') == '權證')
+    warrant_badge = "🎫 [權證標的] " if is_warrant else ""
+    
     nstock_url = f"https://www.nstock.tw/stock_info?stock_id={sid}"
     msg = (
-        f"🚨【蘇蘇天機選股 - 訊號觸發】\n"
-        f"🎯 *核心策略：* {strategy}\n"
+        f"🚨【訊號觸發】\n"
+        f"🎯 *核心策略：* {warrant_badge}{strategy}\n"
         f"━━━━━━━━━━━━━━\n"
         f"📈 *標的：* [{sid} {info['name']}]({nstock_url})\n"
         f"💰 *現價：* `{lp}`\n"
@@ -236,8 +241,7 @@ def perform_strategy_test():
     """ 驗證三大策略發報 """
     print("📡 啟動自動化測試：發送驗證訊號...", flush=True)
     send_tg_alert("2330", "策略一：3K法突破測試", 1000.0, 990.0, 970.0, 1.2)
-    send_tg_alert("2317", "策略二：量能異常測試", 150.0, 160.0, 140.0, 2.5)
-    send_tg_alert("2454", "🔥 策略三：3K突破+量能異常測試", 1100.0, 1050.0, 1000.0, 1.8)
+    send_tg_alert("2313", "🔥 策略二：3K突破+量能異常測試", 1100.0, 1050.0, 1000.0, 1.8)
 
 def recover_3k_data(target_list: List[str]):
     """ 追溯今日開盤 3K 極值 """
@@ -326,14 +330,14 @@ def main():
                 is_vol_anomaly = ratio >= Config.VOL_EST_THRESHOLD
                 is_warrant = info['market'] == '權證'  # 權證只做 3K 突破，不做量能異常
                 
-                if is_3k_break and is_vol_anomaly and not data['trig_both'] and not is_warrant:
-                    send_tg_alert(sid, "🔥 策略三：3K突破 + 量能異常 (價量齊揚)", lp, data['high'], data['low'], ratio)
+                if is_3k_break and is_vol_anomaly and not data['trig_both']:
+                    send_tg_alert(sid, "🔥 策略二：3K突破 + 量能異常 (價量齊揚)", lp, data['high'], data['low'], ratio)
                     data['trig_both'] = data['trig_3k'] = data['trig_vol'] = True
                 elif is_3k_break and not data['trig_3k']:
                     send_tg_alert(sid, "📈 策略一：3K 法突破偵測", lp, data['high'], data['low'], ratio)
                     data['trig_3k'] = True
                 elif is_vol_anomaly and not data['trig_vol'] and not is_warrant:
-                    send_tg_alert(sid, "📊 策略二：預估量能異常偵測", lp, data['high'], data['low'], ratio)
+                    # send_tg_alert(sid, "📊 策略二：預估量能異常偵測", lp, data['high'], data['low'], ratio)
                     data['trig_vol'] = True
 
             except: pass
