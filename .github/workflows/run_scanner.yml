@@ -3,6 +3,9 @@ name: StockCatcher_Daily_Action
 on:
   # 💡 蘇蘇修正：已移除 schedule 自動排程，避免因 GitHub 伺服器延遲導致的亂噴通知
   workflow_dispatch: # 允許手動測試
+  #    外部強迫喚醒：允許透過 API 觸發 (Repository Dispatch)
+  repository_dispatch:
+    types: [trigger-scanner]
 
 jobs:
   run-stockcatcher:
