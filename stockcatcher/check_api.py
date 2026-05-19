@@ -8,7 +8,7 @@ from typing import List
 from dateutil.parser import isoparse
 from dotenv import load_dotenv
 
-# ⚡ 核心變更：引入 curl_cffi 偽裝 Chrome 瀏覽器，徹底繞過 SSL 憑證驗證失敗
+# ⚡ 核心：引入 curl_cffi 偽裝 Chrome 瀏覽器，徹底繞過 SSL 憑證驗證失敗
 from curl_cffi import requests as curl_requests
 import requests as standard_requests
 
@@ -21,23 +21,23 @@ load_dotenv()
 # ⚙️ [系統配置區] - 實戰參數落鎖
 # ============================================================
 class Config:
-    FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE"
+    FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
     FUGLE_API_KEY = "MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
     TELEGRAM_CHAT_ID = "1087480334"
 
     # 📊 配額管理
-    MAX_POOL_SIZE      = 170
-    WARRANT_QUOTA      = 20    
+    MAX_POOL_SIZE      = 200
+    WARRANT_QUOTA      = 40    
     LISTED_QUOTA       = 100    
-    OTC_QUOTA          = 50    
+    OTC_QUOTA          = 60    
     SCAN_INTERVAL      = 900   
 
     # 🎯 策略爆發門檻
     ENTRY_MIN_PCT      = 3.5   
     ENTRY_MAX_PCT      = 9.0   
     GRADUATION_PCT     = 9.7   
-    VOL_EST_THRESHOLD  = 2.0   # ✅ 量能門檻依指示下修至 2.0
+    VOL_EST_THRESHOLD  = 2.0   
 
     # ⏰ 時間控制
     MARKET_OPEN        = dtime(9, 0)
@@ -45,13 +45,15 @@ class Config:
     AUTO_SHUTDOWN_TIME = dtime(13, 35)  
     RECOVERY_THRESHOLD = dtime(9, 15)  
     API_THROTTLE_SLEEP = 1.1   
-    TEST_MODE          = True # 實戰時請保持 False
+    
+    IS_LOCAL           = False 
 
 # 🗄️ 全域記憶體容器與快照矩陣
 stock_info_map = {}   
 monitor_data = {}     
 finmind_industry_map = {} 
-global_volume_lookup = {}  
+global_volume_lookup = {}    # 儲存成交量 (張數)
+global_turnover_lookup = {}  # 儲存成交金額 (金流)
 last_scan_time = 0
 _exchange_map = {}        
 _last_fugle_scan = 0.0    
@@ -62,7 +64,6 @@ _mis_session = None
 # ============================================================
 
 def get_now_tw():
-    """ 取得當前台北時間 """
     return datetime.now(timezone.utc) + timedelta(hours=8)
 
 def is_market_hours():
@@ -98,15 +99,12 @@ def safe_cast(value, target_type, default=0):
         return default
 
 def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0.0):
-    """ Telegram 發報模組 """
-    # 🌟 [漲停物理阻斷] 漲幅大於等於 9.75% 視為漲停，絕對阻斷發報！
     if up_pct >= 9.75:
         return
         
     info = stock_info_map.get(sid, {})
     data = monitor_data.get(sid, {})
     
-    # 🌟 [CD 冷卻鎖] 30分鐘內 (1800秒) 同檔股票絕對不重複發送，維持 Telegram 乾淨！
     if time.time() - data.get('last_alert_time', 0) < 1800:
         return
         
@@ -135,26 +133,31 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage"
     try:
         standard_requests.post(url, json={"chat_id": Config.TELEGRAM_CHAT_ID, "text": msg, "parse_mode": "Markdown"}, timeout=5)
-        # ✅ 發送成功後更新冷卻時間鎖
         data['last_alert_time'] = time.time()
     except Exception as e:
         print(f"[錯誤] Telegram 發送通知失敗: {e}")
 
-# ------------------------------------------------------------
-# 🛡️ 金融股、保險股、ETF 全物理絕緣過濾器
-# ------------------------------------------------------------
+def perform_strategy_test():
+    print("📡 啟動自動化測試：發送驗證訊號...", flush=True)
+    sid = "2313"
+    stock_info_map[sid] = {'name': '華通(測試標的)', 'market': '上市', 'is_protected': False, 'industry': '電子零組件業'}
+    monitor_data[sid] = {
+        'last_alert_time': 0, 'last_up_pct': 0.0, 'last_consumption': 0.85, 
+        'is_accelerating': False, 'history_prices': [250.0]
+    }
+    send_tg_alert(sid, "🔥 策略二：3K突破+量能異常測試", 250.0, 245.0, 233.0, 1.8, 0.0)
+    del stock_info_map[sid]
+    del monitor_data[sid]
+    print("✅ 自動化測試驗證訊號已成功送出！")
+
 def should_exclude(sid, name, industry):
-    sid = str(sid).strip()
-    name = str(name)
-    industry = str(industry)
+    sid, name, industry = str(sid).strip(), str(name), str(industry)
     if sid.startswith('00') or sid.startswith('01') or sid.startswith('03') or \
        any(k in name for k in ["ETF", "受益憑證", "基金", "指數", "債券", "存託憑證"]) or \
-       any(k in industry for k in ["ETF", "受益憑證", "指數", "債券", "存託憑證"]):
-        return True
+       any(k in industry for k in ["ETF", "受益憑證", "指數", "債券", "存託憑證"]): return True
     if sid.startswith('28') or sid.startswith('58') or sid.startswith('60') or \
        any(k in name for k in ["金控", "銀行", "保險", "證券", "人壽", "信託", "期貨"]) or \
-       any(k in industry for k in ["金融", "保險", "證券", "金控"]):
-        return True
+       any(k in industry for k in ["金融", "保險", "證券", "金控"]): return True
     return False
 
 def fetch_disposition_stocks():
@@ -167,10 +170,6 @@ def fetch_disposition_stocks():
             if sid: disposition_set.add(sid)
     except Exception: pass
     return disposition_set
-
-# ------------------------------------------------------------
-# ⚡ 快速層 - TWSE/TPEx 官方 Cookie 連動會話模組
-# ------------------------------------------------------------
 
 def fetch_mis_batch_all():
     global _mis_session
@@ -193,8 +192,7 @@ def fetch_mis_batch_all():
             for item in res.get('msgArray', []):
                 sid = item.get('c', '').strip()
                 if not sid: continue
-                z = item.get('z', '-')
-                y = safe_cast(item.get('y', '0'), float)
+                z, y = item.get('z', '-'), safe_cast(item.get('y', '0'), float)
                 lp = y if (z in ('-', '0') or safe_cast(z, float) <= 0) else safe_cast(z, float)
                 if lp <= 0: continue
                 v = safe_cast(item.get('v', '0').replace(',', ''), int)   
@@ -204,10 +202,6 @@ def fetch_mis_batch_all():
                 results[sid] = {'lp': lp, 'v': v, 'ask3': ask3, 'up_pct': up_pct}
         except Exception: pass
     return results
-
-# ------------------------------------------------------------
-# 🏢 官方免 Token 雙重產業 Profile 大數據庫
-# ------------------------------------------------------------
 
 def fetch_finmind_industry_mapping():
     mapping = {
@@ -237,7 +231,7 @@ def fetch_finmind_industry_mapping():
     return mapping
 
 # ------------------------------------------------------------
-# 🔄 汰換引擎（100% 依據全市場真實成交量大排序）
+# 🔄 🌟 [雙因子計分汰換引擎] 兼顧張數暴衝與金流巨頭
 # ------------------------------------------------------------
 
 def fetch_market_candidates(market_type="上市"):
@@ -253,8 +247,10 @@ def fetch_market_candidates(market_type="上市"):
                 if not sid or len(sid) != 4 or sid in disposition_set or sid in stock_info_map: continue
                 fm = finmind_industry_map.get(sid, {"name": i.get('Name', f"上市_{sid}").strip(), "industry": "電子零組件業"})
                 if should_exclude(sid, fm['name'], fm['industry']): continue
+                
                 vol = safe_cast(i.get('TradeVolume'), int) // 1000  
-                candidates.append({'sid': sid, 'up_pct': 0.0, 'vol': vol, 'market': '上市', 'name': fm['name'], 'ind': fm['industry']})
+                turnover = safe_cast(i.get('TradeValue'), float) 
+                candidates.append({'sid': sid, 'up_pct': 0.0, 'vol': vol, 'turnover': turnover, 'market': '上市', 'name': fm['name'], 'ind': fm['industry']})
         else:
             url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
             res = curl_requests.get(url, impersonate="chrome120", timeout=10).json()
@@ -265,9 +261,23 @@ def fetch_market_candidates(market_type="上市"):
                 raw_name = i.get('CompanyName', i.get('SecuritiesCompanyName', f"上櫃_{sid}")).strip()
                 fm = finmind_industry_map.get(sid, {"name": raw_name, "industry": "半導體業"})
                 if should_exclude(sid, fm['name'], fm['industry']): continue
+                
                 vol = safe_cast(i.get('TradingShares'), int) // 1000  
-                candidates.append({'sid': sid, 'up_pct': 0.0, 'vol': vol, 'market': '上櫃', 'name': fm['name'], 'ind': fm['industry']})
-        candidates = sorted(candidates, key=lambda x: x['vol'], reverse=True)
+                turnover = safe_cast(i.get('TradingAmount'), float)
+                candidates.append({'sid': sid, 'up_pct': 0.0, 'vol': vol, 'turnover': turnover, 'market': '上櫃', 'name': fm['name'], 'ind': fm['industry']})
+                
+        if candidates:
+            # 1. 依照成交金額 (Turnover) 給予名次積分
+            candidates.sort(key=lambda x: x['turnover'], reverse=True)
+            for idx, c in enumerate(candidates): c['rank_t'] = idx
+            
+            # 2. 依照成交張數 (Volume) 給予名次積分
+            candidates.sort(key=lambda x: x['vol'], reverse=True)
+            for idx, c in enumerate(candidates): c['rank_v'] = idx
+            
+            # 3. 雙因子綜合排序：金額名次 + 張數名次 (數字越小，代表綜合排名越強)
+            candidates.sort(key=lambda x: x['rank_t'] + x['rank_v'])
+            
     except Exception: pass
     return candidates
 
@@ -297,7 +307,7 @@ def refresh_pool_v90():
         remaining = len([s for s in stock_info_map if stock_info_map[s]['market'] == m_type and not stock_info_map[s].get('is_protected')])
         vacancy = m_quota - remaining
 
-        for cand in sorted(candidates, key=lambda x: x['vol'], reverse=True)[:vacancy]:
+        for cand in candidates[:vacancy]:
             csid = cand['sid']
             stock_info_map[csid] = {'name': cand['name'], 'market': m_type, 'is_protected': False, 'industry': cand['ind']}
             monitor_data[csid] = {
@@ -308,76 +318,72 @@ def refresh_pool_v90():
             }
 
 # ------------------------------------------------------------
-# 🕵️‍♂️ ✅ [雙軌權證大核流] 優先 FinMind API，元大權證網備援
+# 🕵️‍♂️ ✅ [真．雙因子權證主力流] 反向比對 ＋ 雙因子計分
 # ------------------------------------------------------------
 
 def load_official_warrant_targets() -> List[str]:
-    """ 💡 主方案：FinMind 代碼長度過濾法 (加入 Token 異常容錯) """
-    print("📡 正在解析權證關聯標的池 (FinMind 官方 API)...", flush=True)
-    warrant_target_list = set()
+    print("📡 正在解析權證關聯標的池 (FinMind 反向比對 + 雙因子排序)...", flush=True)
+    warrant_candidates = [] 
     try:
         from FinMind.data import DataLoader
         dl = DataLoader()
         try:
-            if Config.FINMIND_TOKEN: 
-                dl.login_by_token(Config.FINMIND_TOKEN)
-        except Exception as auth_e:
-            print(f"⚠️ FinMind Token 登入異常，自動降級為無 Token 訪客模式: {auth_e}")
+            if Config.FINMIND_TOKEN: dl.login_by_token(Config.FINMIND_TOKEN)
+        except Exception: pass
         
         df_info = dl.taiwan_stock_info()
         df_info['sid_str'] = df_info['stock_id'].astype(str).str.strip()
         warrants_df = df_info[df_info['sid_str'].str.len() == 6]
         
-        if warrants_df.empty:
-            print("⚠️ [警告] API 未能返回權證標的，將自動切換備援。")
-            return []
+        if warrants_df.empty: return []
 
-        warrant_names = warrants_df['stock_name'].tolist()
-        potential_names = set()
-        for name in warrant_names[:500]: 
-            potential_names.add(name[:2])
-            potential_names.add(name[:3])
-            potential_names.add(name[:4])
+        # 所有權證名稱串成大字串，進行反向搜索
+        all_warrant_names_str = "|".join(warrants_df['stock_name'].tolist())
 
         for sid, info in finmind_industry_map.items():
-            if any(n in info['name'] for n in potential_names):
-                warrant_target_list.add(sid)
-                if len(warrant_target_list) >= Config.WARRANT_QUOTA: break
+            stock_name = info['name'].replace('*', '').strip()
+            # 若正股名字出現在權證大字串中，代表有發行權證
+            if stock_name and stock_name in all_warrant_names_str:
+                today_vol = global_volume_lookup.get(sid, 0)
+                today_turnover = global_turnover_lookup.get(sid, 0.0)
+                if today_vol > 0 and today_turnover > 0:
+                    warrant_candidates.append({'sid': sid, 'vol': today_vol, 'turnover': today_turnover})
+                
+        if warrant_candidates:
+            # 雙因子排序：金流名次 + 張數名次
+            warrant_candidates.sort(key=lambda x: x['turnover'], reverse=True)
+            for idx, c in enumerate(warrant_candidates): c['rank_t'] = idx
+            
+            warrant_candidates.sort(key=lambda x: x['vol'], reverse=True)
+            for idx, c in enumerate(warrant_candidates): c['rank_v'] = idx
+            
+            warrant_candidates.sort(key=lambda x: x['rank_t'] + x['rank_v'])
         
-        print(f"✅ 權證分析完成，取得 {len(warrant_target_list)} 檔標的。")
+        clean_hot_sids = [item['sid'] for item in warrant_candidates][:Config.WARRANT_QUOTA]
+        print(f"✅ 權證熱門榜雙因子排序完成！最終取得 {len(clean_hot_sids)} 檔標的。")
+        return clean_hot_sids
     except Exception as e:
-        print(f"❌ [FinMind 權證池失敗] {e}，將切換備援。")
-    
-    return list(warrant_target_list)
+        print(f"❌ [FinMind 權證池失敗] {e}，切換備援。")
+    return []
 
 def scrape_yuanta_hot_targets_fallback() -> List[str]:
-    """ 💡 備胎方案：元大權證網 (WarrantWin) 熱門標的穿透提取 """
     results = []
-    # 鎖定元大權證網的熱門排行榜頁面
     url = "https://www.warrantwin.com.tw/eyuanta/Warrant/HotTarget.aspx"
     try:
-        # 強制使用 curl_cffi 偽裝 Chrome120，繞過所有的反爬蟲與 SSL 檢測
         res = curl_requests.get(url, impersonate="chrome120", timeout=15)
         if res.status_code == 200:
-            text = res.text
-            # 掃描網頁原始碼中潛在的 4 碼股票代號
-            codes = re.findall(r'\b([0-9]{4})\b', text)
-            
-            # 使用 global_volume_lookup 當作驗證器，只抓取真正的股票代號
+            codes = re.findall(r'\b([0-9]{4})\b', res.text)
             for sid in codes:
-                if sid in global_volume_lookup and sid not in results and sid not in ['1999', '2024', '2025', '2026', '0800']:
+                if sid in global_turnover_lookup and sid not in results and sid not in ['1999', '2024', '2025', '2026', '0800']:
                     results.append(sid)
-            print(f"console.log: [備援探針] 元大權證網提取成功！取得 {len(results)} 檔標的")
-    except Exception as e:
-        print(f"console.log: [備援探針] 元大權證網 鏈路異常: {e}")
+    except Exception: pass
     return results
 
 def pre_market_initialization():
-    global global_volume_lookup
+    global global_volume_lookup, global_turnover_lookup
     twse_sids = set()
     disposition_set = fetch_disposition_stocks()
 
-    # 🌐 建立全台當日真．成交量能數據庫
     try:
         twse_data = curl_requests.get("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL", impersonate="chrome120", timeout=10).json()
         if isinstance(twse_data, list):
@@ -385,6 +391,7 @@ def pre_market_initialization():
                 code = row.get('Code', '').strip()
                 if len(code) == 4:
                     global_volume_lookup[code] = safe_cast(row.get('TradeVolume'), int) // 1000
+                    global_turnover_lookup[code] = safe_cast(row.get('TradeValue'), float)
                     twse_sids.add(code)
     except: pass
     try:
@@ -392,24 +399,22 @@ def pre_market_initialization():
         if isinstance(tpex_data, list):
             for row in tpex_data:
                 code = str(row.get('SecuritiesCompanyCode', '')).strip()
-                if len(code) == 4: global_volume_lookup[code] = safe_cast(row.get('TradingShares'), int) // 1000
+                if len(code) == 4: 
+                    global_volume_lookup[code] = safe_cast(row.get('TradingShares'), int) // 1000
+                    global_turnover_lookup[code] = safe_cast(row.get('TradingAmount'), float)
     except: pass
 
-    # ✅ 1. 優先使用 FinMind 主力方案
     clean_sids = load_official_warrant_targets()
     
-    # ✅ 2. 若 FinMind 失敗或陣亡，啟動 元大權證網 備胎補滿
     if len(clean_sids) < Config.WARRANT_QUOTA:
         fallback_sids = scrape_yuanta_hot_targets_fallback()
         for sid in fallback_sids:
-            if sid not in clean_sids:
-                clean_sids.append(sid)
+            if sid not in clean_sids: clean_sids.append(sid)
             if len(clean_sids) >= Config.WARRANT_QUOTA: break
 
     injected = 0
     for sid in clean_sids:
         if sid in disposition_set: continue
-        
         ind = finmind_industry_map.get(sid, {}).get('industry', '權證熱門標的')
         name = finmind_industry_map.get(sid, {}).get('name', f"現股_{sid}")
         if should_exclude(sid, name, ind): continue
@@ -428,7 +433,7 @@ def pre_market_initialization():
             injected += 1
             if injected >= Config.WARRANT_QUOTA: break
             
-    print(f"真．動態權證現股化分析完成，最終注入 {injected} 檔實時熱門標的。")
+    print(f"真．動態權證現股化分析完成，最終注入 {injected} 檔實時金流標的。")
 
 def recover_3k_data(target_list: List[str]):
     now_tw = get_now_tw()
@@ -453,7 +458,7 @@ def recover_3k_data(target_list: List[str]):
 
 def main():
     global _last_fugle_scan, finmind_industry_map
-    print(f"🛡️ 蘇蘇的天機選股 V112.0 啟動完成。")
+    print(f"🛡️ 蘇蘇的天機選股 V118.0 啟動完成。")
     print(f"{get_now_tw().strftime('%H:%M:%S')} 執行盤前籌碼映射與官方 Profile 基本面同步...")
     
     finmind_industry_map = fetch_finmind_industry_mapping()
@@ -466,6 +471,7 @@ def main():
     o_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '上櫃'])
     print(f"✅ 初始化：上市 {l_count} 檔、上櫃 {o_count} 檔、權證相關現股 {w_count} 檔")
     
+    perform_strategy_test()
     recover_3k_data(list(stock_info_map.keys()))
     print("🚀 系統初始化完畢，準備進入監控模式...\n")
     time.sleep(0.5)
@@ -474,14 +480,14 @@ def main():
         refresh_pool_v90()
         tw_now = get_now_tw()
         
-        if not Config.TEST_MODE:        
-                if tw_now.weekday() < 5 and tw_now.time() >= Config.AUTO_SHUTDOWN_TIME:
-                  print(f"\n[系統時鐘觸發熄火] 當前台北時間 {tw_now.strftime('%H:%M:%S')} 已達 13:35。")
-                  sys.exit(0)
+        if not Config.IS_LOCAL:        
+            if tw_now.weekday() < 5 and tw_now.time() >= Config.AUTO_SHUTDOWN_TIME:
+                print(f"\n[系統時鐘觸發熄火] 當前台北時間 {tw_now.strftime('%H:%M:%S')} 已達 13:35。")
+                sys.exit(0)
         else: 
-            print(f"[測試模式] 當前台北時間 {tw_now.strftime('%H:%M:%S')}")   
+            # 在測試模式保持靜默避免洗版
+            pass  
 
-        # 🌟 監控週期時間戳直覺化
         timer_str = tw_now.strftime('%Y-%m-%d %H:%M:%S')
         print(f"\n[監控週期: {timer_str}]")
         print(f"{wide_ljust('股號股名', 20)} | {wide_ljust('市場', 6)} | {wide_ljust('現價', 10)} | {wide_ljust('量比', 8)} | {wide_ljust('3K高', 10)} | {wide_ljust('3K低', 10)} | 產業別")
@@ -510,7 +516,6 @@ def main():
                         ask_vol = sum(safe_cast(a.get('volume', 0), int) for a in res.get('asks', [])[:3])
                         if ask_vol > 0: data['last_consumption'] = min(1.0, v / (ask_vol * 10))
                         
-                        # 富果沒有直接提供 up_pct，簡單計算
                         y = safe_cast(res.get('previousClose', '0'), float)
                         if y > 0: up_pct = round((lp - y) / y * 100, 2)
                         data['last_up_pct'] = up_pct
@@ -522,6 +527,15 @@ def main():
                         if m.get('ask3', 0) > 0: data['last_consumption'] = min(1.0, v / (m['ask3'] * 10))
                         data['last_up_pct'] = up_pct
 
+                if lp is None and Config.IS_LOCAL:
+                    y_val = safe_cast(finmind_industry_map.get(sid, {}).get('y', '0'), float)
+                    seed_base = y_val if y_val > 0 else (1000.0 if sid=='2330' else (210.0 if sid=='2317' else 85.0))
+                    wave = math.sin(passed_min * 0.15 + int(sid)) * 0.03
+                    lp = round(seed_base * (1.002 + wave), 2)
+                    v = int(data['y_vol'] * (passed_min / 270.0) * (1.1 + abs(wave)))
+
+                if lp is None:
+                    if data.get('history_prices'): lp = data['history_prices'][-1]
                 if not lp: continue
                 
                 if tw_now.time() <= Config.RECOVERY_THRESHOLD:
@@ -539,14 +553,12 @@ def main():
                 ratio = round((v * (270 / passed_min)) / data['y_vol'], 2) if data['y_vol'] > 0 else 0
                 data['last_ratio'] = ratio
 
-                label = f"{sid} {info['name']}"
-                print(f"{wide_ljust(label, 20)} | {wide_ljust(info['market'], 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {info['industry']}")
+                print(f"{wide_ljust(f'{sid} {info['name']}', 20)} | {wide_ljust(info['market'], 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {info['industry']}")
 
                 # 🎯 全策略判定與降噪防擾機制
                 is_3k_break = lp > data['high'] > 0
                 is_vol_anomaly = ratio >= Config.VOL_EST_THRESHOLD
 
-                # 🎯 策略四：N字突破 (保留發報，並帶入 up_pct 進行漲停阻斷)
                 if data['state'] == 1 and lp >= data['point_a'] and data['point_b'] != 9999.0:
                     if not data.get('trig_策略四') and is_vol_anomaly:
                         send_tg_alert(sid, "策略四：N字突破 (洗盤結束再發動)", lp, data['high'], data['low'], ratio, up_pct)
@@ -557,21 +569,16 @@ def main():
                     data['point_b'] = min(data['point_b'], lp)
                     if lp < (data['point_a'] + data['high']) / 2: data['state'] = 0
 
-                # 🎯 策略二：3K突破 + 量能異常 (保留發報，並帶入 up_pct 進行漲停阻斷)
                 if is_3k_break and is_vol_anomaly and not data.get('trig_both'):
                     send_tg_alert(sid, "🔥 策略二：3K突破 + 量能異常 (價量齊揚)", lp, data['high'], data['low'], ratio, up_pct)
                     data['trig_both'] = data['trig_3k'] = data['trig_vol'] = True
                 
-                # 🎯 策略一：純 3K 法突破 (僅底層更新狀態機，絕對隱藏不發 TG 警報)
                 elif is_3k_break and not data.get('trig_3k'):
                     data['trig_3k'] = True
 
                 if is_warrant: time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
 
-        # ============================================================
-        # 🐢 慢速層 Fugle 精確五檔分析看板一體化日誌更新
-        # ============================================================
         if time.time() - _last_fugle_scan >= 60 and len(stock_info_map) > 0:
             warrant_sids = [s for s in stock_info_map if stock_info_map[s].get('is_protected') and stock_info_map[s].get('market') == '權證']
             if warrant_sids:
@@ -590,6 +597,7 @@ def main():
                     time.sleep(Config.API_THROTTLE_SLEEP)
                 _last_fugle_scan = time.time()
                 print("")
+                
         print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print(f"[時段提示] 方案C 兩層架構穩定運行 (MIS {len(max_results)} 檔)。5秒後刷新...")
         time.sleep(5)
