@@ -28,7 +28,7 @@ class Config:
 
     # 📊 配額管理
     MAX_POOL_SIZE      = 200
-    WARRANT_QUOTA      = 40    
+    WARRANT_QUOTA      = 40  
     LISTED_QUOTA       = 100    
     OTC_QUOTA          = 60    
     SCAN_INTERVAL      = 900   
@@ -230,10 +230,6 @@ def fetch_finmind_industry_mapping():
     except Exception: pass
     return mapping
 
-# ------------------------------------------------------------
-# 🔄 🌟 [雙因子計分汰換引擎] 兼顧張數暴衝與金流巨頭
-# ------------------------------------------------------------
-
 def fetch_market_candidates(market_type="上市"):
     candidates = []
     disposition_set = fetch_disposition_stocks()
@@ -316,10 +312,6 @@ def refresh_pool_v90():
                 "state": 0, "point_a": 0.0, "point_b": 9999.0,  
                 "last_alert_time": 0, "last_up_pct": 0.0, "last_ratio": 1.0, "last_consumption": 0.0, "is_accelerating": False, "history_prices": []
             }
-
-# ------------------------------------------------------------
-# 🕵️‍♂️ ✅ [真．雙因子權證主力流] 反向比對 ＋ 雙因子計分
-# ------------------------------------------------------------
 
 def load_official_warrant_targets() -> List[str]:
     print("📡 正在解析權證關聯標的池 (FinMind 反向比對 + 雙因子排序)...", flush=True)
@@ -458,7 +450,7 @@ def recover_3k_data(target_list: List[str]):
 
 def main():
     global _last_fugle_scan, finmind_industry_map
-    print(f"🛡️ 蘇蘇的天機選股 V118.0 啟動完成。")
+    print(f"🛡️ 蘇蘇的天機選股 V118.1 啟動完成。")
     print(f"{get_now_tw().strftime('%H:%M:%S')} 執行盤前籌碼映射與官方 Profile 基本面同步...")
     
     finmind_industry_map = fetch_finmind_industry_mapping()
@@ -485,7 +477,6 @@ def main():
                 print(f"\n[系統時鐘觸發熄火] 當前台北時間 {tw_now.strftime('%H:%M:%S')} 已達 13:35。")
                 sys.exit(0)
         else: 
-            # 在測試模式保持靜默避免洗版
             pass  
 
         timer_str = tw_now.strftime('%Y-%m-%d %H:%M:%S')
@@ -553,7 +544,9 @@ def main():
                 ratio = round((v * (270 / passed_min)) / data['y_vol'], 2) if data['y_vol'] > 0 else 0
                 data['last_ratio'] = ratio
 
-                print(f"{wide_ljust(f'{sid} {info['name']}', 20)} | {wide_ljust(info['market'], 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {info['industry']}")
+                # ✅ 修正：把 label 字串獨立出來，避免 f-string 雙重嵌套錯誤
+                stock_label = f"{sid} {info.get('name', '')}"
+                print(f"{wide_ljust(stock_label, 20)} | {wide_ljust(info['market'], 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {info['industry']}")
 
                 # 🎯 全策略判定與降噪防擾機制
                 is_3k_break = lp > data['high'] > 0
@@ -591,8 +584,11 @@ def main():
                             ask_vol = sum(safe_cast(a.get('volume', 0), int) for a in res.get('asks', [])[:3])
                             v_fugle = safe_cast(res.get('total', {}).get('tradeVolume'), int)
                             if ask_vol > 0: monitor_data[sid]['last_consumption'] = min(1.0, v_fugle / (ask_vol * 10))
+                        
                         w_lp = monitor_data[sid].get('history_prices', [100.0])[-1]
-                        print(f"{wide_ljust(f'{sid} {stock_info_map[sid]['name']}', 20)} | {wide_ljust('權證', 6)} | {wide_ljust(w_lp, 10)} | {wide_ljust(monitor_data[sid].get('last_ratio', 1.0), 8)} | {wide_ljust(monitor_data[sid]['high'], 10)} | {wide_ljust(monitor_data[sid]['low'], 10)} | {stock_info_map[sid]['industry']}")
+                        # ✅ 修正：同樣把 label 字串獨立出來，避免引號衝突
+                        warrant_label = f"{sid} {stock_info_map[sid].get('name', '')}"
+                        print(f"{wide_ljust(warrant_label, 20)} | {wide_ljust('權證', 6)} | {wide_ljust(w_lp, 10)} | {wide_ljust(monitor_data[sid].get('last_ratio', 1.0), 8)} | {wide_ljust(monitor_data[sid]['high'], 10)} | {wide_ljust(monitor_data[sid]['low'], 10)} | {stock_info_map[sid]['industry']}")
                     except: pass
                     time.sleep(Config.API_THROTTLE_SLEEP)
                 _last_fugle_scan = time.time()
