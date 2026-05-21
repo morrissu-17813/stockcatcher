@@ -37,7 +37,7 @@ class Config:
     ENTRY_MIN_PCT      = 3.5   
     ENTRY_MAX_PCT      = 9.0   
     GRADUATION_PCT     = 9.7   
-    VOL_EST_THRESHOLD  = 2.0   
+    VOL_EST_THRESHOLD  = 2.3   
 
     # ⏰ 時間控制
     MARKET_OPEN        = dtime(9, 0)
