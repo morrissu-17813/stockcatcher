@@ -46,7 +46,7 @@ class Config:
     RECOVERY_THRESHOLD = dtime(9, 15)  
     ROLLING_3K_WINDOW_MIN = 45   # 滾動3K高低計算視窗
     API_THROTTLE_SLEEP = 1.1   
-    
+      
     IS_LOCAL           = True 
 
 # 🗄️ 全域記憶體容器與快照矩陣
@@ -100,13 +100,17 @@ def safe_cast(value, target_type, default=0):
         return default
 
 def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0.0):
-    if up_pct >= 9.75:
+    if up_pct > 9.0:
         return
         
     info = stock_info_map.get(sid, {})
     data = monitor_data.get(sid, {})
 
-    # 每策略獨立 30 分鐘冷卻，不同策略互不干擾
+    # 第一關：全股票全域 30 分鐘鎖 — 任何策略觸發後，同標的 30 分鐘內全部靜音
+    if time.time() - data.get('last_alert_time', 0) < 1800:
+        return
+
+    # 第二關：每策略獨立 30 分鐘冷卻 — 防止同策略在全域鎖解除後立即重複觸發
     alert_times = data.setdefault('last_alert_by_strategy', {})
     if time.time() - alert_times.get(strategy_name, 0) < 1800:
         return
@@ -116,13 +120,15 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     consumption_str = get_consumption_badge(data.get('last_consumption', 0.45))
     is_acc = data.get('is_accelerating', False)
     stop_loss_price = low if low > 0 else lp
+    pct_arrow = "📈" if up_pct >= 0 else "📉"
+    pct_str = f"+{up_pct}%" if up_pct > 0 else f"{up_pct}%"
     
     msg = (
         f"{scenario}\n"
         f"🎯 *核心策略：* {badge}{strategy_name}\n"
         f"━━━━━━━━━━━━━━\n"
         f"📈 *標的：* [{sid} {info.get('name', '')}](https://www.nstock.tw/stock_info?stock_id={sid})\n"
-        f"💰 *現價：* `{lp}` (漲幅: {up_pct}%)\n"
+        f"💰 *現價：* `{lp}` {pct_arrow} `{pct_str}`\n"
         f"📊 *預估量比：* `{ratio}x`\n"        
         f"📐 *3K高位：* `{high}`\n"
         f"📐 *3K低位：* `{low}`\n"
@@ -147,9 +153,9 @@ def perform_strategy_test():
     stock_info_map[sid] = {'name': '華通(測試標的)', 'market': '上市', 'is_protected': False, 'industry': '電子零組件業'}
     monitor_data[sid] = {
         'last_alert_time': 0, 'last_up_pct': 0.0, 'last_consumption': 0.85, 
-        'is_accelerating': False, 'history_prices': [280.0]
+        'is_accelerating': False, 'history_prices': [350.0]
     }
-    send_tg_alert(sid, "🔥 策略二：3K突破+量能異常測試", 280.0, 245.0, 233.0, 1.8, 0.0)
+    send_tg_alert(sid, "🔥 策略二：3K突破+量能異常測試", 350.0, 277.0, 243.0, 1.8, 0.0)
     del stock_info_map[sid]
     del monitor_data[sid]
     print("✅ 自動化測試驗證訊號已成功送出！")
@@ -293,6 +299,9 @@ def fetch_market_candidates(market_type="上市"):
 def refresh_pool_v90():
     global last_scan_time
     now = time.time()
+    # 9:30 前不換池，盤前已選好股池，開盤後才開始動態輪換
+    if get_now_tw().time() < dtime(9, 30):
+        return
     if now - last_scan_time < Config.SCAN_INTERVAL and len(stock_info_map) >= 120: return
     last_scan_time = now
     
@@ -536,6 +545,7 @@ def main():
             info, data = stock_info_map[sid], monitor_data[sid]
             try:
                 lp, v, up_pct = None, 0, 0.0
+                lp_is_fresh = False
                 is_warrant = (info.get('market') == '權證')
 
                 if is_warrant:
@@ -543,6 +553,7 @@ def main():
                     res = standard_requests.get(f_url, headers={"X-API-KEY": Config.FUGLE_API_KEY.strip()}, timeout=5).json()
                     if res and 'lastPrice' in res and res['lastPrice'] is not None:
                         lp = res.get('lastPrice')
+                        lp_is_fresh = True
                         v = safe_cast(res.get('total', {}).get('tradeVolume'), int)   
                         ask_vol = sum(safe_cast(a.get('volume', 0), int) for a in res.get('asks', [])[:3])
                         if ask_vol > 0: data['last_consumption'] = min(1.0, v / (ask_vol * 10))
@@ -554,6 +565,7 @@ def main():
                     if mis_ok and sid in max_results:
                         m = max_results[sid]
                         lp, v = m['lp'], m['v']
+                        lp_is_fresh = True
                         up_pct = m.get('up_pct', 0.0)
                         if m.get('ask3', 0) > 0: data['last_consumption'] = min(1.0, v / (m['ask3'] * 10))
                         data['last_up_pct'] = up_pct
@@ -564,6 +576,7 @@ def main():
                     wave = math.sin(passed_min * 0.15 + int(sid)) * 0.03
                     lp = round(seed_base * (1.002 + wave), 2)
                     v = int(data['y_vol'] * (passed_min / 270.0) * (1.1 + abs(wave)))
+                    lp_is_fresh = True
 
                 if lp is None:
                     if data.get('history_prices'): lp = data['history_prices'][-1]
@@ -583,13 +596,24 @@ def main():
                 stock_label = f"{sid} {info.get('name', '')}"
                 print(f"{wide_ljust(stock_label, 20)} | {wide_ljust(info['market'], 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {info['industry']}")
 
+                # 價格非即時（API 失敗降級至歷史快取）時，跳過策略評估與通知
+                if not lp_is_fresh:
+                    if is_warrant: time.sleep(Config.API_THROTTLE_SLEEP)
+                    continue
+
                 is_3k_break = lp > _old_3k_high > 0
                 is_vol_anomaly = ratio >= Config.VOL_EST_THRESHOLD
 
-                if data['state'] == 1 and lp >= data['point_a'] and data['point_b'] != 9999.0:
+                # N字有效回落：point_b 需至少低於 point_a 2.5%（過濾微震）
+                _n_valid_pullback = data['point_b'] != 9999.0 and data['point_b'] <= data['point_a'] * 0.975
+
+                if data['state'] == 1 and lp >= data['point_a'] and _n_valid_pullback:
                     if is_vol_anomaly:
                         send_tg_alert(sid, "策略四：N字突破 (洗盤結束再發動)", lp, data['high'], data['low'], ratio, up_pct)
-                    data['point_a'], data['point_b'], data['state'] = lp, 9999.0, 0
+                        data['point_a'], data['point_b'], data['state'] = lp, 9999.0, 0
+                    else:
+                        # 量能不足：保留 state=1 等下一根確認，只更新 point_a 至新高
+                        data['point_a'] = lp
                 elif lp > data['point_a']: data['point_a'], data['point_b'], data['state'] = lp, 9999.0, 1
                 elif data['state'] == 1 and lp < data['point_a']:
                     data['point_b'] = min(data['point_b'], lp)
@@ -598,7 +622,7 @@ def main():
                         data['state'] = 0
 
                 if is_3k_break and is_vol_anomaly:
-                    send_tg_alert(sid, "🔥 策略二：3K突破 + 量能異常 (價量齊揚)", lp, data['high'], data['low'], ratio, up_pct)
+                    send_tg_alert(sid, "🔥 策略二：3K突破 + 量能異常 (價量齊揚)", lp, _old_3k_high, data['low'], ratio, up_pct)
 
                 if is_warrant: time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
