@@ -24,7 +24,7 @@ class Config:
     FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
     FUGLE_API_KEY = "MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
-    TELEGRAM_CHAT_ID = "1087480334"
+    TELEGRAM_CHAT_ID = "-1003613268841"
 
     # 📊 配額管理
     MAX_POOL_SIZE      = 200
@@ -48,7 +48,7 @@ class Config:
     CANDLE_3K_COUNT       = 3    # 天機圖3K法：連續K棒根數
     API_THROTTLE_SLEEP = 1.1   
       
-    IS_LOCAL           = True 
+    IS_LOCAL           = False 
 
 # 🗄️ 全域記憶體容器與快照矩陣
 stock_info_map = {}   
