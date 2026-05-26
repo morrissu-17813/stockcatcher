@@ -24,7 +24,7 @@ class Config:
     FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
     FUGLE_API_KEY = "MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
-    TELEGRAM_CHAT_ID = "-1003613268841"
+    TELEGRAM_CHAT_ID = "1087480334"
 
     # 📊 配額管理
     MAX_POOL_SIZE      = 200
@@ -44,10 +44,11 @@ class Config:
     MARKET_CLOSE       = dtime(13, 30)
     AUTO_SHUTDOWN_TIME = dtime(13, 35)  
     RECOVERY_THRESHOLD = dtime(9, 15)  
-    ROLLING_3K_WINDOW_MIN = 45   # 滾動3K高低計算視窗
+    CANDLE_TIMEFRAME_MIN  = 5    # 天機圖3K法：K棒週期（分鐘）
+    CANDLE_3K_COUNT       = 3    # 天機圖3K法：連續K棒根數
     API_THROTTLE_SLEEP = 1.1   
       
-    IS_LOCAL           = False 
+    IS_LOCAL           = True 
 
 # 🗄️ 全域記憶體容器與快照矩陣
 stock_info_map = {}   
@@ -153,9 +154,9 @@ def perform_strategy_test():
     stock_info_map[sid] = {'name': '華通(測試標的)', 'market': '上市', 'is_protected': False, 'industry': '電子零組件業'}
     monitor_data[sid] = {
         'last_alert_time': 0, 'last_up_pct': 0.0, 'last_consumption': 0.85, 
-        'is_accelerating': False, 'history_prices': [350.0]
+        'is_accelerating': False, 'history_prices': [250.0]
     }
-    send_tg_alert(sid, "🔥 策略二：3K突破+量能異常測試", 350.0, 277.0, 243.0, 1.8, 0.0)
+    send_tg_alert(sid, "🔥 策略二：3K突破+量能異常測試", 250.0, 245.0, 233.0, 1.8, 0.0)
     del stock_info_map[sid]
     del monitor_data[sid]
     print("✅ 自動化測試驗證訊號已成功送出！")
@@ -299,8 +300,10 @@ def fetch_market_candidates(market_type="上市"):
 def refresh_pool_v90():
     global last_scan_time
     now = time.time()
-    # 9:30 前不換池，盤前已選好股池，開盤後才開始動態輪換
-    if get_now_tw().time() < dtime(9, 30):
+    _non_protected = [s for s in stock_info_map if not stock_info_map[s].get('is_protected')]
+    # 9:45 前：僅允許初次填充（非保護股池為空時），不做輪換替換
+    # 初次填充（池為空）不受時間限制，確保 8:55 啟動時立即帶入昨日熱門上市/上櫃
+    if get_now_tw().time() < dtime(9, 45) and len(_non_protected) > 0:
         return
     if now - last_scan_time < Config.SCAN_INTERVAL and len(stock_info_map) >= 120: return
     last_scan_time = now
@@ -333,7 +336,7 @@ def refresh_pool_v90():
                 "trig_both": False, "trig_3k": False, "trig_vol": False, "trig_策略四": False,
                 "state": 0, "point_a": 0.0, "point_b": 9999.0,  
                 "last_alert_time": 0, "last_up_pct": 0.0, "last_ratio": 1.0, "last_consumption": 0.0, "is_accelerating": False, "history_prices": [],
-                "price_window": [], "last_alert_by_strategy": {}
+                "candle_window": [], "last_alert_by_strategy": {}
             }
 
 # ============================================================
@@ -447,7 +450,7 @@ def pre_market_initialization():
                 "trig_both": False, "trig_3k": False, "trig_vol": False, "trig_策略四": False,
                 "state": 0, "point_a": 0.0, "point_b": 9999.0,  
                 "last_alert_time": 0, "last_up_pct": 0.0, "last_ratio": 1.0, "last_consumption": 0.85, "is_accelerating": True, "history_prices": [],
-                "price_window": [], "last_alert_by_strategy": {}
+                "candle_window": [], "last_alert_by_strategy": {}
             }
             injected += 1
             if injected >= Config.WARRANT_QUOTA: break
@@ -455,41 +458,59 @@ def pre_market_initialization():
     print(f"真．動態權證現股化分析完成，最終注入 {injected} 檔實時金流標的。")
 
 def update_rolling_3k(sid, lp):
+    """天機圖3K法：以 CANDLE_TIMEFRAME_MIN 分K為單位，維護最近 CANDLE_3K_COUNT 根K棒的即時高低。
+    同一根K棒內即時更新高低；新K棒開始時滑動視窗（丟棄最舊那根）。
+    3K高 = 最近3根的最高點，3K低 = 最近3根的最低點。
+    """
     data = monitor_data[sid]
     now_ts = time.time()
-    cutoff_ts = now_ts - Config.ROLLING_3K_WINDOW_MIN * 60
+    bucket_sec = Config.CANDLE_TIMEFRAME_MIN * 60
+    candle_start_ts = int(now_ts // bucket_sec) * bucket_sec
 
-    pw = data.setdefault('price_window', [])
-    if not pw and data.get('high', 0) > 0 and data.get('low', 9999.0) < 9999.0:
-        pw.append((cutoff_ts + 60, data['high']))
-        pw.append((cutoff_ts + 60, data['low']))
+    cw = data.setdefault('candle_window', [])
+    if cw and cw[-1][0] == candle_start_ts:
+        # 仍在同一根K棒，即時更新高低
+        cw[-1][1] = max(cw[-1][1], lp)
+        cw[-1][2] = min(cw[-1][2], lp)
+    else:
+        # 新K棒開始，加入視窗，超過根數則丟棄最舊
+        cw.append([candle_start_ts, lp, lp])
+        if len(cw) > Config.CANDLE_3K_COUNT:
+            cw.pop(0)
 
-    pw.append((now_ts, lp))
-    data['price_window'] = [(ts, p) for ts, p in pw if ts >= cutoff_ts]
-
-    prices = [p for _, p in data['price_window']]
-    if prices:
-        data['high'] = max(prices)
-        data['low']  = min(prices)
+    if cw:
+        data['high'] = max(c[1] for c in cw)
+        data['low']  = min(c[2] for c in cw)
 
 def recover_3k_data(target_list: List[str]):
+    """補課：使用 Fugle CANDLE_TIMEFRAME_MIN 分K，取今日最近 CANDLE_3K_COUNT 根已完成K棒，
+    初始化 candle_window（即天機圖3K法的高低基礎）。"""
     now_tw = get_now_tw()
-    if not is_market_hours() or now_tw.time() < Config.RECOVERY_THRESHOLD: return
-    print(f"🔄 執行 3K 補課 (共 {len(target_list)} 檔)...", flush=True)
+    if not is_market_hours(): return
     today_tw = now_tw.date()
-    for idx, sid in enumerate(target_list):
+    bucket_sec = Config.CANDLE_TIMEFRAME_MIN * 60
+    # 當前未完成的K棒起始時間（用於過濾掉還在進行中的K棒）
+    current_candle_start_ts = int(now_tw.timestamp() // bucket_sec) * bucket_sec
+    print(f"🔄 執行 3K 補課 (共 {len(target_list)} 檔，取最近 {Config.CANDLE_3K_COUNT} 根 {Config.CANDLE_TIMEFRAME_MIN}分K)...", flush=True)
+    for sid in target_list:
         try:
-            url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{sid}?timeframe=1"
+            url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{sid}?timeframe={Config.CANDLE_TIMEFRAME_MIN}"
             res = standard_requests.get(url, headers={"X-API-KEY": Config.FUGLE_API_KEY.strip()}, timeout=5).json()
             if res and "data" in res:
                 kbars = res.get('data', [])
-                v_h = [k['high'] for k in kbars if isoparse(k['date']).astimezone(timezone(timedelta(hours=8))).date() == today_tw and isoparse(k['date']).astimezone(timezone(timedelta(hours=8))).time() <= Config.RECOVERY_THRESHOLD]
-                v_l = [k['low'] for k in kbars if isoparse(k['date']).astimezone(timezone(timedelta(hours=8))).date() == today_tw and isoparse(k['date']).astimezone(timezone(timedelta(hours=8))).time() <= Config.RECOVERY_THRESHOLD]
-                if v_h:
-                    _rh, _rl = max(v_h), min(v_l)
-                    monitor_data[sid]['high'], monitor_data[sid]['low'] = _rh, _rl
-                    _seed_ts = time.time() - (Config.ROLLING_3K_WINDOW_MIN - 1) * 60
-                    monitor_data[sid]['price_window'] = [(_seed_ts, _rh), (_seed_ts, _rl)]
+                today_bars = []
+                for k in kbars:
+                    k_dt = isoparse(k['date']).astimezone(timezone(timedelta(hours=8)))
+                    bar_start_ts = int(k_dt.timestamp() // bucket_sec) * bucket_sec
+                    # 只取今日已完成（收盤）的K棒，排除當前還在走的K棒
+                    if k_dt.date() == today_tw and bar_start_ts < current_candle_start_ts:
+                        today_bars.append([bar_start_ts, k['high'], k['low']])
+                today_bars.sort(key=lambda x: x[0])
+                last3 = today_bars[-Config.CANDLE_3K_COUNT:]
+                if last3:
+                    monitor_data[sid]['candle_window'] = last3
+                    monitor_data[sid]['high'] = max(c[1] for c in last3)
+                    monitor_data[sid]['low']  = min(c[2] for c in last3)
         except: pass
         time.sleep(Config.API_THROTTLE_SLEEP)
 
@@ -519,6 +540,11 @@ def main():
     
     while True:
         refresh_pool_v90()
+        # 對尚未建立 3K 基礎的新進股票即時補課（high==0 代表剛加入池、尚無歷史資料）
+        # 每輪最多補課 20 檔，避免封鎖主迴圈超過 20×1.1s=22s，其餘留待下輪繼續
+        _need_recover = [s for s in stock_info_map if monitor_data.get(s, {}).get('high', 0.0) == 0.0]
+        if _need_recover and is_market_hours():
+            recover_3k_data(_need_recover[:20])
         tw_now = get_now_tw()
         
         if not Config.IS_LOCAL:        
@@ -537,9 +563,11 @@ def main():
         passed_min = (datetime.combine(tw_now.date(), tw_now.time()) - datetime.combine(tw_now.date(), Config.MARKET_OPEN)).total_seconds() / 60
         if passed_min <= 0 or passed_min > 270: passed_min = 270.0
             
-        max_results = fetch_mis_batch_all()
-        mis_ok = len(max_results) > 0
-        if mis_ok: print(f"[快速層] MIS 實時雷達運作正常，已捕獲 {len(max_results)} 檔最新行情")
+        # MIS 延後至權證處理完畢後才抓，確保上市/上櫃取得即時報價
+        # 若池內無權證（罕見），第一個上市/上櫃即觸發 fetch
+        max_results = {}
+        mis_ok = False
+        _mis_fetched_for_listed = False
 
         for sid in sorted_sids:
             info, data = stock_info_map[sid], monitor_data[sid]
@@ -547,6 +575,13 @@ def main():
                 lp, v, up_pct = None, 0, 0.0
                 lp_is_fresh = False
                 is_warrant = (info.get('market') == '權證')
+
+                # 第一個非權證標的前補抓最新 MIS（此時所有權證 Fugle API + sleep 均已完成）
+                if not is_warrant and not _mis_fetched_for_listed:
+                    max_results = fetch_mis_batch_all()
+                    mis_ok = len(max_results) > 0
+                    _mis_fetched_for_listed = True
+                    if mis_ok: print(f"[快速層] MIS 實時雷達運作正常，已捕獲 {len(max_results)} 檔最新行情")
 
                 if is_warrant:
                     f_url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/{sid}"
@@ -649,7 +684,7 @@ def main():
                 print("")
                 
         print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print(f"[時段提示] 方案C 兩層架構穩定運行 (MIS {len(max_results)} 檔)。5秒後刷新...")
-        time.sleep(5)
+        print(f"[時段提示] 方案C 兩層架構穩定運行 (MIS {len(max_results)} 檔)。3秒後刷新...")
+        time.sleep(3)
 
 if __name__ == "__main__": main()
