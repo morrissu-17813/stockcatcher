@@ -49,7 +49,7 @@ class Config:
     CANDLE_3K_COUNT       = 3    # 天機圖3K法：連續K棒根數
     API_THROTTLE_SLEEP = 1.1   
       
-    IS_LOCAL           = False 
+    IS_LOCAL           = False   
 
 # 🗄️ 全域記憶體容器與快照矩陣
 stock_info_map = {}   
