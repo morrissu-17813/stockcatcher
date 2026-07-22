@@ -150,7 +150,7 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
         f"🛡️ *策略停損：* `{stop_loss_price}`\n"
         f"💥 *壓力消化：* {consumption_str}\n"
         f"🚀 *能量斜率：* {'陡增' if is_acc else '平穩'}\n"
-        f"📦 *衍生品：* 股期 {futures_flag} | 可轉債 {cb_flag}\n" 
+        f"📦 *衍生品：* 股期 {futures_flag} | CB {cb_flag}\n" 
         f"🏷️ *產業類別：* `{info.get('industry', '未知產業')}`\n"
         f"━━━━━━━━━━━━━━\n"
         f"⏰ {get_now_tw().strftime('%H:%M:%S')}"
