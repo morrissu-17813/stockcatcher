@@ -1,12 +1,34 @@
 import os
+import json
 import time
 import re
 import sys
 import math
 from datetime import datetime, timedelta, timezone, time as dtime
-from typing import List, Set
+from typing import List, Set, Dict, Any
 from dateutil.parser import isoparse
 from dotenv import load_dotenv
+from openpyxl import load_workbook
+
+# ---------------------------------------------------------
+# [通訊層狀態] LINE 推播冷卻快取 (Throttling Cache)
+# ---------------------------------------------------------
+# 記錄格式: { 股號(sid): 最後一次推播的 Unix Timestamp }
+line_alert_history: Dict[str, float] = {}
+
+def can_push_line_alert(sid: str, cooldown_seconds: int = 3600) -> bool:
+    """
+    [狀態過濾器] 檢查該標的是否已度過冷卻期 (預設 3600 秒 = 1 小時)
+    """
+    now = time.time()
+    last_push = line_alert_history.get(sid, 0)
+    
+    # 若現在時間與上次推播時間的差值，大於等於冷卻時間，則放行
+    if (now - last_push) >= cooldown_seconds:
+        line_alert_history[sid] = now  # 放行同時更新最後推播時間
+        return True
+        
+    return False
 
 # ⚡ 核心：引入 curl_cffi 偽裝 Chrome 瀏覽器，徹底繞過 SSL 憑證驗證失敗與 WAF 阻擋
 from curl_cffi import requests as curl_requests
@@ -21,10 +43,15 @@ load_dotenv()
 # ⚙️ [系統配置區] - 實戰參數落鎖 (資安升級：改用環境變數)
 # ============================================================
 class Config:
-    FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE" 
+    FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE"
     FUGLE_API_KEY ="MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
     TELEGRAM_CHAT_ID = "1087480334"
+    TIDE_CONCEPT_JSON = os.getenv("TIDE_CONCEPT_JSON", "config/concepts.json")
+    # TIDE 顯示門檻：A / AA / AAA。預設 AA，可避免訊息過長。
+    TIDE_MIN_LEVEL = os.getenv("TIDE_MIN_LEVEL", "AA").strip().upper()
+    CB_PRIMARY_MARKET_XLSX = os.getenv("CB_PRIMARY_MARKET_XLSX", "")
+    CB_PRIMARY_MARKET_KEYWORD = os.getenv("CB_PRIMARY_MARKET_KEYWORD", "CB初級市場資訊")
 
 
     # 📊 配額管理
@@ -32,13 +59,13 @@ class Config:
     WARRANT_QUOTA      = 50    
     LISTED_QUOTA       = 100    
     OTC_QUOTA          = 50    
-    SCAN_INTERVAL      = 900   
+    SCAN_INTERVAL      = 900  
 
     # 🎯 策略爆發門檻
-    ENTRY_MIN_PCT      = 3.5   
-    ENTRY_MAX_PCT      = 9.0   
-    GRADUATION_PCT     = 9.7   
-    VOL_EST_THRESHOLD  = 2.3   
+    ENTRY_MIN_PCT      = 3.5  
+    ENTRY_MAX_PCT      = 9.0  
+    GRADUATION_PCT     = 9.7  
+    VOL_EST_THRESHOLD  = 2.3  
 
     # ⏰ 時間控制
     MARKET_OPEN        = dtime(9, 0)
@@ -47,22 +74,24 @@ class Config:
     RECOVERY_THRESHOLD = dtime(9, 15)  
     CANDLE_TIMEFRAME_MIN  = 5    # 天機圖3K法：K棒週期（分鐘）
     CANDLE_3K_COUNT       = 3    # 天機圖3K法：連續K棒根數
-    API_THROTTLE_SLEEP = 1.1   
-      
-    IS_LOCAL           = True 
+    API_THROTTLE_SLEEP = 1.1  
+     
+    IS_LOCAL           = False  
 
 # 🗄️ 全域記憶體容器與快照矩陣
-stock_info_map = {}   
-monitor_data = {}     
-finmind_industry_map = {} 
+stock_info_map = {}  
+monitor_data = {}    
+finmind_industry_map = {}
 global_volume_lookup = {}    # 儲存成交量 (張數)
 global_turnover_lookup = {}  # 儲存成交金額 (金流)
 last_scan_time = 0
 _exchange_map = {}        
 _last_fugle_scan = 0.0    
-_mis_session = None       
+_mis_session = None      
 _stocks_with_futures = set()   # 有股票期貨的標的
 _stocks_with_cb = set()        # 有可轉債的標的
+_cb_primary_market_map = {}    # CB初級市場資訊：sid -> {auction:[], filing:[], board:[]}
+_tide_analyzer = None          # TIDE族群共振分析器
 
 # ============================================================
 # 🛡️ 🔏 [真．全域落鎖區] 核心工具與通訊函數強制置頂
@@ -111,10 +140,508 @@ def safe_cast(value, target_type, default=0):
     except (ValueError, TypeError):
         return default
 
+def _norm_text(value) -> str:
+    return str(value).strip() if value is not None else ""
+
+def _resolve_tide_concepts_path() -> str:
+    candidates = [
+        Config.TIDE_CONCEPT_JSON,
+        os.path.join(os.path.dirname(__file__), Config.TIDE_CONCEPT_JSON),
+        os.path.join(os.getcwd(), Config.TIDE_CONCEPT_JSON),
+    ]
+    for p in candidates:
+        if p and os.path.exists(p):
+            return p
+    return ""
+
+class TideAnalyzer:
+    def __init__(self, json_path: str = ""):
+        self.concept_groups: Dict[str, List[str]] = {}
+        self.stock_to_concepts: Dict[str, List[str]] = {}
+        self._load_concepts(json_path or _resolve_tide_concepts_path())
+
+    def _load_concepts(self, json_path: str):
+        if not json_path or not os.path.exists(json_path):
+            print(f"⚠️ [TIDE] 找不到概念檔 {Config.TIDE_CONCEPT_JSON}，以空字典運行")
+            return
+
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                self.concept_groups = json.load(f)
+
+            for concept_name, stock_list in self.concept_groups.items():
+                if not isinstance(stock_list, list):
+                    continue
+                for stock_id in stock_list:
+                    sid = _norm_text(stock_id)
+                    if len(sid) != 4 or not sid.isdigit():
+                        continue
+                    if sid not in self.stock_to_concepts:
+                        self.stock_to_concepts[sid] = []
+                    self.stock_to_concepts[sid].append(concept_name)
+
+            print(f"✅ [TIDE] 模組加載完成：{len(self.concept_groups)} 個概念、{len(self.stock_to_concepts)} 檔標的")
+        except Exception as e:
+            print(f"❌ [TIDE] 載入概念 JSON 失敗: {e}")
+
+    def evaluate_resonance(self, target_stock_id: str, snapshot_data: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+        matched_concepts = self.stock_to_concepts.get(target_stock_id, [])
+
+        if not matched_concepts:
+            return {
+                "has_concept": False,
+                "display_tag": "",
+                "resonance_level": "NORMAL",
+                "status_text": "",
+                "strong_peers_text": "",
+                "concept": "",
+            }
+
+        best_result = None
+        max_resonance_score = -1
+
+        for concept in matched_concepts:
+            peer_stocks = self.concept_groups.get(concept, [])
+            strong_peers = []
+
+            for sid in peer_stocks:
+                if sid == target_stock_id:
+                    continue
+                info = snapshot_data.get(sid, {})
+                change_pct = safe_cast(info.get("change_pct", 0.0), float, 0.0)
+                vol_ratio = safe_cast(info.get("vol_ratio", 1.0), float, 1.0)
+
+                # 同族群夥伴：漲幅 >=2% 且 量比 >=1.3 視為同步發動
+                if change_pct >= 2.0 and vol_ratio >= 1.3:
+                    stock_name = _norm_text(info.get("name", sid))
+                    strong_peers.append(f"{sid} {stock_name}")
+
+            resonance_count = len(strong_peers)
+
+            if resonance_count > max_resonance_score:
+                max_resonance_score = resonance_count
+                if resonance_count >= 3:
+                    level = "AAA"
+                    status = f"🔥 極強族群共振 (同族群 {resonance_count + 1} 檔同步暴量大漲)"
+                elif resonance_count >= 1:
+                    level = "AA"
+                    status = f"🟢 族群連動發動 (同族群 {resonance_count + 1} 檔同步偏強)"
+                else:
+                    level = "A"
+                    status = "⚠️ 單兵突破 (族群其餘標的尚無明顯跟漲)"
+
+                best_result = {
+                    "has_concept": True,
+                    "concept": concept,
+                    "display_tag": f"{concept} ⚡",
+                    "resonance_level": level,
+                    "status_text": status,
+                    "strong_peers_text": "、".join(strong_peers[:4]) if strong_peers else "無",
+                }
+
+        return best_result or {
+            "has_concept": False,
+            "display_tag": "",
+            "resonance_level": "NORMAL",
+            "status_text": "",
+            "strong_peers_text": "",
+            "concept": "",
+        }
+
+def _build_tide_snapshot(current_sid: str, current_up_pct: float, current_ratio: float) -> Dict[str, Dict[str, Any]]:
+    snapshot = {}
+    for sid, info in stock_info_map.items():
+        data = monitor_data.get(sid, {})
+        snapshot[sid] = {
+            "name": info.get("name", sid),
+            "change_pct": safe_cast(data.get("last_up_pct", 0.0), float, 0.0),
+            "vol_ratio": safe_cast(data.get("last_ratio", 1.0), float, 1.0),
+        }
+
+    if current_sid:
+        if current_sid not in snapshot:
+            snapshot[current_sid] = {"name": current_sid, "change_pct": 0.0, "vol_ratio": 1.0}
+        snapshot[current_sid]["change_pct"] = safe_cast(current_up_pct, float, 0.0)
+        snapshot[current_sid]["vol_ratio"] = safe_cast(current_ratio, float, 1.0)
+
+    return snapshot
+
+def _tide_level_rank(level: str) -> int:
+    mapping = {"A": 1, "AA": 2, "AAA": 3}
+    return mapping.get(_norm_text(level).upper(), 0)
+
+def build_tide_monitor_message(sid: str, up_pct: float, ratio: float) -> str:
+    if _tide_analyzer is None:
+        return ""
+
+    try:
+        snapshot = _build_tide_snapshot(sid, up_pct, ratio)
+        tide = _tide_analyzer.evaluate_resonance(sid, snapshot)
+        if not tide.get("has_concept", False):
+            return ""
+
+        current_level = tide.get("resonance_level", "A")
+        # 觸發門檻開關：僅在達到 TIDE_MIN_LEVEL 時才顯示 TIDE 區塊
+        if _tide_level_rank(current_level) < _tide_level_rank(Config.TIDE_MIN_LEVEL):
+            return ""
+
+        concept = tide.get("concept", "")
+        display_tag = tide.get("display_tag", concept)
+        status_text = tide.get("status_text", "")
+        peers = tide.get("strong_peers_text", "無")
+
+        return (
+            f"🏷️ *細分族群：* {display_tag}\n\n"
+            f"🌊 *【TIDE 族群共振監控】*\n\n"
+            f"🔹 概念題材： {concept}\n\n"
+            f"🔹 共振狀態： {status_text}\n\n"
+            f"🔹 同步發動： {peers}\n"
+        )
+    except Exception:
+        return ""
+
+def _format_ymd(value) -> str:
+    if value is None:
+        return "-"
+    if isinstance(value, datetime):
+        return value.strftime('%Y-%m-%d')
+    txt = _norm_text(value)
+    # 常見格式：2026-07-27 00:00:00 / 2026/07/27
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S', '%Y-%m-%d', '%Y/%m/%d'):
+        try:
+            return datetime.strptime(txt, fmt).strftime('%Y-%m-%d')
+        except Exception:
+            pass
+    parsed = _extract_yyyy_mm_dd_from_text(txt)
+    if parsed:
+        return parsed.strftime('%Y-%m-%d')
+    return txt or "-"
+
+def _pick_value_by_keys(row: dict, keys: List[str]) -> str:
+    for k, v in row.items():
+        key = _norm_text(k).lower()
+        if any(token in key for token in keys):
+            val = _norm_text(v)
+            if val:
+                return val
+    return ""
+
+def _resolve_cb_primary_xlsx_path() -> str:
+    # 1) 若有明確指定完整檔名/路徑，優先使用
+    explicit_candidates = [
+        Config.CB_PRIMARY_MARKET_XLSX,
+        os.path.join(os.path.dirname(__file__), Config.CB_PRIMARY_MARKET_XLSX) if Config.CB_PRIMARY_MARKET_XLSX else "",
+        os.path.join(os.getcwd(), Config.CB_PRIMARY_MARKET_XLSX) if Config.CB_PRIMARY_MARKET_XLSX else "",
+    ]
+    for p in explicit_candidates:
+        if p and os.path.exists(p):
+            return p
+
+    # 2) 未指定或指定不存在時，改用關鍵字搜尋 xlsx（不依賴日期）
+    keyword = _norm_text(Config.CB_PRIMARY_MARKET_KEYWORD)
+    search_dirs = [os.path.dirname(__file__), os.getcwd()]
+    matches = []
+
+    for base_dir in search_dirs:
+        try:
+            for name in os.listdir(base_dir):
+                if not name.lower().endswith('.xlsx'):
+                    continue
+                if keyword and keyword not in name:
+                    continue
+                full_path = os.path.join(base_dir, name)
+                if os.path.isfile(full_path):
+                    matches.append(full_path)
+        except Exception:
+            pass
+
+    if matches:
+        # 同關鍵字多檔時選擇最新更新檔
+        matches.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        return matches[0]
+
+    return ""
+
+def _classify_cb_stage(row: dict) -> str:
+    # 透過欄名與欄值綜合判斷階段
+    blob = " ".join([_norm_text(k) for k in row.keys()] + [_norm_text(v) for v in row.values()]).lower()
+    if ('詢圈' in blob) or ('竞拍' in blob) or ('競拍' in blob):
+        return 'auction'
+    if '送件' in blob:
+        return 'filing'
+    if ('董事會' in blob and '通過' in blob) or ('發行通過' in blob):
+        return 'board'
+    return ''
+
+def load_cb_primary_market_map_from_xlsx() -> dict:
+    path = _resolve_cb_primary_xlsx_path()
+    if not path:
+        print(f"⚠️ [CB初級市場] 找不到檔案 {Config.CB_PRIMARY_MARKET_XLSX}，略過整合。")
+        return {}
+
+    result = {}
+    try:
+        wb = load_workbook(path, data_only=True, read_only=True)
+        ws = wb.active
+        if ws is None:
+            return {}
+        active_stage = ''
+        headers = []
+
+        for row_vals in ws.iter_rows(values_only=True):
+            vals = [_norm_text(v) for v in row_vals]
+            joined = " ".join(v for v in vals if v)
+            if not joined:
+                continue
+
+            # 區塊起始（你的Excel是多區段表）
+            if '詢圈/競拍 標的' in joined:
+                active_stage = 'auction'
+                headers = []
+                continue
+            if '送件標的' in joined:
+                active_stage = 'filing'
+                headers = []
+                continue
+            if ('董事會通過發行標的' in joined) or ('董事會發行通過' in joined):
+                active_stage = 'board'
+                headers = []
+                continue
+
+            # 各區塊的欄名列
+            if 'CB代碼' in joined and '標的名稱' in joined:
+                headers = vals
+                continue
+
+            if not active_stage or not headers:
+                continue
+
+            row = {}
+            has_payload = False
+            for i, h in enumerate(headers):
+                h = _norm_text(h)
+                if not h:
+                    continue
+                val = row_vals[i] if i < len(row_vals) else None
+                row[h] = val
+                if _norm_text(val):
+                    has_payload = True
+
+            if not has_payload:
+                continue
+
+            sid = _extract_sid_by_priority(
+                row,
+                ['發行公司代號', '公司代號', '證券代號', '股票代號', '標的代號', 'SecuritiesCompanyCode', 'UnderlyingStockID']
+            )
+            if not sid:
+                cb_code = _pick_value_by_keys(row, ['cb代碼', 'cb code', '債券代號'])
+                cb_code = _norm_text(cb_code)
+                if len(cb_code) >= 4 and cb_code[:4].isdigit() and cb_code[:4] != '0000':
+                    sid = cb_code[:4]
+
+            if not sid:
+                continue
+
+            name = _pick_value_by_keys(row, ['標的名稱', '名稱', '公司簡稱', '證券名稱', '發行公司']) or sid
+            list_date = _pick_value_by_keys(row, ['掛牌日', '掛牌日期', '上市日'])
+            conv_price = _pick_value_by_keys(row, ['發行轉換價格', '轉換價格', '轉換價'])
+            filing_date = _pick_value_by_keys(row, ['送件日', '送件日期'])
+            announce_date = _pick_value_by_keys(row, ['公告日', '公告日期'])
+
+            if sid not in result:
+                result[sid] = {'auction': [], 'filing': [], 'board': []}
+
+            if active_stage == 'auction':
+                result[sid]['auction'].append({
+                    'name': name,
+                    'list_date': _format_ymd(list_date),
+                    'conv_price': conv_price or '-'
+                })
+            elif active_stage == 'filing':
+                result[sid]['filing'].append({
+                    'name': name,
+                    'filing_date': _format_ymd(filing_date)
+                })
+            elif active_stage == 'board':
+                result[sid]['board'].append({
+                    'name': name,
+                    'announce_date': _format_ymd(announce_date)
+                })
+
+        print(f"✅ [CB初級市場] 載入完成：{len(result)} 檔股票具備CB階段資訊。")
+    except Exception as e:
+        print(f"❌ [CB初級市場] 讀檔失敗: {e}")
+        return {}
+
+    return result
+
+def build_cb_primary_market_message(sid: str) -> str:
+    info = _cb_primary_market_map.get(sid)
+    if not info:
+        return ""
+
+    lines = ["🧾 *CB初級市場：*"]
+
+    if info.get('auction'):
+        item = info['auction'][0]
+        lines.append(f"- 詢圈/競拍：{item['name']}｜掛牌 {item['list_date']}｜轉換價 {item['conv_price']}")
+
+    if info.get('filing'):
+        item = info['filing'][0]
+        lines.append(f"- 送件標的：{item['name']}｜送件日 {item['filing_date']}")
+
+    if info.get('board'):
+        item = info['board'][0]
+        lines.append(f"- 董事會發行通過：{item['name']}｜公告日 {item['announce_date']}")
+
+    return "\n".join(lines) if len(lines) > 1 else ""
+# ---------------------------------------------------------
+# [通訊層模組] LINE Bot API 推播功能
+# ---------------------------------------------------------
+
+def _build_flex_row(label: str, value: str, color: str = "#334155", weight: str = "regular") -> dict:
+    """[輔助函數] 構建 LINE Flex Message 單列，優化長標籤排版比例"""
+    return {
+        "type": "box",
+        "layout": "baseline",
+        "spacing": "sm",
+        "contents": [
+            {"type": "text", "text": label, "color": "#64748b", "size": "sm", "flex": 3},
+            {"type": "text", "text": str(value), "color": color, "weight": weight, "size": "sm", "wrap": True, "flex": 7}
+        ]
+    }
+
+def send_line_flex_warrant_alert(
+    sid: str, name: str, strategy: str, lp: float, pct_str: str, up_pct: float, 
+    ratio: float, stop_loss: float, pressure_digestion: str, energy_slope: str, 
+    fut_flag: str, cb_flag: str, industry: str, time_str: str
+):
+    """
+    [通訊層] 專屬權證主力的 LINE Flex Message，帶有 nstock 走勢超連結
+    """
+    # 🛡️ 安全規範：透過環境變數讀取憑證，絕不硬編碼
+    token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+    target_id = os.getenv("LINE_GROUP_ID")
+
+    if not token or not target_id:
+        print("❌ [錯誤] LINE 憑證遺失，請檢查 .env 檔案配置。")
+        return
+
+    # 動態判定漲跌顏色
+    price_color = "#dc2626" if up_pct > 0 else "#16a34a" if up_pct < 0 else "#475569"
+    nstock_url = f"https://www.nstock.tw/stock_info?stock_id={sid}"
+
+    flex_payload = {
+        "type": "flex",
+        "altText": f"🔥 權證主力進場: {sid} {name}",
+        "contents": {
+            "type": "bubble",
+            "size": "mega",
+            "header": {
+                "type": "box",
+                "layout": "vertical",
+                "backgroundColor": "#7c2d12",
+                "contents": [
+                    {"type": "text", "text": "🔥 權證主力 - 籌碼共振訊號", "color": "#ffffff", "weight": "bold", "size": "sm"}
+                ]
+            },
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "md",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": f"{sid} {name}",
+                        "weight": "bold",
+                        "size": "xl",
+                        "color": "#1d4ed8",
+                        "decoration": "underline",
+                        "action": {
+                            "type": "uri",
+                            "label": "查看 nstock",
+                            "uri": nstock_url
+                        }
+                    },
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "sm",
+                        "contents": [
+                            _build_flex_row("策略", strategy),
+                            _build_flex_row("現價", f"{lp} ({pct_str})", color=price_color, weight="bold"),
+                            _build_flex_row("量能比", f"{ratio}x"),
+                            _build_flex_row("停損價", stop_loss),
+                            _build_flex_row("壓力消化", str(pressure_digestion)),
+                            _build_flex_row("能量斜率", str(energy_slope)),
+                            _build_flex_row("衍生品", f"股期 {fut_flag} | 可轉債 {cb_flag}"),
+                            _build_flex_row("產業別", str(industry))
+                        ]
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {"type": "text", "text": f"觸發時間: {time_str} (1小時內不再重複推送)", "size": "xs", "color": "#94a3b8", "align": "end"}
+                ]
+            }
+        }
+    }
+
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    
+    try:
+        res = standard_requests.post(url, headers=headers, json={"to": target_id, "messages": [flex_payload]}, timeout=5)
+        if res.status_code != 200:
+            print(f"⚠️ [LINE] 推播失敗 (HTTP {res.status_code}): {res.text}")
+    except Exception as e:
+        print(f"❌ [LINE] 發送異常: {e}")
+
+
+def send_line_status_message(message: str):
+    """
+    [通訊層] 發送輕量級純文字通知 (專用於系統啟動心跳監控)
+    """
+    token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+    target_id = os.getenv("LINE_GROUP_ID")
+
+    if not token or not target_id:
+        return
+
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    
+    payload = {
+        "to": target_id,
+        "messages": [
+            {
+                "type": "text",
+                "text": message
+            }
+        ]
+    }
+
+    try:
+        res = standard_requests.post(url, headers=headers, json=payload, timeout=5)
+        if res.status_code != 200:
+            print(f"⚠️ [LINE] 系統通知發送失敗 (HTTP {res.status_code}): {res.text}")
+    except Exception as e:
+        print(f"❌ [LINE] 系統通知連線異常: {e}")
+        
 def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0.0):
     if up_pct > 9.0:
         return
-        
+       
     info = stock_info_map.get(sid, {})
     data = monitor_data.get(sid, {})
 
@@ -122,22 +649,26 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     alert_times = data.setdefault('last_alert_by_strategy', {})
     if time.time() - alert_times.get(strategy_name, 0) < 1800:
         return
-        
+       
     badge = "🎫 [權證主力標的] " if info.get('is_protected') else f"[{info.get('market', '未知')}] "
-    scenario = "🚨 [訊號觸發]" 
+    scenario = "🚨 [訊號觸發]"
     consumption_str = get_consumption_badge(data.get('last_consumption', 0.45))
     is_acc = data.get('is_accelerating', False)
-    
+   
     # 確立防守點位
     stop_loss_price = low if low > 0 else lp
-    
+   
     pct_arrow = "📈" if up_pct >= 0 else "📉"
     pct_str = f"+{up_pct}%" if up_pct > 0 else f"{up_pct}%"
-    
+   
     # 衍生商品 Flag 狀態轉換 (✅ / ❌)
     futures_flag = "✅" if sid in _stocks_with_futures else "❌"
     cb_flag = "✅" if sid in _stocks_with_cb else "❌"
-    
+    cb_primary_block = build_cb_primary_market_message(sid) if cb_flag == "✅" else ""
+    cb_primary_line = f"{cb_primary_block}\n" if cb_primary_block else ""
+    tide_block = build_tide_monitor_message(sid, up_pct, ratio)
+    tide_line = f"{tide_block}\n" if tide_block else ""
+   
     # 構建 Telegram Markdown 格式訊息
     msg = (
         f"{scenario}\n"
@@ -145,27 +676,29 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
         f"━━━━━━━━━━━━━━\n"
         f"📈 *標的：* [{sid} {info.get('name', '')}](https://www.nstock.tw/stock_info?stock_id={sid})\n"
         f"💰 *現價：* `{lp}` {pct_arrow} `{pct_str}`\n"
-        f"📊 *預估量比：* `{ratio}x`\n" 
+        f"📊 *預估量比：* `{ratio}x`\n"
         f"📐 *3K高位：* `{data.get('high', 0.0)}`\n"
         f"🛡️ *策略停損：* `{stop_loss_price}`\n"
         f"💥 *壓力消化：* {consumption_str}\n"
         f"🚀 *能量斜率：* {'陡增' if is_acc else '平穩'}\n"
-        f"📦 *衍生品：* 股期 {futures_flag} | CB {cb_flag}\n" 
+        f"📦 *衍生品：* 股期 {futures_flag} | 可轉債 {cb_flag}\n"
+        f"{cb_primary_line}"
+        f"{tide_line}"
         f"🏷️ *產業類別：* `{info.get('industry', '未知產業')}`\n"
         f"━━━━━━━━━━━━━━\n"
         f"⏰ {get_now_tw().strftime('%H:%M:%S')}"
     )
-    
+   
     url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage"
-    
+   
     try:
         standard_requests.post(
-            url, 
+            url,
             json={
-                "chat_id": Config.TELEGRAM_CHAT_ID, 
-                "text": msg, 
+                "chat_id": Config.TELEGRAM_CHAT_ID,
+                "text": msg,
                 "parse_mode": "Markdown"
-            }, 
+            },
             timeout=5
         )
         alert_times[strategy_name] = time.time()
@@ -178,13 +711,21 @@ def perform_strategy_test():
     stock_info_map[sid] = {'name': '華通(測試標的)', 'market': '上市', 'is_protected': False, 'industry': '電子零組件業'}
     _stocks_with_futures.add(sid)
     monitor_data[sid] = {
-        'last_alert_time': 0, 'last_up_pct': 0.0, 'last_consumption': 0.85, 
+        'last_alert_time': 0, 'last_up_pct': 0.0, 'last_consumption': 0.85,
         'is_accelerating': False, 'history_prices': [250.0], 'high': 245.0, 'low': 233.0
     }
     send_tg_alert(sid, "🔥 策略二：3K突破+量能異常測試", 250.0, 245.0, 233.0, 1.8, 0.0)
     del stock_info_map[sid]
     del monitor_data[sid]
     _stocks_with_futures.remove(sid)
+    
+    # 1. 取得當前台灣時間 (UTC+8)
+    tw_now = datetime.now(timezone.utc) + timedelta(hours=8)
+    time_str = tw_now.strftime('%Y-%m-%d %H:%M:%S')
+    # 2. 準備啟動廣播訊息
+    startup_msg = f"🚀 系統啟動成功\n天機選股雷達上線運作中！\n時間：{time_str}\n模式：TG & LINE 雙軌監控"
+    print(startup_msg)
+    send_line_status_message(startup_msg)
     print("✅ 自動化測試驗證訊號已成功送出！")
 
 def should_exclude(sid, name, industry):
@@ -214,11 +755,11 @@ def fetch_mis_batch_all():
         _mis_session = curl_requests.Session()
         try: _mis_session.get("https://mis.twse.com.tw/stock/index.jsp", impersonate="chrome120", timeout=6)
         except: pass
-        
+       
     results = {}
     all_sids = list(stock_info_map.keys())
     if not all_sids: return results
-    
+   
     BATCH_SIZE = 25  
     for i in range(0, len(all_sids), BATCH_SIZE):
         batch = all_sids[i:i + BATCH_SIZE]
@@ -232,7 +773,7 @@ def fetch_mis_batch_all():
                 z, y = item.get('z', '-'), safe_cast(item.get('y', '0'), float)
                 lp = y if (z in ('-', '0') or safe_cast(z, float) <= 0) else safe_cast(z, float)
                 if lp <= 0: continue
-                v = safe_cast(item.get('v', '0').replace(',', ''), int)   
+                v = safe_cast(item.get('v', '0').replace(',', ''), int)  
                 f_str = item.get('f', '')
                 ask3 = sum(safe_cast(x, int) for x in f_str.split('_')[:3]) if f_str else 0
                 up_pct = round((lp - y) / y * 100, 2) if y > 0 else 0.0
@@ -298,7 +839,7 @@ def fetch_market_candidates(market_type="上市"):
                 fm = finmind_industry_map.get(sid, {"name": i.get('Name', f"上市_{sid}").strip(), "industry": "電子零組件業"})
                 if should_exclude(sid, fm['name'], fm['industry']): continue
                 vol = safe_cast(i.get('TradeVolume'), int) // 1000  
-                turnover = safe_cast(i.get('TradeValue'), float) 
+                turnover = safe_cast(i.get('TradeValue'), float)
                 candidates.append({'sid': sid, 'up_pct': 0.0, 'vol': vol, 'turnover': turnover, 'market': '上市', 'name': fm['name'], 'ind': fm['industry']})
         else:
             url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes"
@@ -313,7 +854,7 @@ def fetch_market_candidates(market_type="上市"):
                 vol = safe_cast(i.get('TradingShares'), int) // 1000  
                 turnover = safe_cast(i.get('TradingAmount'), float)
                 candidates.append({'sid': sid, 'up_pct': 0.0, 'vol': vol, 'turnover': turnover, 'market': '上櫃', 'name': fm['name'], 'ind': fm['industry']})
-                
+               
         if candidates:
             candidates.sort(key=lambda x: x['turnover'], reverse=True)
             for idx, c in enumerate(candidates): c['rank_t'] = idx
@@ -328,12 +869,12 @@ def refresh_pool_v90():
     now = time.time()
     _non_protected = [s for s in stock_info_map if not stock_info_map[s].get('is_protected')]
     force_fill = (len(_non_protected) == 0 and len(global_volume_lookup) > 0)
-    
+   
     if get_now_tw().time() < dtime(9, 45) and not force_fill:
         return
     if now - last_scan_time < Config.SCAN_INTERVAL and len(stock_info_map) >= 120: return
     last_scan_time = now
-    
+   
     market_configs = [
         {"type": "上市", "quota": Config.LISTED_QUOTA, "fetch_func": lambda: fetch_market_candidates("上市")},
         {"type": "上櫃", "quota": Config.OTC_QUOTA, "fetch_func": lambda: fetch_market_candidates("上櫃")}
@@ -342,11 +883,11 @@ def refresh_pool_v90():
     for config in market_configs:
         m_type, m_quota = config["type"], config["quota"]
         candidates = config["fetch_func"]()
-        
+       
         current_dynamic_sids = [s for s in stock_info_map if stock_info_map[s]['market'] == m_type and not stock_info_map[s].get('is_protected')]
         to_remove_count = max(0, len(current_dynamic_sids) + len(candidates) - m_quota)
         to_remove_list = list(set(current_dynamic_sids))[:to_remove_count]
-        
+       
         for rsid in to_remove_list:
             stock_info_map.pop(rsid, None)
             monitor_data.pop(rsid, None)
@@ -358,7 +899,7 @@ def refresh_pool_v90():
             csid = cand['sid']
             stock_info_map[csid] = {'name': cand['name'], 'market': m_type, 'is_protected': False, 'industry': cand['ind']}
             monitor_data[csid] = {
-                "high": 0.0, "low": 9999.0, "y_vol": cand['vol'], 
+                "high": 0.0, "low": 9999.0, "y_vol": cand['vol'],
                 "trig_both": False, "trig_3k": False, "trig_vol": False, "trig_策略四": False,
                 "state": 0, "point_a": -1.0, "point_b": 9999.0,  
                 "last_alert_time": 0, "last_up_pct": 0.0, "last_ratio": 1.0, "last_consumption": 0.0, "is_accelerating": False, "history_prices": [],
@@ -366,7 +907,7 @@ def refresh_pool_v90():
             }
 
 # ============================================================
-# 🕵️‍♂️ ✅ [V118.6 真．衍生商品與無結構權證解析] 導入 curl_cffi 與限流防禦
+# 🕵️♂️ ✅ [V118.6 真．衍生商品與無結構權證解析] 導入 curl_cffi 與限流防禦
 # ============================================================
 
 def _extract_sids_from_taifex_rows(rows: List, keys_to_check: List[str]) -> Set[str]:
@@ -380,93 +921,220 @@ def _extract_sids_from_taifex_rows(rows: List, keys_to_check: List[str]) -> Set[
                 break
     return extracted
 
-def fetch_stock_futures_set():
-    print("📡 正在向期交所 (TAIFEX) 調閱全市場股票期貨成份股清單...", flush=True)
-    combined_set = set()
-    target_keys_1 = ['SpotID', 'UnderlyingStockID', '標的證券代號']
-    target_keys_2 = ['UnderlyingStockID', 'SpotID', '標的證券代號']
-    
+def _extract_yyyy_mm_dd_from_text(raw: str):
+    """將常見日期字串轉為 date，支援民國/西元與分隔符。"""
+    txt = str(raw).strip()
+    if not txt:
+        return None
+
+    digits = ''.join(ch for ch in txt if ch.isdigit())
+    if not digits:
+        return None
+
     try:
-        res = curl_requests.get("https://openapi.taifex.com.tw/v1/StockFutures", impersonate="chrome120", timeout=15)
-        if res.status_code == 200:
-            found = _extract_sids_from_taifex_rows(res.json(), target_keys_1)
+        # 民國 1130105
+        if len(digits) == 7:
+            y = int(digits[:3]) + 1911
+            m = int(digits[3:5])
+            d = int(digits[5:7])
+            return datetime(y, m, d).date()
+        # 西元 20260105
+        if len(digits) == 8:
+            y = int(digits[:4])
+            m = int(digits[4:6])
+            d = int(digits[6:8])
+            return datetime(y, m, d).date()
+    except Exception:
+        return None
+
+    return None
+
+def _extract_sid_by_priority(row: dict, preferred_keys: List[str]) -> str:
+    """優先從指定欄位抓 4 碼標的代號，避免全欄位暴力掃描造成誤判。"""
+    for key in preferred_keys:
+        val = str(row.get(key, '')).strip()
+        if len(val) == 4 and val.isdigit() and val != '0000':
+            return val
+    return ""
+
+FUTURES_CACHE_FILE = "stock_futures_cache.json"
+
+def _load_futures_from_cache(max_age_days: int = 1) -> Set[str]:
+    if not os.path.exists(FUTURES_CACHE_FILE):
+        return set()
+
+    try:
+        with open(FUTURES_CACHE_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        cache_time = datetime.fromisoformat(data.get("timestamp", "2000-01-01"))
+        today = get_now_tw()
+        if (today - cache_time).days <= max_age_days:
+            return set(data.get("sids", []))
+    except Exception as e:
+        print(f"⚠️ [股期快取讀取失敗] {e}")
+
+    return set()
+
+def _save_futures_to_cache(futures_set: Set[str]):
+    try:
+        data = {
+            "timestamp": get_now_tw().isoformat(),
+            "sids": list(futures_set)
+        }
+        with open(FUTURES_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"⚠️ [股期快取寫入失敗] {e}")
+
+def fetch_stock_futures_set():
+    print("📡 正在調閱全市場股票期貨成份股清單 (三層防禦模式)...", flush=True)
+    combined_set = set()
+    
+    # 提前建立本系統可辨識的現股母體 (過濾雜訊用)
+    equity_universe = set(global_volume_lookup.keys()) | set(finmind_industry_map.keys())
+    
+    stealth_headers = {
+        "Accept": "application/json, text/html, */*",
+        "Accept-Language": "zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Connection": "keep-alive",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    # 🛑 [策略一] OpenAPI JSON 解析
+    try:
+        res = curl_requests.get(
+            "https://openapi.taifex.com.tw/v1/StockFutures", 
+            impersonate="chrome120", 
+            headers=stealth_headers, 
+            verify=False,
+            timeout=10
+        )
+        # 確保回傳的是 JSON 而不是 HTML 阻擋頁面
+        if res.status_code == 200 and res.text.strip().startswith("["):
+            found = _extract_sids_from_taifex_rows(res.json(), ['UnderlyingStockID', 'SpotID', '標的證券代號'])
             combined_set.update(found)
     except Exception as e:
-        print(f"⚠️ [期交所成份股API] 抓取失敗: {e}")
+        print(f"⚠️ [策略一] OpenAPI 獲取異常: {e}")
 
-    time.sleep(0.5)
-
-    try:
-        res2 = curl_requests.get("https://openapi.taifex.com.tw/v1/StockFutureDailyQuotes", impersonate="chrome120", timeout=15)
-        if res2.status_code == 200:
-            found2 = _extract_sids_from_taifex_rows(res2.json(), target_keys_2)
-            combined_set.update(found2)
-    except Exception as e:
-        print(f"⚠️ [期交所行情備援API] 抓取失敗: {e}")
-
+    # 🛑 [策略二] 官方網頁 Regex 暴力解析 (突破 JS 盾)
     if not combined_set:
-        print("🚨 [期交所API終極防禦觸發] 強制注入 20 檔權值股作為保底Flag。")
-        combined_set.update(['2330','2317','2454','2382','2412','2308','2303','2881','2882','2891',
-                            '3008','3711','2357','2324','2603','2609','2610','1301','1303','2002'])
-                            
-    return combined_set
+        print("⚠️ OpenAPI 遭 WAF 阻擋，啟動 [策略二] 網頁 HTML 暴力解析...")
+        try:
+            # 直接訪問期交所提供給一般用戶觀看的網頁
+            url_html = "https://www.taifex.com.tw/cht/2/stockLists"
+            res_html = curl_requests.get(
+                url_html, 
+                impersonate="chrome120", 
+                headers=stealth_headers, 
+                verify=False, 
+                timeout=10
+            )
+            
+            if res_html.status_code == 200:
+                # 使用 Regex 萃取所有 <td> 標籤內的 4 碼數字
+                # 匹配格式如：<td align="center">2330</td> 或 <td> 2317 </td>
+                import re
+                matches = re.findall(r'<td[^>]*>\s*(\d{4})\s*</td>', res_html.text)
+                if matches:
+                    combined_set.update(matches)
+                    print(f"✅ [策略二] 網頁爬蟲成功解析出 {len(matches)} 筆候選代號。")
+        except Exception as e:
+            print(f"❌ [策略二] 網頁爬蟲備援失敗: {e}")
+
+    # 🛡️ 雜訊過濾：交集台股母體，確保不會混入年份或其他無關數字
+    if equity_universe and combined_set:
+        combined_set = {sid for sid in combined_set if sid in equity_universe}
+
+    # 💾 寫入快取並回傳
+    if combined_set:
+        _save_futures_to_cache(combined_set)
+        print(f"✅ 最終成功確立 {len(combined_set)} 檔股期名單。")
+        return combined_set
+
+    # 🛑 [策略三] 本地快取降級
+    cached = _load_futures_from_cache(max_age_days=3)
+    if cached:
+        print(f"⚠️ [策略三] 線上抓取全數失敗，降級使用本地快取 {len(cached)} 檔（3 天內）。")
+        return cached
+
+    print("⚠️ 股期清單獲取失敗，回傳空集合。")
+    return set()
 
 # 定義快取檔案路徑
 CB_CACHE_FILE = "cb_list_cache.json"
 
 def _is_active_cb(row: dict) -> bool:
-    """[時間閘門] 動態尋找到期日並進行防禦性檢驗"""
+    """僅保留目前仍存續的 CB（未到期/未終止/未下市）。"""
+    today = get_now_tw().date()
+
+    # 文字狀態先過濾（例如：終止、下市、到期）
+    status_text = " ".join(str(v) for k, v in row.items() if any(x in str(k).lower() for x in ['狀態', 'status', '備註', 'remark']))
+    if any(x in status_text for x in ['終止', '下市', '到期', '註銷', '償還完畢', 'delist', 'terminated', 'redeemed', 'matured']):
+        return False
+
+    # 發行/掛牌日（若尚未生效，視為非活躍）
+    issue_date = None
     for k, v in row.items():
-        if any(x in str(k) for x in ['到期', 'Maturity', '終止']):
-            exp_date_str = str(v).strip()
-            clean_date = ''.join(filter(str.isdigit, exp_date_str))
-            if not clean_date:
-                continue
-            try:
-                today = (datetime.now(timezone.utc) + timedelta(hours=8)).date()
-                if len(clean_date) == 7: 
-                    y = int(clean_date[:3]) + 1911
-                    return datetime(y, int(clean_date[3:5]), int(clean_date[5:])).date() >= today
-                elif len(clean_date) == 8:
-                    y = int(clean_date[:4])
-                    return datetime(y, int(clean_date[4:6]), int(clean_date[6:])).date() >= today
-            except Exception:
-                pass 
+        key = str(k).lower()
+        if any(x in key for x in ['發行', '掛牌', '上市日', 'issue', 'list']):
+            issue_date = _extract_yyyy_mm_dd_from_text(v)
+            if issue_date:
+                break
+    if issue_date and issue_date > today:
+        return False
+
+    # 到期/終止/償還日（早於今日則剔除）
+    for k, v in row.items():
+        key = str(k).lower()
+        if any(x in key for x in ['到期', '終止', '償還', '贖回', 'maturity', 'redeem', 'end']):
+            exp_date = _extract_yyyy_mm_dd_from_text(v)
+            if exp_date:
+                return exp_date >= today
+
+    # 若資料沒有可用日期欄，保守視為活躍（避免誤殺）
     return True
 
 def _extract_active_cb_stock_code(row: dict) -> str:
-    """[特徵閘門] 絕對特徵匹配"""
+    """萃取 CB 對應現股代號，僅接受可信欄位。"""
     if not _is_active_cb(row):
         return ""
 
+    direct_sid = _extract_sid_by_priority(
+        row,
+        ['發行公司代號', '公司代號', 'SecuritiesCompanyCode', 'UnderlyingStockID', '標的證券代號']
+    )
+    if direct_sid:
+        return direct_sid
+
+    # 退而求其次：由 CB 債券代號推回前 4 碼現股代號（例如 23301）
     for k, v in row.items():
-        key_str = str(k).lower()
-        if any(x in key_str for x in ['代', '號', '碼', 'code', 'id', 'bond', 'sec']):
+        key = str(k).lower()
+        if any(x in key for x in ['債券代號', '代號', '代碼', 'code', 'bond']):
             s_val = str(v).strip()
-            if len(s_val) in (5, 6) and s_val[:4].isdigit() and s_val.isalnum():
-                stock_code = s_val[:4]
-                if stock_code != "0000":
-                    return stock_code
+            if len(s_val) >= 5 and s_val[:4].isdigit() and s_val[:4] != '0000':
+                return s_val[:4]
+
     return ""
 
 def _load_cb_from_cache(max_age_days: int = 1) -> Set[str]:
     """從本地讀取快取資料，若過期或不存在則回傳空集合"""
     if not os.path.exists(CB_CACHE_FILE):
         return set()
-    
+   
     try:
         with open(CB_CACHE_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            
+           
         cache_time = datetime.fromisoformat(data.get("timestamp", "2000-01-01"))
         today = datetime.now(timezone.utc) + timedelta(hours=8)
-        
+       
         # 檢查快取是否在有效期限內
         if (today - cache_time).days <= max_age_days:
             return set(data.get("sids", []))
     except Exception as e:
         print(f"⚠️ [快取讀取失敗] 忽略舊快取: {e}")
-        
+       
     return set()
 
 def _save_cb_to_cache(cb_set: Set[str]):
@@ -483,70 +1151,73 @@ def _save_cb_to_cache(cb_set: Set[str]):
         print(f"⚠️ [快取寫入失敗] {e}")
 
 def fetch_convertible_bond_set() -> Set[str]:
-    """
-    [退版還原] 基礎版可轉債抓取模組
-    目的：還原至最初能成功抓取 1000+ 筆資料的狀態。
-    邏輯：無差別掃描，只要欄位值為 4 碼純數字，即視為現股代號並納入監控。
-    """
-    print("📡 [退版還原] 正在向證交所與櫃買中心調閱發行清單 (基礎寬鬆模式)...", flush=True)
+    """取得目前仍存續（活著）的可轉債對應現股代號集合。"""
+    print("📡 正在向證交所與櫃買中心調閱活躍 CB 清單（存續過濾模式）...", flush=True)
     cb_set = set()
-    
+
     endpoints = [
-        "https://openapi.twse.com.tw/v1/opendata/t187ap34_L", # 證交所
-        "https://www.tpex.org.tw/openapi/v1/tpex_bond_main"   # 櫃買中心
+        "https://openapi.twse.com.tw/v1/opendata/t187ap34_L",  # 證交所
+        "https://www.tpex.org.tw/openapi/v1/tpex_bond_main"    # 櫃買中心
     ]
-    
+
     for url in endpoints:
         try:
             res = curl_requests.get(url, impersonate="chrome120", timeout=15)
-            
+
             if res.status_code == 200:
-                # 基礎防禦：確保不會因為伺服器回傳 HTML (如 WAF 阻擋頁面) 而觸發解析崩潰
                 if res.text.strip().startswith("<!DOCTYPE") or "<html" in res.text[:20].lower():
                     print(f"⚠️ [API 警告] 伺服器回傳 HTML，可能遭到防火牆阻擋。URL: {url}")
                     continue
-                    
-                # 解析 JSON 資料
+
                 data = res.json()
-                
                 if isinstance(data, list):
                     for row in data:
-                        # 寬鬆萃取：暴力掃描每一行的所有值
-                        for val in row.values():
-                            val_str = str(val).strip()
-                            # 只要是 4 碼純數字，就當作是股票代號加入 Set
-                            if len(val_str) == 4 and val_str.isdigit():
-                                cb_set.add(val_str)
-                                break # 找到一個 4 碼數字就跳到下一筆資料
-                                
+                        sid = _extract_active_cb_stock_code(row)
+                        if sid:
+                            cb_set.add(sid)
+
         except Exception as e:
             print(f"❌ [API 連線異常] URL: {url}, Error: {e}")
-            
-        time.sleep(1) # 友善延遲，避免短時間過多請求
-        
-    return cb_set
+
+        time.sleep(1)
+
+    equity_universe = set(global_volume_lookup.keys()) | set(finmind_industry_map.keys())
+    if equity_universe:
+        cb_set = {sid for sid in cb_set if sid in equity_universe}
+
+    if cb_set:
+        _save_cb_to_cache(cb_set)
+        return cb_set
+
+    cached = _load_cb_from_cache(max_age_days=3)
+    if cached:
+        print(f"⚠️ [CB 清單] 本輪抓取失敗，使用快取 {len(cached)} 檔（3 天內）。")
+        return cached
+
+    print("⚠️ [CB 清單] 本輪與快取皆無可用資料，回傳空集合。")
+    return set()
 
 def load_official_warrant_targets() -> List[str]:
     print("📡 正在解析全市場權證發行清單 (TWSE官方映射 + 雙因子排序)...", flush=True)
     valid_underlying_sids = set()
-    
+   
     name_to_sid = {}
     for sid, info in finmind_industry_map.items():
         clean_name = info['name'].replace('*', '').strip().replace('臺', '台')
         name_to_sid[clean_name] = sid
-        
+       
     try:
         res = curl_requests.get(
-            "https://openapi.twse.com.tw/v1/opendata/t187ap37_L", 
-            impersonate="chrome120", 
+            "https://openapi.twse.com.tw/v1/opendata/t187ap37_L",
+            impersonate="chrome120",
             timeout=15
         )
-        
+       
         if res.status_code == 200:
             data = res.json()
             for row in data:
                 found_sid = False
-                
+               
                 # 策略 A: 無結構暴力掃描 (Schema-less)
                 for key, val in row.items():
                     str_val = str(val).strip()
@@ -554,8 +1225,8 @@ def load_official_warrant_targets() -> List[str]:
                         if str_val in finmind_industry_map or str_val in global_volume_lookup:
                             valid_underlying_sids.add(str_val)
                             found_sid = True
-                            break 
-                
+                            break
+               
                 # 策略 B: 如果數字找不到，掃描名稱進行反向映射
                 if not found_sid:
                     for key, val in row.items():
@@ -565,7 +1236,7 @@ def load_official_warrant_targets() -> List[str]:
                             break
         else:
             print(f"⚠️ [TWSE 權證清單] 伺服器異常，狀態碼: {res.status_code}")
-            
+           
     except Exception as e:
         print(f"❌ [TWSE 權證清單解析失敗] {e}")
 
@@ -573,31 +1244,31 @@ def load_official_warrant_targets() -> List[str]:
     for sid in valid_underlying_sids:
         if sid not in global_volume_lookup or sid not in global_turnover_lookup:
             continue
-            
+           
         today_vol = global_volume_lookup[sid]
         today_turnover = global_turnover_lookup[sid]
-        
+       
         if today_vol > 0 and today_turnover > 0:
             warrant_candidates.append({
-                'sid': sid, 
-                'vol': today_vol, 
+                'sid': sid,
+                'vol': today_vol,
                 'turnover': today_turnover
             })
 
     if warrant_candidates:
         warrant_candidates.sort(key=lambda x: x['turnover'], reverse=True)
-        for idx, c in enumerate(warrant_candidates): 
+        for idx, c in enumerate(warrant_candidates):
             c['rank_t'] = idx
-            
+           
         warrant_candidates.sort(key=lambda x: x['vol'], reverse=True)
-        for idx, c in enumerate(warrant_candidates): 
+        for idx, c in enumerate(warrant_candidates):
             c['rank_v'] = idx
-            
+           
         warrant_candidates.sort(key=lambda x: x['rank_t'] + x['rank_v'])
 
     clean_hot_sids = [item['sid'] for item in warrant_candidates][:Config.WARRANT_QUOTA]
     print(f"✅ 權證熱門榜精準解析完成！從 {len(valid_underlying_sids)} 檔標的中篩出 {len(clean_hot_sids)} 檔頂級熱門標的。")
-    
+   
     return clean_hot_sids
 
 def _fetch_volume_from_finmind_fallback():
@@ -609,7 +1280,7 @@ def _fetch_volume_from_finmind_fallback():
         if Config.FINMIND_TOKEN: dl.login_by_token(Config.FINMIND_TOKEN)
         df = dl.taiwan_stock_daily(start_date=str(prev_date), end_date=str(prev_date))
         if df.empty: return
-            
+           
         for _, row in df.iterrows():
             sid = str(row['stock_id']).strip()
             if len(sid) == 4:
@@ -622,7 +1293,7 @@ def _fetch_volume_from_finmind_fallback():
         print(f"❌ FinMind 前一交易日資料取得失敗: {e}")
 
 def pre_market_initialization():
-    global global_volume_lookup, global_turnover_lookup, _stocks_with_futures, _stocks_with_cb
+    global global_volume_lookup, global_turnover_lookup, _stocks_with_futures, _stocks_with_cb, _cb_primary_market_map, _tide_analyzer
     twse_sids = set()
     disposition_set = fetch_disposition_stocks()
 
@@ -642,7 +1313,7 @@ def pre_market_initialization():
         if isinstance(tpex_data, list):
             for row in tpex_data:
                 code = str(row.get('SecuritiesCompanyCode', '')).strip()
-                if len(code) == 4: 
+                if len(code) == 4:
                     global_volume_lookup[code] = safe_cast(row.get('TradingShares'), int) // 1000
                     global_turnover_lookup[code] = safe_cast(row.get('TradingAmount'), float)
     except: pass
@@ -652,6 +1323,8 @@ def pre_market_initialization():
 
     _stocks_with_futures = fetch_stock_futures_set()
     _stocks_with_cb = fetch_convertible_bond_set()
+    _cb_primary_market_map = load_cb_primary_market_map_from_xlsx()
+    _tide_analyzer = TideAnalyzer(_resolve_tide_concepts_path())
     print(f"📊 衍生商品偵測完成：股期 {len(_stocks_with_futures)} 檔、CB {len(_stocks_with_cb)} 檔。")
 
     clean_sids = load_official_warrant_targets()
@@ -662,21 +1335,21 @@ def pre_market_initialization():
         ind = finmind_industry_map.get(sid, {}).get('industry', '權證熱門標的')
         name = finmind_industry_map.get(sid, {}).get('name', f"現股_{sid}")
         if should_exclude(sid, name, ind): continue
-        
+       
         if sid not in stock_info_map:
             y_vol_base = global_volume_lookup.get(sid, 1500)
-            if y_vol_base < 100: y_vol_base = 1500 
+            if y_vol_base < 100: y_vol_base = 1500
             _exchange_map[sid] = 'tse' if sid in twse_sids else 'otc'
             stock_info_map[sid] = {'name': name, 'market': '權證', 'is_protected': True, 'industry': ind}
             monitor_data[sid] = {
-                "high": 0.0, "low": 9999.0, "y_vol": y_vol_base, 
+                "high": 0.0, "low": 9999.0, "y_vol": y_vol_base,
                 "state": 0, "point_a": -1.0, "point_b": 9999.0,  
                 "last_alert_time": 0, "last_up_pct": 0.0, "last_ratio": 1.0, "last_consumption": 0.85, "is_accelerating": True, "history_prices": [],
                 "candle_window": [], "last_alert_by_strategy": {}
             }
             injected += 1
             if injected >= Config.WARRANT_QUOTA: break
-            
+           
     print(f"🎫 動態權證現股化分析完成，最終注入 {injected} 檔實時金流標的。")
 
 def update_rolling_3k(sid, lp):
@@ -701,12 +1374,12 @@ def update_rolling_3k(sid, lp):
 def recover_3k_data(target_list: List[str]):
     now_tw = get_now_tw()
     if not is_market_hours(): return
-    
+   
     today_tw = now_tw.date()
     bucket_sec = Config.CANDLE_TIMEFRAME_MIN * 60
     current_candle_start_ts = int(now_tw.timestamp() // bucket_sec) * bucket_sec
     print(f"🔄 執行 3K 補課 (共 {len(target_list)} 檔，取最近 {Config.CANDLE_3K_COUNT} 根 {Config.CANDLE_TIMEFRAME_MIN}分K)...", flush=True)
-    
+   
     for sid in target_list:
         try:
             url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{sid}?timeframe={Config.CANDLE_TIMEFRAME_MIN}"
@@ -725,7 +1398,7 @@ def recover_3k_data(target_list: List[str]):
                     monitor_data[sid]['candle_window'] = last3
                     monitor_data[sid]['high'] = max(c[1] for c in last3)
                     monitor_data[sid]['low']  = min(c[2] for c in last3)
-        except: pass 
+        except: pass
         time.sleep(Config.API_THROTTLE_SLEEP)
 
 # ------------------------------------------------------------
@@ -734,36 +1407,36 @@ def recover_3k_data(target_list: List[str]):
 
 def main():
     global _last_fugle_scan, finmind_industry_map
-    print(f"🛡️ 蘇蘇的天機選股 V118.6 啟動完成。") 
+    print(f"🛡️ 蘇蘇的天機選股 V118.6 啟動完成。")
     print(f"{get_now_tw().strftime('%H:%M:%S')} 執行盤前籌碼映射與官方 Profile 基本面同步...")
-    
+   
     finmind_industry_map = fetch_finmind_industry_mapping()
     pre_market_initialization()
-    
+   
     print("🛰️ 啟動市場動態配額同步模組...")
     refresh_pool_v90()
-    
+   
     w_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '權證'])
     l_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '上市'])
     o_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '上櫃'])
     print(f"✅ 初始化：上市 {l_count} 檔、上櫃 {o_count} 檔、權證主力(protected) {w_count} 檔。")
-    
+   
     perform_strategy_test()
     recover_3k_data(list(stock_info_map.keys()))
     print("🚀 系統初始化完畢，準備進入監控模式...\n")
     time.sleep(0.5)
-    
+   
     max_results = {}
-    
+   
     while True:
         refresh_pool_v90()
-        
+       
         _need_recover = [s for s in stock_info_map if monitor_data.get(s, {}).get('high', 0.0) == 0.0]
         if _need_recover and is_market_hours():
             recover_3k_data(_need_recover[:15])
-            
+           
         tw_now = get_now_tw()
-        
+       
         if not Config.IS_LOCAL:        
             if tw_now.weekday() < 5 and tw_now.time() >= Config.AUTO_SHUTDOWN_TIME:
                 print(f"\n[系統時鐘觸發熄火] 當前台北時間 {tw_now.strftime('%H:%M:%S')} 已達 13:35。")
@@ -771,14 +1444,14 @@ def main():
 
         timer_str = tw_now.strftime('%Y-%m-%d %H:%M:%S')
         print(f"\n[監控週期: {timer_str}]")
-        print(f"{wide_ljust('股號股名', 20)} | {wide_ljust('市場', 6)} | {wide_ljust('現價', 10)} | {wide_ljust('量比', 8)} | {wide_ljust('3K高', 10)} | {wide_ljust('3K低', 10)} | 衍生品") 
+        print(f"{wide_ljust('股號股名', 20)} | {wide_ljust('市場', 6)} | {wide_ljust('現價', 10)} | {wide_ljust('量比', 8)} | {wide_ljust('3K高', 10)} | {wide_ljust('3K低', 10)} | 衍生品")
         print("-" * 115)
-        
+       
         sorted_sids = sorted(stock_info_map.keys(), key=lambda x: 0 if stock_info_map[x]['is_protected'] else (1 if stock_info_map[x]['market'] == '上市' else 2))
-        
+       
         passed_min = (datetime.combine(tw_now.date(), tw_now.time()) - datetime.combine(tw_now.date(), Config.MARKET_OPEN)).total_seconds() / 60
         if passed_min <= 0 or passed_min > 270: passed_min = 270.0
-            
+           
         mis_ok = False
         if any(not stock_info_map[s]['is_protected'] for s in sorted_sids):
             max_results = fetch_mis_batch_all()
@@ -797,10 +1470,10 @@ def main():
                     if res and 'lastPrice' in res and res['lastPrice'] is not None:
                         lp = res.get('lastPrice')
                         lp_is_fresh = True
-                        v = safe_cast(res.get('total', {}).get('tradeVolume'), int)   
+                        v = safe_cast(res.get('total', {}).get('tradeVolume'), int)  
                         ask_vol = sum(safe_cast(a.get('volume', 0), int) for a in res.get('asks', [])[:3])
                         if ask_vol > 0: data['last_consumption'] = min(1.0, v / (ask_vol * 10))
-                        
+                       
                         y = safe_cast(res.get('previousClose', '0'), float)
                         if y > 0: up_pct = round((lp - y) / y * 100, 2)
                         data['last_up_pct'] = up_pct
@@ -819,13 +1492,13 @@ def main():
                     wave = math.sin(passed_min * 0.1 + int(sid)) * 0.05
                     lp = round(seed_base * (1.002 + wave), 2)
                     v = int(data['y_vol'] * (passed_min / 270.0) * (1.1 + abs(wave)))
-                    lp_is_fresh = True 
+                    lp_is_fresh = True
 
                 if lp is None:
                     if data.get('history_prices'): lp = data['history_prices'][-1]
-                
+               
                 if not lp: continue
-                
+               
                 _old_3k_high = data['high']
                 update_rolling_3k(sid, lp)
 
@@ -833,7 +1506,7 @@ def main():
                 data['history_prices'].append(lp)
                 if len(data['history_prices']) > 5: data['history_prices'].pop(0)
                 data['is_accelerating'] = data['history_prices'][-1] > data['history_prices'][-2] if len(data['history_prices']) >= 2 else False
-                
+               
                 ratio = round((v * (270 / passed_min)) / data['y_vol'], 2) if data['y_vol'] > 0 else 0
                 data['last_ratio'] = ratio
 
@@ -842,22 +1515,22 @@ def main():
                 fut_flag = '✅' if sid in _stocks_with_futures else '❌'
                 cb_flag = '✅' if sid in _stocks_with_cb else '❌'
                 deriv_flag = f"期{fut_flag}|債{cb_flag}"
-                
+               
                 print(f"{wide_ljust(stock_label, 20)} | {wide_ljust(market_label, 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {deriv_flag}")
 
                 if not lp_is_fresh:
                     if Config.IS_LOCAL and info.get('is_protected'):
-                        time.sleep(Config.API_THROTTLE_SLEEP) 
+                        time.sleep(Config.API_THROTTLE_SLEEP)
                     continue
 
                 is_3k_break = lp > _old_3k_high > 0
                 is_vol_anomaly = ratio >= Config.VOL_EST_THRESHOLD
 
-                if data['point_a'] < 0: 
+                if data['point_a'] < 0:
                     data['point_a'] = lp
                 else:
                     _n_valid_pullback = data['point_b'] != 9999.0 and data['point_b'] <= data['point_a'] * 0.985
-                    
+                   
                     if data['state'] == 1 and lp >= data['point_a'] and _n_valid_pullback:
                         if is_vol_anomaly:
                             send_tg_alert(sid, "策略四：N字突破 (洗盤結束再發動)", lp, data['high'], data['low'], ratio, up_pct)
@@ -872,7 +1545,43 @@ def main():
 
                 if is_3k_break and is_vol_anomaly:
                     send_tg_alert(sid, "🔥 策略二：3K突破 + 量能異常 (價量齊揚)", lp, _old_3k_high, data['low'], ratio, up_pct)
-
+                    # ==========================================
+                    # 🚀 新增：LINE 權證主力專屬推播邏輯
+                    # ==========================================
+                    if info.get('is_protected'):
+                        # 檢查是否度過 1 小時 (3600秒) 的冷卻期
+                        if can_push_line_alert(sid=sid, cooldown_seconds=3600):
+                            tw_now = get_now_tw()
+                            trigger_time = tw_now.strftime('%H:%M:%S')
+                            
+                            # 參數映射與格式轉換
+                            # 壓力消化：取用你前面算好的 last_consumption (五檔內盤消耗比)
+                            pressure = f"{data.get('last_consumption', 0.0):.1%}"
+                            # 能量斜率：取用你算好的 is_accelerating (連續兩次價格上升)
+                            slope = "📈 動能上升" if data.get('is_accelerating') else "平緩/震盪"
+                            # 產業別
+                            ind = info.get('industry', '未分類')
+                            
+                            send_line_flex_warrant_alert(
+                                sid=sid,
+                                name=info.get("name", ""),
+                                strategy="🔥 策略：3K突破 + 量能異常",
+                                lp=lp,
+                                pct_str=f"{up_pct:+.2f}%",
+                                up_pct=up_pct,
+                                ratio=ratio,
+                                stop_loss=_old_3k_high,  # 實戰中常以 3K 高點作為突破後的防守價
+                                pressure_digestion=pressure,
+                                energy_slope=slope,
+                                fut_flag=fut_flag,
+                                cb_flag=cb_flag,
+                                industry=ind,
+                                time_str=trigger_time
+                            )
+                            print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")
+                        else:
+                            print(f"⏳ [LINE] {sid} 觸發 1 小時冷卻保護，略過本次推播。")
+                    # ==========================================
                 if info.get('is_protected'): time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
 
@@ -887,9 +1596,9 @@ def main():
                         if res and 'lastPrice' in res and res['lastPrice'] is not None:
                             ask_vol = sum(safe_cast(a.get('volume', 0), int) for a in res.get('asks', [])[:3])
                             v_fugle = safe_cast(res.get('total', {}).get('tradeVolume'), int)
-                            if ask_vol > 0: 
+                            if ask_vol > 0:
                                 monitor_data[sid]['last_consumption'] = min(1.0, v_fugle / (ask_vol * 10))
-                            
+                           
                             w_lp = monitor_data[sid].get('history_prices', [100.0])[-1]
                             warrant_label = f"{sid} {stock_info_map[sid].get('name', '')}"
                             print(f"{wide_ljust(warrant_label, 20)} | {wide_ljust('權證', 6)} | {wide_ljust(w_lp, 10)} | {wide_ljust(monitor_data[sid].get('last_ratio', 1.0), 8)} | {wide_ljust(monitor_data[sid]['high'], 10)} | {wide_ljust(monitor_data[sid]['low'], 10)} | {stock_info_map[sid]['industry']}")
@@ -897,7 +1606,7 @@ def main():
                     time.sleep(Config.API_THROTTLE_SLEEP)
             _last_fugle_scan = time.time()
             print("")
-            
+           
         print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print(f"[時段提示] 方案C 兩層架構穩定運行 (MIS {len(max_results)} 檔)。5秒後刷新...")
         time.sleep(5)
