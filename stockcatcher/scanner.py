@@ -10,26 +10,6 @@ from dateutil.parser import isoparse
 from dotenv import load_dotenv
 from openpyxl import load_workbook
 
-# ---------------------------------------------------------
-# [通訊層狀態] LINE 推播冷卻快取 (Throttling Cache)
-# ---------------------------------------------------------
-# 記錄格式: { 股號(sid): 最後一次推播的 Unix Timestamp }
-line_alert_history: Dict[str, float] = {}
-
-def can_push_line_alert(sid: str, cooldown_seconds: int = 3600) -> bool:
-    """
-    [狀態過濾器] 檢查該標的是否已度過冷卻期 (預設 3600 秒 = 1 小時)
-    """
-    now = time.time()
-    last_push = line_alert_history.get(sid, 0)
-    
-    # 若現在時間與上次推播時間的差值，大於等於冷卻時間，則放行
-    if (now - last_push) >= cooldown_seconds:
-        line_alert_history[sid] = now  # 放行同時更新最後推播時間
-        return True
-        
-    return False
-
 # ⚡ 核心：引入 curl_cffi 偽裝 Chrome 瀏覽器，徹底繞過 SSL 憑證驗證失敗與 WAF 阻擋
 from curl_cffi import requests as curl_requests
 import requests as standard_requests
@@ -493,7 +473,7 @@ def build_cb_primary_market_message(sid: str) -> str:
 
     if info.get('board'):
         item = info['board'][0]
-        lines.append(f"- 董事會發行通過：{item['name']}｜公告日 {item['announce_date']}")
+        lines.append(f"- 董事會通過：{item['name']}｜公告日 {item['announce_date']}")
 
     return "\n".join(lines) if len(lines) > 1 else ""
 # ---------------------------------------------------------
@@ -585,7 +565,7 @@ def send_line_flex_warrant_alert(
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {"type": "text", "text": f"觸發時間: {time_str} (1小時內不再重複推送)", "size": "xs", "color": "#94a3b8", "align": "end"}
+                    {"type": "text", "text": f"觸發時間: {time_str}", "size": "xs", "color": "#94a3b8", "align": "end"}
                 ]
             }
         }
@@ -604,16 +584,70 @@ def send_line_flex_warrant_alert(
     except Exception as e:
         print(f"❌ [LINE] 發送異常: {e}")
 
-
-def send_line_status_message(message: str):
+def send_line_status_flex_message(version: str, mode: str, time_str: str):
     """
-    [通訊層] 發送輕量級純文字通知 (專用於系統啟動心跳監控)
+    [通訊層] 發送系統狀態專用的 LINE Flex Message 卡片
     """
     token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
     target_id = os.getenv("LINE_GROUP_ID")
 
     if not token or not target_id:
+        print("⚠️ [LINE] Token 或 Group ID 遺失，略過系統狀態通知。")
         return
+
+    # 構建科技感的系統狀態卡片
+    flex_payload = {
+        "type": "flex",
+        "altText": f"🚀 系統啟動成功 ({version})",
+        "contents": {
+            "type": "bubble",
+            "size": "kilo", # 狀態通知不需要太大，使用 kilo 尺寸即可
+            "header": {
+                "type": "box",
+                "layout": "vertical",
+                "backgroundColor": "#0f172a", # 沉穩的深藍色，與股票警報區隔
+                "contents": [
+                    {"type": "text", "text": "🖥️ 系統狀態報告", "color": "#ffffff", "weight": "bold", "size": "sm"}
+                ]
+            },
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "md",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": "比鼻的天機選股",
+                        "weight": "bold",
+                        "size": "xl",
+                        "color": "#1e293b"
+                    },
+                    {
+                        "type": "text",
+                        "text": "🟢 雷達上線運作中",
+                        "size": "md",
+                        "color": "#16a34a",
+                        "weight": "bold"
+                    },
+                    {
+                        "type": "separator",
+                        "margin": "md"
+                    },
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "sm",
+                        "contents": [
+                            # 沿用我們先前寫好的 _build_flex_row 輔助函式
+                            _build_flex_row("版本", version, weight="bold"),
+                            _build_flex_row("模式", mode),
+                            _build_flex_row("時間", time_str)
+                        ]
+                    }
+                ]
+            }
+        }
+    }
 
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
@@ -621,23 +655,13 @@ def send_line_status_message(message: str):
         "Authorization": f"Bearer {token}"
     }
     
-    payload = {
-        "to": target_id,
-        "messages": [
-            {
-                "type": "text",
-                "text": message
-            }
-        ]
-    }
-
     try:
-        res = standard_requests.post(url, headers=headers, json=payload, timeout=5)
+        res = standard_requests.post(url, headers=headers, json={"to": target_id, "messages": [flex_payload]}, timeout=5)
         if res.status_code != 200:
             print(f"⚠️ [LINE] 系統通知發送失敗 (HTTP {res.status_code}): {res.text}")
     except Exception as e:
         print(f"❌ [LINE] 系統通知連線異常: {e}")
-        
+   
 def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0.0):
     if up_pct > 9.0:
         return
@@ -669,25 +693,44 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     tide_block = build_tide_monitor_message(sid, up_pct, ratio)
     tide_line = f"{tide_block}\n" if tide_block else ""
    
-    # 構建 Telegram Markdown 格式訊息
-    msg = (
-        f"{scenario}\n"
-        f"🎯 *核心策略：* {badge}{strategy_name}\n"
-        f"━━━━━━━━━━━━━━\n"
-        f"📈 *標的：* [{sid} {info.get('name', '')}](https://www.nstock.tw/stock_info?stock_id={sid})\n"
-        f"💰 *現價：* `{lp}` {pct_arrow} `{pct_str}`\n"
-        f"📊 *預估量比：* `{ratio}x`\n"
-        f"📐 *3K高位：* `{data.get('high', 0.0)}`\n"
-        f"🛡️ *策略停損：* `{stop_loss_price}`\n"
-        f"💥 *壓力消化：* {consumption_str}\n"
-        f"🚀 *能量斜率：* {'陡增' if is_acc else '平穩'}\n"
-        f"📦 *衍生品：* 股期 {futures_flag} | 可轉債 {cb_flag}\n"
-        f"{cb_primary_line}"
-        f"{tide_line}"
-        f"🏷️ *產業類別：* `{info.get('industry', '未知產業')}`\n"
-        f"━━━━━━━━━━━━━━\n"
-        f"⏰ {get_now_tw().strftime('%H:%M:%S')}"
-    )
+    # 1. 建立基礎訊息區塊 (去除所有末尾的 \n，由程式統一處理)
+    msg_lines = [
+    f"{scenario}",
+    f"🎯 *核心策略：* {badge}{strategy_name}",
+    "━━━━━━━━━━━━━━",
+    f"📈 *標的：* [{sid} {info.get('name', '')}](https://www.nstock.tw/stock_info?stock_id={sid})",
+    f"💰 *現價：* `{lp}` {pct_arrow} `{pct_str}`",
+    f"📊 *預估量比：* `{ratio}x`",
+    f"📐 *3K高位：* `{data.get('high', 0.0)}`",
+    f"🛡️ *策略停損：* `{stop_loss_price}`",
+    f"💥 *壓力消化：* {consumption_str}",
+    f"🚀 *能量斜率：* {'陡增' if is_acc else '平穩'}",
+    f"📦 *衍生品：* 股期 {futures_flag} | CB {cb_flag}",
+    f"🏷️ *產業類別：* `{info.get('industry', '未知產業')}`"
+   ]
+
+    # 2. 動態擴展區塊：CB 與 TIDE 資訊
+    # 使用 strip() 確保清除前後多餘的空白或換行。若為空，則不會加入 msg_lines。
+
+    if cb_primary_line and str(cb_primary_line).strip():
+      # 為了讓版面透氣，在附加資訊前主動塞入一個空字串，產生單行空白分隔
+      msg_lines.append("") 
+      msg_lines.append(str(cb_primary_line).strip())
+
+    if tide_line and str(tide_line).strip():
+       if not (cb_primary_line and str(cb_primary_line).strip()):
+          # 若沒有 CB 資訊，確保 TIDE 上方也有透氣空白
+          msg_lines.append("")
+       msg_lines.append(str(tide_line).strip())
+
+    # 3. 結尾區塊
+    msg_lines.extend([
+    "━━━━━━━━━━━━━━",
+    f"⏰ {get_now_tw().strftime('%H:%M:%S')}"
+    ])
+
+    # 4. 完美組合：將陣列轉換為單一字串，並在每行之間插入換行符號
+    msg = "\n".join(msg_lines)
    
     url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage"
    
@@ -725,7 +768,7 @@ def perform_strategy_test():
     # 2. 準備啟動廣播訊息
     startup_msg = f"🚀 系統啟動成功\n天機選股雷達上線運作中！\n時間：{time_str}\n模式：TG & LINE 雙軌監控"
     print(startup_msg)
-    send_line_status_message(startup_msg)
+    send_line_status_flex_message("v2.3", "Telegram & LINE 雙軌監控", time_str)
     print("✅ 自動化測試驗證訊號已成功送出！")
 
 def should_exclude(sid, name, industry):
@@ -907,7 +950,7 @@ def refresh_pool_v90():
             }
 
 # ============================================================
-# 🕵️♂️ ✅ [V118.6 真．衍生商品與無結構權證解析] 導入 curl_cffi 與限流防禦
+# 🕵️♂️ ✅ [V2.3 真．衍生商品與無結構權證解析] 導入 curl_cffi 與限流防禦
 # ============================================================
 
 def _extract_sids_from_taifex_rows(rows: List, keys_to_check: List[str]) -> Set[str]:
@@ -1407,7 +1450,7 @@ def recover_3k_data(target_list: List[str]):
 
 def main():
     global _last_fugle_scan, finmind_industry_map
-    print(f"🛡️ 蘇蘇的天機選股 V118.6 啟動完成。")
+    print(f"🛡️ 蘇蘇的天機選股 V2.3 啟動完成。")
     print(f"{get_now_tw().strftime('%H:%M:%S')} 執行盤前籌碼映射與官方 Profile 基本面同步...")
    
     finmind_industry_map = fetch_finmind_industry_mapping()
@@ -1548,39 +1591,35 @@ def main():
                     # ==========================================
                     # 🚀 新增：LINE 權證主力專屬推播邏輯
                     # ==========================================
-                    if info.get('is_protected'):
-                        # 檢查是否度過 1 小時 (3600秒) 的冷卻期
-                        if can_push_line_alert(sid=sid, cooldown_seconds=3600):
-                            tw_now = get_now_tw()
-                            trigger_time = tw_now.strftime('%H:%M:%S')
+                    if info.get('is_protected'):                        
+                        tw_now = get_now_tw()
+                        trigger_time = tw_now.strftime('%H:%M:%S')
                             
-                            # 參數映射與格式轉換
-                            # 壓力消化：取用你前面算好的 last_consumption (五檔內盤消耗比)
-                            pressure = f"{data.get('last_consumption', 0.0):.1%}"
-                            # 能量斜率：取用你算好的 is_accelerating (連續兩次價格上升)
-                            slope = "📈 動能上升" if data.get('is_accelerating') else "平緩/震盪"
-                            # 產業別
-                            ind = info.get('industry', '未分類')
+                        # 參數映射與格式轉換
+                        # 壓力消化：取用你前面算好的 last_consumption (五檔內盤消耗比)
+                        pressure = f"{data.get('last_consumption', 0.0):.1%}"
+                        # 能量斜率：取用你算好的 is_accelerating (連續兩次價格上升)
+                        slope = "📈 動能上升" if data.get('is_accelerating') else "平緩/震盪"
+                        # 產業別
+                        ind = info.get('industry', '未分類')
                             
-                            send_line_flex_warrant_alert(
-                                sid=sid,
-                                name=info.get("name", ""),
-                                strategy="🔥 策略：3K突破 + 量能異常",
-                                lp=lp,
-                                pct_str=f"{up_pct:+.2f}%",
-                                up_pct=up_pct,
-                                ratio=ratio,
-                                stop_loss=_old_3k_high,  # 實戰中常以 3K 高點作為突破後的防守價
-                                pressure_digestion=pressure,
-                                energy_slope=slope,
-                                fut_flag=fut_flag,
-                                cb_flag=cb_flag,
-                                industry=ind,
-                                time_str=trigger_time
-                            )
-                            print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")
-                        else:
-                            print(f"⏳ [LINE] {sid} 觸發 1 小時冷卻保護，略過本次推播。")
+                        send_line_flex_warrant_alert(
+                            sid=sid,
+                            name=info.get("name", ""),
+                            strategy="🔥 策略：3K突破量能異常",
+                            lp=lp,
+                            pct_str=f"{up_pct:+.2f}%",
+                            up_pct=up_pct,
+                            ratio=ratio,
+                            stop_loss=_old_3k_high,  # 實戰中常以 3K 高點作為突破後的防守價
+                            pressure_digestion=pressure,
+                            energy_slope=slope,
+                            fut_flag=fut_flag,
+                            cb_flag=cb_flag,
+                            industry=ind,
+                            time_str=trigger_time
+                        )
+                        print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")                        
                     # ==========================================
                 if info.get('is_protected'): time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
