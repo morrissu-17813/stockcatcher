@@ -45,7 +45,7 @@ class Config:
     ENTRY_MIN_PCT      = 3.5  
     ENTRY_MAX_PCT      = 9.0  
     GRADUATION_PCT     = 9.7  
-    VOL_EST_THRESHOLD  = 2.3  
+    VOL_EST_THRESHOLD  = 2.5  
 
     # ⏰ 時間控制
     MARKET_OPEN        = dtime(9, 0)
@@ -269,13 +269,20 @@ def build_tide_monitor_message(sid: str, up_pct: float, ratio: float) -> str:
         display_tag = tide.get("display_tag", concept)
         status_text = tide.get("status_text", "")
         peers = tide.get("strong_peers_text", "無")
+        
+        # 對 peers 進行格式化：如果包含多個標的，按逗號分割並添加折行縮排
+        if "," in peers and len(peers) > 40:
+            peers_list = [p.strip() for p in peers.split(",") if p.strip()]
+            peers_formatted = ",\n                    ".join(peers_list)
+        else:
+            peers_formatted = peers
 
         return (
-            f"🏷️ *細分族群：* {display_tag}\n\n"
-            f"🌊 *【TIDE 族群共振監控】*\n\n"
-            f"🔹 概念題材： {concept}\n\n"
-            f"🔹 共振狀態： {status_text}\n\n"
-            f"🔹 同步發動： {peers}\n"
+            f"🔖 *細分族群：* {display_tag}\n"
+            f"    🌊 *【TIDE 族群共振監控】*\n"
+            f"         🔹 概念題材：\n               {concept}\n"
+            f"         🔹 共振狀態：\n               {status_text}\n"
+            f"         🔹 同步發動：\n               {peers_formatted}"
         )
     except Exception:
         return ""
@@ -465,15 +472,15 @@ def build_cb_primary_market_message(sid: str) -> str:
 
     if info.get('auction'):
         item = info['auction'][0]
-        lines.append(f"- 詢圈/競拍：{item['name']}｜掛牌 {item['list_date']}｜轉換價 {item['conv_price']}")
+        lines.append(f"     🔸 詢圈/競拍：{item['name']}\n               掛牌 {item['list_date']} | 轉換價 {item['conv_price']}")
 
     if info.get('filing'):
         item = info['filing'][0]
-        lines.append(f"- 送件標的：{item['name']}｜送件日 {item['filing_date']}")
+        lines.append(f"     🔸 送件標的：{item['name']}\n               送件日 {item['filing_date']}")
 
     if info.get('board'):
         item = info['board'][0]
-        lines.append(f"- 董事會通過：{item['name']}｜公告日 {item['announce_date']}")
+        lines.append(f"     🔸 董事會通過：{item['name']}\n               公告日 {item['announce_date']}")
 
     return "\n".join(lines) if len(lines) > 1 else ""
 # ---------------------------------------------------------
@@ -697,7 +704,7 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     msg_lines = [
     f"{scenario}",
     f"🎯 *核心策略：* {badge}{strategy_name}",
-    "━━━━━━━━━━━━━━",
+    "━━━━━━━━━━━━",
     f"📈 *標的：* [{sid} {info.get('name', '')}](https://www.nstock.tw/stock_info?stock_id={sid})",
     f"💰 *現價：* `{lp}` {pct_arrow} `{pct_str}`",
     f"📊 *預估量比：* `{ratio}x`",
@@ -713,19 +720,14 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     # 使用 strip() 確保清除前後多餘的空白或換行。若為空，則不會加入 msg_lines。
 
     if cb_primary_line and str(cb_primary_line).strip():
-      # 為了讓版面透氣，在附加資訊前主動塞入一個空字串，產生單行空白分隔
-      msg_lines.append("") 
       msg_lines.append(str(cb_primary_line).strip())
 
     if tide_line and str(tide_line).strip():
-       if not (cb_primary_line and str(cb_primary_line).strip()):
-          # 若沒有 CB 資訊，確保 TIDE 上方也有透氣空白
-          msg_lines.append("")
        msg_lines.append(str(tide_line).strip())
 
     # 3. 結尾區塊
     msg_lines.extend([
-    "━━━━━━━━━━━━━━",
+    "━━━━━━━━━━━━",
     f"⏰ {get_now_tw().strftime('%H:%M:%S')}"
     ])
 
@@ -1602,24 +1604,29 @@ def main():
                         slope = "📈 動能上升" if data.get('is_accelerating') else "平緩/震盪"
                         # 產業別
                         ind = info.get('industry', '未分類')
-                            
-                        send_line_flex_warrant_alert(
-                            sid=sid,
-                            name=info.get("name", ""),
-                            strategy="🔥 策略：3K突破量能異常",
-                            lp=lp,
-                            pct_str=f"{up_pct:+.2f}%",
-                            up_pct=up_pct,
-                            ratio=ratio,
-                            stop_loss=_old_3k_high,  # 實戰中常以 3K 高點作為突破後的防守價
-                            pressure_digestion=pressure,
-                            energy_slope=slope,
-                            fut_flag=fut_flag,
-                            cb_flag=cb_flag,
-                            industry=ind,
-                            time_str=trigger_time
-                        )
-                        print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")                        
+                        
+                        # 🛡️ 冷卻檢查：30 分鐘內同策略不重複通知 (與 Telegram 同步)
+                        strategy_name = "🔥 策略：3K突破量能異常"
+                        alert_times = data.setdefault('last_alert_by_strategy', {})
+                        if time.time() - alert_times.get(strategy_name, 0) >= 1800:
+                            send_line_flex_warrant_alert(
+                                sid=sid,
+                                name=info.get("name", ""),
+                                strategy=strategy_name,
+                                lp=lp,
+                                pct_str=f"{up_pct:+.2f}%",
+                                up_pct=up_pct,
+                                ratio=ratio,
+                                stop_loss=_old_3k_high,  # 實戰中常以 3K 高點作為突破後的防守價
+                                pressure_digestion=pressure,
+                                energy_slope=slope,
+                                fut_flag=fut_flag,
+                                cb_flag=cb_flag,
+                                industry=ind,
+                                time_str=trigger_time
+                            )
+                            alert_times[strategy_name] = time.time()
+                            print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")                        
                     # ==========================================
                 if info.get('is_protected'): time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
@@ -1646,7 +1653,7 @@ def main():
             _last_fugle_scan = time.time()
             print("")
            
-        print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print(f"[時段提示] 方案C 兩層架構穩定運行 (MIS {len(max_results)} 檔)。5秒後刷新...")
         time.sleep(5)
 
