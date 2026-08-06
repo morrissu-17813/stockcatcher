@@ -13,7 +13,8 @@ from openpyxl import load_workbook
 # ⚡ 核心：引入 curl_cffi 偽裝 Chrome 瀏覽器，徹底繞過 SSL 憑證驗證失敗與 WAF 阻擋
 from curl_cffi import requests as curl_requests
 import requests as standard_requests
-
+# 👇 [新增] Supabase 資料庫 SDK
+from supabase import create_client, Client
 # 🛡️ 禁用 urllib3 不安全請求警告與載入環境變數
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -79,7 +80,57 @@ _tide_analyzer = None          # TIDE族群共振分析器
 
 def get_now_tw():
     return datetime.now(timezone.utc) + timedelta(hours=8)
+# 👇 [新增] Supabase 資料庫寫入模組
+def get_supabase_client() -> Client:
+    """
+    [安全性模組] 初始化 Supabase Client
+    嚴格自環境變數讀取憑證，絕不硬編碼敏感 key
+    """
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
+    if not url or not key:
+        print("⚠️ [系統警告] 缺少 Supabase 環境變數，資料將不會寫入雲端。")
+        return None
+
+    return create_client(url, key)
+
+def update_signal_cache_to_supabase(category: str, sid: str, data_dict: Dict[str, Any]):
+    """
+    [資料層] 安全更新盤中訊號至 Supabase (PostgreSQL JSONB)
+    """
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            return
+
+        tw_now = get_now_tw()
+        now_str = tw_now.strftime('%Y-%m-%d %H:%M:%S')
+
+        # 1. 讀取現有分類的資料
+        response = supabase.table("tianji_signals").select("data").eq("category", category).execute()
+        
+        current_list = []
+        if response.data and len(response.data) > 0:
+            current_list = response.data[0].get("data", [])
+
+        # 2. 移除同 sid 的舊資料，並將最新訊號推至頂端 (最大長度 10)
+        current_list = [item for item in current_list if str(item.get("sid")) != str(sid)]
+        current_list.insert(0, data_dict)
+        current_list = current_list[:10]
+
+        # 3. 構造 Payload 並寫回 Supabase (Upsert 操作)
+        payload = {
+            "category": category,
+            "data": current_list,
+            "updated_at": now_str
+        }
+        supabase.table("tianji_signals").upsert(payload).execute()
+        print(f"✅ [Supabase] 成功更新 {category} 快取: {sid} ({data_dict.get('name', '')})")
+
+    except Exception as e:
+        print(f"❌ [Supabase API 錯誤] 更新 {category} 快取失敗: {str(e)}")
+# 👆 [新增結束]
 def get_previous_trading_day():
     """取得前一個交易日（跳過週末），用於週一盤前無資料時的降級查詢"""
     today = get_now_tw().date()
@@ -1627,6 +1678,20 @@ def main():
                             )
                             alert_times[strategy_name] = time.time()
                             print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")                        
+                    # 👇 [新增] 2. 資料庫邏輯：將觸發的標的寫入 Supabase 供 Webhook 與前端 Vue 讀取
+                        signal_payload = {
+                            "sid": sid,
+                            "name": info.get("name", ""),
+                            "lp": lp,
+                            "pct": round(up_pct, 2),
+                            "ratio": ratio,
+                            "trigger_time": trigger_time,
+                            "industry": ind
+                        }
+                        # 呼叫我們剛剛在核心工具區寫好的函式
+                        update_signal_cache_to_supabase("warrant_3k", sid, signal_payload)
+                        # 👆 [新增結束]
+                    
                     # ==========================================
                 if info.get('is_protected'): time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
