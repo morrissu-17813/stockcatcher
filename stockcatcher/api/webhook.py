@@ -82,7 +82,24 @@ def fetch_and_aggregate_signals(category: str) -> tuple[list, str]:
            # 記錄最後一筆的更新時間
            raw_time = row.get("updated_at")
            if raw_time:
-               latest_time_str = str(raw_time)[:16].replace("T", " ")
+                try:
+                    # 1. 處理 Supabase 可能回傳的結尾 "Z" 或 "+00:00"
+                    # 將字串轉換為具有時區意識 (Timezone-aware) 的 datetime 物件
+                    iso_time_str = str(raw_time).replace("Z", "+00:00")
+                    utc_time = datetime.fromisoformat(iso_time_str)
+                    
+                    # 2. 定義台灣時區 (UTC+8)
+                    tw_tz = timezone(timedelta(hours=8))
+                    
+                    # 3. 進行時區轉換
+                    tw_time = utc_time.astimezone(tw_tz)
+                    
+                    # 4. 格式化為易讀的字串 (YYYY-MM-DD HH:MM)
+                    latest_time_str = tw_time.strftime("%Y-%m-%d %H:%M")
+                except ValueError as ve:
+                    # 容錯處理：若時間格式解析失敗，退回原始字串切片，確保系統不崩潰
+                    print(f"⚠️ [時間解析警告] {ve}")
+                    latest_time_str = str(raw_time)[:16].replace("T", " ")
  
        aggregated_list = list(stock_map.values())
        
