@@ -64,7 +64,7 @@ def get_last_update_time(category: str) -> str:
 # ==========================================
 # 🌐 Webhook 路由與業務邏輯
 # ==========================================
-@app.post("/callback")
+@app.post("/api/webhook")
 async def callback(request: Request):
     """LINE 伺服器進件端點"""
     signature = request.headers.get("X-Line-Signature", "")
