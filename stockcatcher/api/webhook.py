@@ -140,9 +140,10 @@ def parse_user_intent(raw_msg: str) -> str:
 # ==========================================
 # 🎨 視覺渲染層 (Presentation Layer)
 # ==========================================
+# 檔案位置：api/webhook.py
+
 def build_strategy_list_flex(title: str, signals: list, update_time: str) -> FlexContainer:
-    """動態組裝 LINE Flex Message (日系簡約清爽視圖)"""
-    # 查無資料的空狀態 (留白與低飽和灰色)
+    """動態組裝 LINE Flex Message (無印櫻花奶茶系簡約視圖)"""
     if not signals:
         return FlexContainer.from_dict({
             "type": "bubble", "size": "mega",
@@ -152,12 +153,17 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
             }
         })
 
-    # 🎨 日系清爽卡片頭部 (純白底色 + 深灰文字)
+    # ==========================================
+    # 🎨 1. 卡片頭部 (無印系櫻花奶茶色盤)
+    # 使用 #FAF5F0 (溫潤淺奶茶) 搭配 #5C544E (暖灰棕文字)
+    # ==========================================
     header_box = {
-        "type": "box", "layout": "vertical", "backgroundColor": "#ffffff", "paddingAll": "20px",
+        "type": "box", "layout": "vertical", 
+        "backgroundColor": "#FAF5F0", 
+        "paddingAll": "20px",
         "contents": [
-            {"type": "text", "text": title, "color": "#334155", "size": "lg", "weight": "bold"},
-            {"type": "text", "text": f"最後更新: {update_time[-5:]}", "color": "#94a3b8", "size": "xs", "margin": "sm"}
+            {"type": "text", "text": title, "color": "#5C544E", "size": "lg", "weight": "bold"},
+            {"type": "text", "text": f"最後更新: {update_time[-5:]}", "color": "#A8A29E", "size": "xs", "margin": "sm"}
         ]
     }
 
@@ -165,7 +171,7 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
     
     # 遍歷聚合後的訊號，動態產生每一檔股票的 UI 區塊
     for index, s in enumerate(signals):
-        # 1. 資料提取與防呆
+        # 資料提取
         sid = s.get("stock_id", "N/A")
         name = s.get("stock_name", "N/A")
         price = s.get("price", 0.0)
@@ -176,28 +182,22 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
         sub_industry = s.get("sub_industry", "-")
         count = s.get("notify_count", 1)
 
-        # ==========================================
-        # 🎨 2. 視覺邏輯前置處理 (日系柔和色盤)
-        # ==========================================
-        
-        # 價格與漲跌幅顏色 (玫瑰紅、翡翠綠、石板灰)
+        # 價格與漲跌幅顏色 (維持日系低飽和：玫瑰紅、翡翠綠、石板灰)
         price_color = "#f43f5e" if pct > 0 else ("#10b981" if pct < 0 else "#94a3b8")
         
-        # 通知次數熱力顏色級別 (降低飽和度，避免視覺疲勞)
+        # 通知次數熱力顏色級別
         if count >= 5:
-            count_color = "#f43f5e"  # 5次以上：柔紅色
+            count_color = "#f43f5e"  
         elif 2 <= count <= 4:
-            count_color = "#f97316"  # 2~4次：暖橘色
+            count_color = "#f97316"  
         else:
-            count_color = "#eab308"  # 1次：柔黃色
+            count_color = "#eab308"  
 
-        # ==========================================
-        # 🧱 3. 組裝單檔股票 UI 區塊 (強調餘白 Yohaku)
-        # ==========================================
+        # 組合單檔股票區塊
         stock_row = {
             "type": "box", "layout": "vertical", "margin": "xl" if index > 0 else "none",
             "contents": [
-                # 🎯 第一橫排：股號股名 (柔和藍色跳轉) + 動態顏色通知次數
+                # 🎯 第一橫排：股號股名 (天空藍連結) + 通知次數
                 {
                     "type": "box", "layout": "horizontal",
                     "contents": [
@@ -206,7 +206,7 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
                             "text": f"{sid} {name}", 
                             "size": "md", 
                             "weight": "bold", 
-                            "color": "#3b82f6", # 日系天空藍
+                            "color": "#3b82f6",
                             "decoration": "underline",
                             "flex": 3,
                             "action": {
@@ -230,21 +230,19 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
                 # 🎯 第二橫排：產業與細分族群
                 {"type": "text", "text": f"[{industry}] {sub_industry}", "size": "xs", "color": "#94a3b8", "margin": "sm"},
                 
-                # 🎯 第三橫排：價格(統一色系)、量比(移除粗體)、停損
+                # 🎯 第三橫排：現價(合併字串與顏色，移除粗體)、量比、停損
                 {
                     "type": "box", "layout": "horizontal", "margin": "md",
                     "contents": [
-                        # 現價與漲跌幅區塊 (對齊基準線)
+                        # 💡 蘇蘇的架構優化：合併為單一字串，徹底解決括號間距過大的問題
                         {
-                            "type": "box", "layout": "baseline", "flex": 2,
-                            "contents": [
-                                {"type": "text", "text": f"{price}", "size": "sm", "color": price_color, "weight": "bold"},
-                                {"type": "text", "text": f" ({pct:+g}%)", "size": "sm", "color": price_color, "weight": "bold"}
-                            ]
+                            "type": "text", 
+                            "text": f"現價: {price} ({pct:+g}%)", 
+                            "size": "sm", 
+                            "color": price_color, 
+                            "flex": 2  # 分配 50% 寬度確保文字不會被擠壓換行
                         },
-                        # 量比區塊 (柔和琥珀色，無粗體)
                         {"type": "text", "text": f"量比: {vol_ratio}x", "size": "sm", "color": "#d97706", "flex": 1},
-                        # 停損區塊 (淺石板灰)
                         {"type": "text", "text": f"停損: {stop_loss}", "size": "sm", "color": "#64748b", "flex": 1}
                     ]
                 }
@@ -252,11 +250,11 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
         }
         body_contents.append(stock_row)
         
-        # 加上超輕透的分隔線 (最後一檔不加)
+        # 分隔線
         if index < len(signals) - 1:
             body_contents.append({"type": "separator", "margin": "xl", "color": "#f1f5f9"})
 
-    # 4. 回傳最終 Flex 容器 (移除預設 padding，改用內部 margin 控制餘白)
+    # 回傳最終 Flex 容器 (本體維持純白底色，突顯櫻花奶茶色的 Header)
     return FlexContainer.from_dict({
         "type": "bubble", "size": "giga",
         "header": header_box,
