@@ -141,14 +141,12 @@ def parse_user_intent(raw_msg: str) -> str:
 # 🎨 視覺渲染層 (Presentation Layer)
 # ==========================================
 # 檔案位置：api/webhook.py
-# 檔案位置：api/webhook.py
 
 def build_strategy_list_flex(title: str, signals: list, update_time: str) -> FlexContainer:
     """
     動態組裝 LINE Flex Message 
-    (無印櫻花奶茶系：支援大資料量的輪播卡片 Carousel)
+    (無印櫻花奶茶系 + 雙欄式餘白排版 + 黃金比例分頁)
     """
-    # 1. 查無資料防呆：回傳單一 Bubble 提示空狀態
     if not signals:
         return FlexContainer.from_dict({
             "type": "bubble", "size": "mega",
@@ -161,43 +159,33 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
         })
 
     # ==========================================
-    # ⚙️ 核心演算法：資料分頁分塊 (Pagination Chunking)
-    # 考量使用者體驗與 LINE API 限制 (單一 Carousel 最多 10-12 個 Bubble)
+    # ⚙️ 核心演算法：改為「黃金比例 5 筆」一頁
     # ==========================================
-    ITEMS_PER_PAGE = 10
-    MAX_BUBBLES = 10  
+    ITEMS_PER_PAGE = 5  # 降低單頁筆數，讓畫面有充分的呼吸空間
+    MAX_BUBBLES = 12    # LINE 輪播卡片最大上限
     
-    # 利用 Python 切片將一維陣列切割為二維陣列 (每個子陣列最多包含 10 筆資料)
     chunks = [signals[i:i + ITEMS_PER_PAGE] for i in range(0, len(signals), ITEMS_PER_PAGE)]
-    
-    # 系統邊界防護：截斷超過上限的分頁，確保 Payload 符合 LINE 的 300KB 限制
     if len(chunks) > MAX_BUBBLES:
         chunks = chunks[:MAX_BUBBLES]
 
     carousel_bubbles = []
 
-    # ==========================================
-    # 🧱 遍歷每一個資料塊，產生獨立的分頁 Bubble
-    # ==========================================
     for page_index, chunk in enumerate(chunks):
         
-        # 動態標題：若超過一頁，自動加上頁碼標示 (例如：權證主力發動 (1/3))
         page_title = f"{title} ({page_index + 1}/{len(chunks)})" if len(chunks) > 1 else title
         
-        # 🎨 卡片頭部 (無印系櫻花奶茶色盤：溫潤淺奶茶 #FAF5F0 + 暖灰棕 #5C544E)
+        # 🎨 卡片頭部 (櫻花奶茶)
         header_box = {
-            "type": "box", "layout": "vertical", "backgroundColor": "#FAF5F0", "paddingAll": "20px",
+            "type": "box", "layout": "vertical", "backgroundColor": "#FAF5F0", "paddingAll": "16px",
             "contents": [
-                {"type": "text", "text": page_title, "color": "#5C544E", "size": "lg", "weight": "bold"},
-                {"type": "text", "text": f"最後更新: {update_time[-5:]}", "color": "#A8A29E", "size": "xs", "margin": "sm"}
+                {"type": "text", "text": page_title, "color": "#5C544E", "size": "md", "weight": "bold"},
+                {"type": "text", "text": f"最後更新: {update_time[-5:]}", "color": "#A8A29E", "size": "xs", "margin": "xs"}
             ]
         }
 
         body_contents = []
         
-        # 遍歷當前分頁內的單檔股票資料
         for item_index, s in enumerate(chunk):
-            # 資料提取與預設值防呆
             sid = s.get("stock_id", "N/A")
             name = s.get("stock_name", "N/A")
             price = s.get("price", 0.0)
@@ -205,76 +193,75 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
             vol_ratio = s.get("vol_ratio", 0.0)
             stop_loss = s.get("stop_loss", 0.0)
             industry = s.get("industry", "-")
-            sub_industry = s.get("sub_industry", "-")
             count = s.get("notify_count", 1)
 
-            # 視覺邏輯：統一價格顏色 (漲為柔玫瑰紅、跌為翡翠綠、平盤為石板灰)
             price_color = "#f43f5e" if pct > 0 else ("#10b981" if pct < 0 else "#94a3b8")
             
-            # 視覺邏輯：通知次數熱力顏色
             if count >= 5:
-                count_color = "#f43f5e"  # 5次以上：柔紅
+                count_color = "#f43f5e"  
             elif 2 <= count <= 4:
-                count_color = "#f97316"  # 2~4次：暖橘
+                count_color = "#f97316"  
             else:
-                count_color = "#eab308"  # 1次：柔黃
+                count_color = "#eab308"  
 
-            # 組裝單檔股票 UI 區塊 (強調餘白與資訊降噪)
+            # ==========================================
+            # 🧱 全新排版：雙欄對齊 (左側識別 / 右側數據)
+            # ==========================================
             stock_row = {
-                "type": "box", "layout": "vertical", "margin": "xl" if item_index > 0 else "none",
+                "type": "box", "layout": "vertical", "margin": "lg" if item_index > 0 else "none",
                 "contents": [
-                    # 🎯 第一橫排：股號股名 (天空藍連結) + 通知次數
+                    # 第一列：股號股名 (左) | 現價與漲跌幅 (右)
                     {
                         "type": "box", "layout": "horizontal",
                         "contents": [
                             {
                                 "type": "text", "text": f"{sid} {name}", "size": "md", "weight": "bold", 
-                                "color": "#3b82f6", "decoration": "underline", "flex": 3,
+                                "color": "#3b82f6", "decoration": "underline", "flex": 1,
                                 "action": {
                                     "type": "uri", "label": "查看走勢", 
                                     "uri": f"https://www.nstock.tw/stock_info?stock_id={sid}"
                                 }
                             },
                             {
-                                "type": "text", "text": f"通知 {count} 次", "size": "xs", 
-                                "color": count_color, "align": "end", "weight": "bold", "flex": 1
+                                # 數據靠右對齊，方便一眼掃描
+                                "type": "text", "text": f"{price} ({pct:+g}%)", "size": "md", 
+                                "color": price_color, "align": "end", "weight": "bold", "flex": 1
                             }
                         ]
                     },
                     
-                    # 🎯 第二橫排：產業與細分族群
-                    {"type": "text", "text": f"[{industry}] {sub_industry}", "size": "xs", "color": "#94a3b8", "margin": "sm"},
-                    
-                    # 🎯 第三橫排：現價與漲跌幅(完美合併無斷層)、量比(無粗體)、停損(無粗體)
+                    # 第二列：產業別 (左) | 量比 (右)
                     {
-                        "type": "box", "layout": "horizontal", "margin": "md",
+                        "type": "box", "layout": "horizontal", "margin": "sm",
                         "contents": [
-                            {
-                                "type": "text", "text": f"現價: {price} ({pct:+g}%)", "size": "sm", 
-                                "color": price_color, "flex": 2
-                            },
-                            {"type": "text", "text": f"量比: {vol_ratio}x", "size": "sm", "color": "#d97706", "flex": 1},
-                            {"type": "text", "text": f"停損: {stop_loss}", "size": "sm", "color": "#64748b", "flex": 1}
+                            {"type": "text", "text": f"{industry}", "size": "xs", "color": "#94a3b8", "flex": 1},
+                            {"type": "text", "text": f"量比: {vol_ratio}x", "size": "xs", "color": "#d97706", "align": "end", "flex": 1}
+                        ]
+                    },
+                    
+                    # 第三列：停損價 (左) | 通知次數 (右)
+                    {
+                        "type": "box", "layout": "horizontal", "margin": "xs",
+                        "contents": [
+                            {"type": "text", "text": f"停損: {stop_loss}", "size": "xs", "color": "#64748b", "flex": 1},
+                            {"type": "text", "text": f"通知 {count} 次", "size": "xs", "color": count_color, "align": "end", "weight": "bold", "flex": 1}
                         ]
                     }
                 ]
             }
             body_contents.append(stock_row)
             
-            # 分隔線 (超輕透的 #f1f5f9)
+            # 分隔線：改為較小的 margin，並保持輕透顏色
             if item_index < len(chunk) - 1:
-                body_contents.append({"type": "separator", "margin": "xl", "color": "#f1f5f9"})
+                body_contents.append({"type": "separator", "margin": "lg", "color": "#f1f5f9"})
 
-        # 將當前組裝好的分頁 (Bubble) 塞入輪播陣列 (Carousel Array) 中
         carousel_bubbles.append({
-            "type": "bubble", "size": "giga",
+            # 尺寸從 giga 縮小為 mega，讓寬度更適合手機，不會看起來那麼笨重
+            "type": "bubble", "size": "mega",
             "header": header_box,
-            "body": {"type": "box", "layout": "vertical", "paddingAll": "20px", "backgroundColor": "#ffffff", "contents": body_contents}
+            "body": {"type": "box", "layout": "vertical", "paddingAll": "16px", "backgroundColor": "#ffffff", "contents": body_contents}
         })
 
-    # ==========================================
-    # 🎯 回傳最終的 Carousel 容器
-    # ==========================================
     return FlexContainer.from_dict({
         "type": "carousel",
         "contents": carousel_bubbles
