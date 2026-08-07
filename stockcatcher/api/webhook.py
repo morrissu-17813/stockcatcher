@@ -47,9 +47,9 @@ def fetch_and_aggregate_signals(category: str) -> tuple[list, str]:
        # 為了效能與記憶體考量，這裡我們限制撈取最新的 500 筆紀錄
        # 實務上線後，建議改為依據日期過濾 (例如只撈今日)
        response = supabase.table("tianji_signals") \
-           .select("created_at, data") \
+           .select("updated_at, data") \
            .eq("category", category) \
-           .order("created_at", desc=False) \
+           .order("updated_at", desc=False) \
            .limit(500) \
            .execute()
  
@@ -80,7 +80,7 @@ def fetch_and_aggregate_signals(category: str) -> tuple[list, str]:
                stock_map[stock_id]["notify_count"] = 1
                
            # 記錄最後一筆的更新時間
-           raw_time = row.get("created_at")
+           raw_time = row.get("updated_at")
            if raw_time:
                latest_time_str = str(raw_time)[:16].replace("T", " ")
  
