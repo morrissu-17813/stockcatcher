@@ -9,6 +9,7 @@ from typing import List, Set, Dict, Any
 from dateutil.parser import isoparse
 from dotenv import load_dotenv
 from openpyxl import load_workbook
+from supabase import create_client, Client
 
 # ⚡ 核心：引入 curl_cffi 偽裝 Chrome 瀏覽器，徹底繞過 SSL 憑證驗證失敗與 WAF 阻擋
 from curl_cffi import requests as curl_requests
@@ -18,6 +19,17 @@ import requests as standard_requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv()
+# 1. 確保連線變數存在
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+# ⚠️ 強烈建議使用 Service Role Key 以繞過 RLS 寫入限制
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+# 2. 建立全域的 Supabase 客戶端實例
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    print("⚠️ [警告] 尚未設定 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY，資料庫連線失敗。")
+    supabase = None
 
 # ============================================================
 # ⚙️ [系統配置區] - 實戰參數落鎖 (資安升級：改用環境變數)
@@ -26,7 +38,7 @@ class Config:
     FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE"
     FUGLE_API_KEY ="MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
     TELEGRAM_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
-    TELEGRAM_CHAT_ID = "-1003613268841"
+    TELEGRAM_CHAT_ID = "1087480334"
     TIDE_CONCEPT_JSON = os.getenv("TIDE_CONCEPT_JSON", "config/concepts.json")
     # TIDE 顯示門檻：A / AA / AAA。預設 AA，可避免訊息過長。
     TIDE_MIN_LEVEL = os.getenv("TIDE_MIN_LEVEL", "AA").strip().upper()
@@ -749,6 +761,80 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
         alert_times[strategy_name] = time.time()
     except Exception as e:
         print(f"[錯誤] Telegram 發送通知失敗: {e}")
+    # ==========================================
+    # 🛡️ 【架構師防護網】阻擋測試訊號污染資料庫
+    # ==========================================
+    # 請根據你每日測試推播的實際特徵進行調整。
+    # 這裡假設你的測試訊號會在 strategy_name 包含 "測試" 兩字，或是帶有特定的測試股號
+    if "測試" in strategy_name or "test" in strategy_name.lower() or sid == "0000":
+        print(f"⚠️ [DB 寫入略過] 偵測到系統測試訊號 ({strategy_name})，不寫入正式資料庫。")
+        return  # 提早返回，攔截下方的 DB 寫入動作
+    # ==========================================
+    # 🎯 【新增掛載點】資料庫非同步/隔離寫入區塊
+    # ==========================================
+    try:
+        # 建立資料庫 JSONB Payload
+        # 優勢：直接取用函式傳入的純數值變數 (up_pct, lp, ratio)，避免字串轉型的報錯風險
+        stock_payload = {
+            "stock_id": str(sid),
+            "stock_name": info.get("name", ""),
+            "price": float(lp),
+            "pct": float(up_pct), 
+            "vol_ratio": float(ratio),
+            "stop_loss": float(stop_loss_price),
+            "industry": info.get("industry", "未知產業"),
+            "sub_industry": "-", 
+            
+            # 進階籌碼與型態
+            "3k_high": float(data.get('high', 0.0)),
+            "pressure_digestion": consumption_str,
+            "energy_slope": "陡增" if is_acc else "平穩",
+            "derivatives": f"股期 {futures_flag} | CB {cb_flag}"
+        }
+
+        # 策略分類轉換 (動態對齊 Webhook 查詢端)
+        strategy_category = "unknown_strategy"
+        if "權證" in strategy_name:
+            strategy_category = "warrant_3k"
+        elif "3K" in strategy_name or "量能" in strategy_name:
+            strategy_category = "volume_3k"
+        else:
+            strategy_category = strategy_name
+
+        # 呼叫全域工具函式進行寫入
+        # 需確保 save_signal_to_supabase() 已定義在 scanner.py 中
+        save_signal_to_supabase(category=strategy_category, stock_data=stock_payload)
+
+    except Exception as db_err:
+        # 嚴格的容錯隔離設計：就算發生預期外的錯誤，也不會影響已經送出的 TG 訊息
+        print(f"❌ [DB 寫入前置轉換失敗] 標的: {sid} | 錯誤: {db_err}")
+
+# ==========================================
+# 檔案位置：scanner.py (工具函式定義區塊)
+# ==========================================
+def save_signal_to_supabase(category: str, stock_data: dict) -> None:
+    """
+    將單一標的訊號寫入 Supabase (Append-only 模式)
+    包含完整的防呆與例外處理，絕不干擾主執行緒。
+    """
+    if not supabase:
+        print("❌ [DB 跳過寫入] Supabase 客戶端未初始化。")
+        return
+
+    try:
+        # 確保寫入的欄位符合我們定義的 Schema
+        row_payload = {
+            "category": category,
+            "data": stock_data  # 直接將字典寫入 JSONB 欄位
+        }
+
+        # 執行寫入 (created_at 會由 Supabase 伺服器端自動產生)
+        response = supabase.table("tianji_signals").insert(row_payload).execute()
+        print(f"✅ [DB 寫入成功] {category} | {stock_data.get('stock_id')} {stock_data.get('stock_name')}")
+
+    except Exception as e:
+        # 發生錯誤時僅印出 Log，不使用 raise 拋出異常，確保 TG 通知繼續執行
+        print(f"❌ [DB 寫入失敗] {category} | 錯誤原因: {e}")
 
 def perform_strategy_test():
     print("📡 啟動自動化測試：發送驗證訊號...", flush=True)
@@ -1627,9 +1713,11 @@ def main():
                             )
                             alert_times[strategy_name] = time.time()
                             print(f"✅ [LINE] 成功派發權證主力通知: {sid} {info.get('name', '')}")                        
-                    # ==========================================
+                    # ==========================================  
                 if info.get('is_protected'): time.sleep(Config.API_THROTTLE_SLEEP)
             except: pass
+          
+
 
         if time.time() - _last_fugle_scan >= 60 and len(stock_info_map) > 0:
             protected_sids = [s for s in stock_info_map if stock_info_map[s].get('is_protected')]
