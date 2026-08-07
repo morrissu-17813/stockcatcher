@@ -1,154 +1,230 @@
 # 檔案位置：api/webhook.py
 import os
+from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, Request, HTTPException
 from linebot.v3 import WebhookHandler
 from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.messaging import (
-    Configuration,
-    ApiClient,
-    MessagingApi,
-    ReplyMessageRequest,
-    FlexMessage,
-    FlexContainer
+   Configuration,
+   ApiClient,
+   MessagingApi,
+   ReplyMessageRequest,
+   FlexMessage,
+   FlexContainer
 )
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
 from dotenv import load_dotenv
-
+ 
+# 載入環境變數
 load_dotenv()
-
+ 
 app = FastAPI()
-
+ 
 # ==========================================
 # ⚙️ 環境變數與安全憑證配置
 # ==========================================
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-# 讀取端只需使用 anon key 即可 (防護性設計：讀寫權限分離)
-# 但因為我們目前設定未開放 RLS，這裡先沿用 SERVICE_ROLE_KEY 或你的 Anon Key
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "") 
-
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+ 
 configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
-
+ 
 # 初始化 Supabase 客戶端
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
+ 
 # ==========================================
-# 💾 資料庫讀取層 (Data Access Layer)
+# 💾 資料庫讀取與聚合層 (Data Access & Aggregation)
 # ==========================================
-def fetch_signals_from_supabase(category: str) -> list:
-    """從 Supabase 瞬間撈取特定策略的最新標的"""
-    try:
-        response = supabase.table("tianji_signals").select("data").eq("category", category).execute()
-        if response.data and len(response.data) > 0:
-            return response.data[0].get("data", [])
-        return []
-    except Exception as e:
-        print(f"❌ [DB 讀取錯誤] {e}")
-        return []
-
-def get_last_update_time(category: str) -> str:
-    """獲取該策略最後更新時間"""
-    try:
-        response = supabase.table("tianji_signals").select("updated_at").eq("category", category).execute()
-        if response.data and len(response.data) > 0:
-            # 轉換為容易閱讀的格式 (可依需求調整 timezone)
-            raw_time = response.data[0].get("updated_at")
-            return str(raw_time)[:16].replace("T", " ")
-        return "尚無資料"
-    except:
-        return "未知時間"
-
+def fetch_and_aggregate_signals(category: str) -> tuple[list, str]:
+   """
+   從 Supabase 獲取單行單標的 (Append-only) 訊號，並進行去重與聚合。
+   回傳 Tuple: (聚合後的股票清單, 最後更新時間字串)
+   """
+   try:
+       # 為了效能與記憶體考量，這裡我們限制撈取最新的 500 筆紀錄
+       # 實務上線後，建議改為依據日期過濾 (例如只撈今日)
+       response = supabase.table("tianji_signals") \
+           .select("created_at, data") \
+           .eq("category", category) \
+           .order("created_at", desc=False) \
+           .limit(500) \
+           .execute()
+ 
+       records = response.data
+       if not records:
+           return [], "尚無資料"
+ 
+       stock_map = {}
+       latest_time_str = "尚無資料"
+ 
+       # 進行 O(N) 的高效去重與聚合
+       for row in records:
+           payload = row.get("data", {})
+           if not isinstance(payload, dict):
+               continue
+               
+           stock_id = payload.get("stock_id")
+           if not stock_id:
+               continue
+ 
+           if stock_id in stock_map:
+               current_count = stock_map[stock_id].get("notify_count", 0)
+               # 後進覆寫，保證數據最新
+               stock_map[stock_id] = payload
+               stock_map[stock_id]["notify_count"] = current_count + 1
+           else:
+               stock_map[stock_id] = payload
+               stock_map[stock_id]["notify_count"] = 1
+               
+           # 記錄最後一筆的更新時間
+           raw_time = row.get("created_at")
+           if raw_time:
+               latest_time_str = str(raw_time)[:16].replace("T", " ")
+ 
+       aggregated_list = list(stock_map.values())
+       
+       # 商業邏輯排序：優先看通知次數 (遞減)，再看預估量比 (遞減)
+       aggregated_list.sort(
+           key=lambda x: (
+               x.get("notify_count", 0),
+               float(x.get("vol_ratio", 0.0) if x.get("vol_ratio") else 0)
+           ),
+           reverse=True
+       )
+ 
+       return aggregated_list, latest_time_str
+ 
+   except Exception as e:
+       print(f"❌ [DB 讀取與聚合錯誤] {e}")
+       return [], "讀取錯誤"
+ 
 # ==========================================
-# 🌐 Webhook 路由與業務邏輯
+# 🧠 意圖解析層 (Intent Parsing Layer)
 # ==========================================
-@app.post("/api/webhook")
-async def callback(request: Request):
-    """LINE 伺服器進件端點"""
-    signature = request.headers.get("X-Line-Signature", "")
-    body = await request.body()
-    body_str = body.decode("utf-8")
-
-    try:
-        handler.handle(body_str, signature)
-    except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Invalid signature. 請檢查 LINE Secret。")
-    return "OK"
-
-@handler.add(MessageEvent, message=TextMessageContent)
-def handle_message(event):
-    """處理圖文選單按鈕觸發的查詢事件"""
-    user_msg = event.message.text.strip()
-    reply_flex = None
-
-    # 🎯 路由分發：依據使用者點擊的指令，向 Supabase 請求對應資料
-    if user_msg == "【查詢】當前 權證主力+3K 突破":
-        signals = fetch_signals_from_supabase("warrant_3k")
-        # 測試階段如果沒有資料，我們抓剛才測試用的資料來展示
-        if not signals:
-             signals = fetch_signals_from_supabase("test_signal")
-             
-        update_time = get_last_update_time("warrant_3k")
-        reply_flex = build_minimalist_carousel("🎫 權證主力發動", signals, update_time)
-        
-    elif user_msg == "【查詢】當前 3K 突破+量能異常":
-        signals = fetch_signals_from_supabase("volume_3k")
-        update_time = get_last_update_time("volume_3k")
-        reply_flex = build_minimalist_carousel("🔥 3K 量能異常", signals, update_time)
-        
-    # 如果有產生 Flex 卡片，則透過 Reply API 秒回
-    if reply_flex:
-        with ApiClient(configuration) as api_client:
-            line_bot_api = MessagingApi(api_client)
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[FlexMessage(alt_text=user_msg, contents=reply_flex)]
-                )
-            )
-
+def parse_user_intent(raw_msg: str) -> str:
+   """將非結構化的自然語言收斂為標準的系統指令路由"""
+   clean_msg = raw_msg.strip().replace(" ", "").replace(" ", "").lower()
+ 
+   warrant_keywords = ["權證主力", "權證發動", "權證介入", "主力發動", "主力權證"]
+   volume_3k_keywords = ["3k突破", "量能異常", "3k量能", "爆量", "3k發動"]
+   tide_keywords = ["tide", "族群熱力", "資金流向", "最強族群"]
+   dashboard_keywords = ["視覺儀表板", "儀表板", "開啟liff", "選股地圖"]
+ 
+   if any(k in clean_msg for k in warrant_keywords): return "INTENT_WARRANT_3K"
+   if any(k in clean_msg for k in volume_3k_keywords): return "INTENT_VOLUME_3K"
+   if any(k in clean_msg for k in tide_keywords): return "INTENT_TIDE_HEATMAP"
+   if any(k in clean_msg for k in dashboard_keywords): return "INTENT_DASHBOARD"
+       
+   return "INTENT_UNKNOWN"
+ 
 # ==========================================
 # 🎨 視覺渲染層 (Presentation Layer)
 # ==========================================
-def build_minimalist_carousel(title: str, signals: list, update_time: str) -> FlexContainer:
-    """動態組裝 LINE Flex Message"""
-    if not signals:
-        return FlexContainer.from_dict({
-            "type": "bubble",
-            "body": {
-                "type": "box", "layout": "vertical",
-                "contents": [{"type": "text", "text": "目前尚無符合條件的標的", "color": "#94a3b8"}]
-            }
-        })
-
-    bubbles = []
-    for s in signals:
-        sid, name = s.get("sid", "N/A"), s.get("name", "N/A")
-        lp, pct = s.get("lp", 0), s.get("pct", 0)
-        pct_color = "#ef4444" if float(pct) > 0 else "#22c55e" 
-        
-        bubble = {
-            "type": "bubble",
-            "size": "micro", 
-            "header": {
-                "type": "box", "layout": "vertical", "backgroundColor": "#0f172a", "paddingAll": "12px",
-                "contents": [
-                    {"type": "text", "text": title, "color": "#94a3b8", "size": "xxs", "weight": "bold"},
-                    {"type": "text", "text": f"{sid} {name}", "color": "#ffffff", "size": "md", "weight": "bold", "margin": "md"}
-                ]
-            },
-            "body": {
-                "type": "box", "layout": "vertical", "paddingAll": "12px",
-                "contents": [
-                    {"type": "text", "text": str(lp), "size": "xl", "weight": "bold", "color": "#1e293b"},
-                    {"type": "text", "text": f"{pct}%", "size": "sm", "weight": "bold", "color": pct_color},
-                    {"type": "separator", "margin": "md"},
-                    {"type": "text", "text": f"更新: {update_time[-5:]}", "size": "xxs", "color": "#94a3b8", "margin": "md"}
-                ]
-            }
-        }
-        bubbles.append(bubble)
-
-    return FlexContainer.from_dict({"type": "carousel", "contents": bubbles[:12]}) # LINE Carousel 上限 12 張
+def build_strategy_list_flex(title: str, signals: list, update_time: str) -> FlexContainer:
+   """動態組裝 LINE Flex Message (單一列表卡片視圖)"""
+   if not signals:
+       return FlexContainer.from_dict({
+           "type": "bubble", "size": "mega",
+           "body": {
+               "type": "box", "layout": "vertical",
+               "contents": [{"type": "text", "text": f"{title} 目前尚無符合標的", "color": "#94a3b8", "weight": "bold"}]
+           }
+       })
+ 
+   header_box = {
+       "type": "box", "layout": "vertical", "backgroundColor": "#0f172a", "paddingAll": "16px",
+       "contents": [
+           {"type": "text", "text": title, "color": "#ffffff", "size": "lg", "weight": "bold"},
+           {"type": "text", "text": f"最後更新: {update_time[-5:]}", "color": "#94a3b8", "size": "xs", "margin": "sm"}
+       ]
+   }
+ 
+   body_contents = []
+   for index, s in enumerate(signals):
+       sid, name = s.get("stock_id", "N/A"), s.get("stock_name", "N/A")
+       price, stop_loss = s.get("price", 0.0), s.get("stop_loss", 0.0)
+       vol_ratio = s.get("vol_ratio", 0.0)
+       industry, sub_industry = s.get("industry", "-"), s.get("sub_industry", "-")
+       count = s.get("notify_count", 1)
+ 
+       stock_row = {
+           "type": "box", "layout": "vertical", "margin": "lg" if index > 0 else "none",
+           "contents": [
+               {
+                   "type": "box", "layout": "horizontal",
+                   "contents": [
+                       {"type": "text", "text": f"{sid} {name}", "size": "md", "weight": "bold", "color": "#1e293b", "flex": 3},
+                       {"type": "text", "text": f"通知 {count} 次", "size": "xs", "color": "#ef4444", "align": "end", "weight": "bold", "flex": 1}
+                   ]
+               },
+               {"type": "text", "text": f"[{industry}] {sub_industry}", "size": "xs", "color": "#64748b", "margin": "sm"},
+               {
+                   "type": "box", "layout": "horizontal", "margin": "md",
+                   "contents": [
+                       {"type": "text", "text": f"現價: {price}", "size": "sm", "color": "#334155", "flex": 1},
+                       {"type": "text", "text": f"量比: {vol_ratio}x", "size": "sm", "color": "#d97706", "weight": "bold", "flex": 1},
+                       {"type": "text", "text": f"停損: {stop_loss}", "size": "sm", "color": "#334155", "flex": 1}
+                   ]
+               }
+           ]
+       }
+       body_contents.append(stock_row)
+       if index < len(signals) - 1:
+           body_contents.append({"type": "separator", "margin": "lg", "color": "#e2e8f0"})
+ 
+   return FlexContainer.from_dict({
+       "type": "bubble", "size": "giga",
+       "header": header_box,
+       "body": {"type": "box", "layout": "vertical", "paddingAll": "16px", "contents": body_contents}
+   })
+ 
+# ==========================================
+# 🌐 Webhook 路由與控制器 (Controller Layer)
+# ==========================================
+@app.post("/api/webhook")
+async def callback(request: Request):
+   """LINE 伺服器進件原生端點"""
+   signature = request.headers.get("X-Line-Signature", "")
+   body = await request.body()
+   try:
+       handler.handle(body.decode("utf-8"), signature)
+   except InvalidSignatureError:
+       raise HTTPException(status_code=400, detail="Invalid signature. 請檢查 LINE Secret。")
+   return "OK"
+ 
+@handler.add(MessageEvent, message=TextMessageContent)
+def handle_message(event):
+   """處理圖文選單按鈕觸發的查詢事件"""
+   user_msg = event.message.text
+   action_intent = parse_user_intent(user_msg)
+   reply_flex = None
+ 
+   if action_intent == "INTENT_WARRANT_3K":
+       signals, update_time = fetch_and_aggregate_signals("warrant_3k")
+       reply_flex = build_strategy_list_flex("🎫 權證主力發動", signals, update_time)
+       
+   elif action_intent == "INTENT_VOLUME_3K":
+       signals, update_time = fetch_and_aggregate_signals("volume_3k")
+       reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
+       
+   elif action_intent == "INTENT_TIDE_HEATMAP":
+       # 預留給下一步開發：TIDE 族群熱力
+       pass
+       
+   elif action_intent == "INTENT_DASHBOARD":
+       # 預留給下一步開發：LIFF 視覺儀表板
+       pass
+ 
+   # 統一發送回覆
+   if reply_flex:
+       with ApiClient(configuration) as api_client:
+           line_bot_api = MessagingApi(api_client)
+           line_bot_api.reply_message(
+               ReplyMessageRequest(
+                   reply_token=event.reply_token,
+                   messages=[FlexMessage(alt_text="已為您查詢最新策略標的", contents=reply_flex)]
+               )
+           )
