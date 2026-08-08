@@ -75,7 +75,7 @@ def ask_bibi_agent(user_message: str) -> str:
 
     # 初始化生成模型，指定最新極速版引擎
     model = genai.GenerativeModel(
-        model_name="gemini-3.5-flash",
+        model_name="gemini-3.5-flash-lite",
         system_instruction=BIBI_SYSTEM_PROMPT
     )
 
