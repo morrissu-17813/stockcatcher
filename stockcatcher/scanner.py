@@ -20,9 +20,9 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv()
 # 1. 確保連線變數存在
-SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_URL = "https://iatlchzzjkjaetorvvil.supabase.co" #os.getenv("SUPABASE_URL")
 # ⚠️ 強烈建議使用 Service Role Key 以繞過 RLS 寫入限制
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdGxjaHp6amtqYWV0b3J2dmlsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjAzMDQzMywiZXhwIjoyMTAxNjA2NDMzfQ.FckTSOyIo_QCocrgfaGd9mHV2wXRJxSeC5955936hSQ" #os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 # 2. 建立全域的 Supabase 客戶端實例
 if SUPABASE_URL and SUPABASE_KEY:
