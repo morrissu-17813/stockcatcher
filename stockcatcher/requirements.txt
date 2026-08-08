@@ -1,17 +1,15 @@
-fugle-marketdata
-requests
-python-dotenv
-pandas
-urllib3>=1.26.15
-tqdm>=4.64.0
-python-dateutil>=2.8.2
-# --- 金融數據源 ---
-FinMind>=1.5.4
-curl_cffi
-openpyxl
+# 檔案位置：專案根目錄的 requirements.txt (專為 Vercel Webhook 瘦身)
+
+# --- 核心框架 ---
 fastapi>=0.100.0
 uvicorn>=0.23.0
+requests
+
+# --- 服務串接 ---
 line-bot-sdk>=3.0.0
 supabase>=2.0.0
-python-dotenv>=1.0.0
 google-generativeai
+
+# --- 環境變數與工具 ---
+python-dotenv>=1.0.0
+python-dateutil>=2.8.2

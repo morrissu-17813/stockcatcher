@@ -1,0 +1,17 @@
+fugle-marketdata
+requests
+python-dotenv
+pandas
+urllib3>=1.26.15
+tqdm>=4.64.0
+python-dateutil>=2.8.2
+# --- 金融數據源 ---
+FinMind>=1.5.4
+curl_cffi
+openpyxl
+fastapi>=0.100.0
+uvicorn>=0.23.0
+line-bot-sdk>=3.0.0
+supabase>=2.0.0
+python-dotenv>=1.0.0
+google-generativeai
