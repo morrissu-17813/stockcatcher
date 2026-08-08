@@ -769,45 +769,52 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     if "測試" in strategy_name or "test" in strategy_name.lower() or sid == "0000":
         print(f"⚠️ [DB 寫入略過] 偵測到系統測試訊號 ({strategy_name})，不寫入正式資料庫。")
         return  # 提早返回，攔截下方的 DB 寫入動作
-    # ==========================================
-    # 🎯 【新增掛載點】資料庫非同步/隔離寫入區塊
-    # ==========================================
+    # 檔案位置：scanner.py (send_tg_alert 函式內，防衛語句之下)
+
     try:
-        # 建立資料庫 JSONB Payload
-        # 優勢：直接取用函式傳入的純數值變數 (up_pct, lp, ratio)，避免字串轉型的報錯風險
+        # ==========================================
+        # 🎯 【資料清洗與提取】安全的擴充欄位取值
+        # 預設為 None 或空字典，避免舊版資料結構引發 KeyError
+        # ==========================================
+        
+        # 假設 info 字典中會帶入這些新資訊，請依照你實際的 key 名稱調整
+        cb_info = info.get("cb_info", {})      # 可轉債詳細資訊 (例如: 發行日、溢價率等)
+        tide_info = info.get("tide_info", {})  # TIDE 族群熱力資訊 (例如: 熱力分數、資金流向等)
+
+        # ==========================================
+        # 📦 【Payload 組裝】準備寫入 Supabase JSONB
+        # ==========================================
         stock_payload = {
             "stock_id": str(sid),
             "stock_name": info.get("name", ""),
-            "price": float(lp),
-            "pct": float(up_pct), 
-            "vol_ratio": float(ratio),
-            "stop_loss": float(stop_loss_price),
-            "industry": info.get("industry", "未知產業"),
-            "sub_industry": "-", 
+            "price": float(info.get("price", 0.0)),
+            "pct": float(info.get("pct", 0.0)),
+            "vol_ratio": float(info.get("vol_ratio", 0.0)),
+            "stop_loss": float(info.get("stop_loss", 0.0)),
+            "industry": info.get("industry", "-"),
+            "sub_industry": info.get("sub_industry", "-"),
+            "3k_high": float(info.get("3k_high", 0.0)),
+            "pressure_digestion": info.get("pressure_digestion", "0%"),
+            "energy_slope": info.get("energy_slope", "-"),
+            "derivatives": info.get("derivatives", ""),
             
-            # 進階籌碼與型態
-            "3k_high": float(data.get('high', 0.0)),
-            "pressure_digestion": consumption_str,
-            "energy_slope": "陡增" if is_acc else "平穩",
-            "derivatives": f"股期 {futures_flag} | CB {cb_flag}"
+            # 🚀 [新增] 未來 AI 分析與回測的關鍵特徵值
+            "cb_info": cb_info,
+            "tide_info": tide_info
         }
 
-        # 策略分類轉換 (動態對齊 Webhook 查詢端)
-        strategy_category = "unknown_strategy"
-        if "權證" in strategy_name:
-            strategy_category = "warrant_3k"
-        elif "3K" in strategy_name or "量能" in strategy_name:
-            strategy_category = "volume_3k"
-        else:
-            strategy_category = strategy_name
+        # 將包裹好的資料與策略分類寫入資料庫
+        db_payload = {
+            "category": strategy_name,
+            "data": stock_payload
+        }
+        
+        # 執行 Supabase 寫入...
+        supabase.table("tianji_signals").insert(db_payload).execute()
+        print(f"✅ [DB 寫入成功] 策略: {strategy_name} | 標的: {sid} {info.get('name', '')}")
 
-        # 呼叫全域工具函式進行寫入
-        # 需確保 save_signal_to_supabase() 已定義在 scanner.py 中
-        save_signal_to_supabase(category=strategy_category, stock_data=stock_payload)
-
-    except Exception as db_err:
-        # 嚴格的容錯隔離設計：就算發生預期外的錯誤，也不會影響已經送出的 TG 訊息
-        print(f"❌ [DB 寫入前置轉換失敗] 標的: {sid} | 錯誤: {db_err}")
+    except Exception as e:
+        print(f"❌ [DB 寫入前置轉換或連線失敗] 錯誤: {e}")
 
 # ==========================================
 # 檔案位置：scanner.py (工具函式定義區塊)

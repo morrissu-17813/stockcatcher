@@ -15,7 +15,12 @@ from linebot.v3.messaging import (
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
 from dotenv import load_dotenv
- 
+# 檔案位置：api/webhook.py (最上方的 import 區塊)
+
+from services.bibi_agent import ask_bibi_agent
+# 確保引入 SDK v3 的 TextMessage
+from linebot.v3.messaging.models import TextMessage, ReplyMessageRequest, FlexMessage
+
 # 載入環境變數
 load_dotenv()
  
@@ -282,34 +287,70 @@ async def callback(request: Request):
  
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
-   """處理圖文選單按鈕觸發的查詢事件"""
-   user_msg = event.message.text
-   action_intent = parse_user_intent(user_msg)
-   reply_flex = None
- 
-   if action_intent == "INTENT_WARRANT_3K":
-       signals, update_time = fetch_and_aggregate_signals("warrant_3k")
-       reply_flex = build_strategy_list_flex("🎫 權證主力發動", signals, update_time)
-       
-   elif action_intent == "INTENT_VOLUME_3K":
-       signals, update_time = fetch_and_aggregate_signals("volume_3k")
-       reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
-       
-   elif action_intent == "INTENT_TIDE_HEATMAP":
-       # 預留給下一步開發：TIDE 族群熱力
-       pass
-       
-   elif action_intent == "INTENT_DASHBOARD":
-       # 預留給下一步開發：LIFF 視覺儀表板
-       pass
- 
-   # 統一發送回覆
-   if reply_flex:
-       with ApiClient(configuration) as api_client:
-           line_bot_api = MessagingApi(api_client)
-           line_bot_api.reply_message(
-               ReplyMessageRequest(
-                   reply_token=event.reply_token,
-                   messages=[FlexMessage(alt_text="已為您查詢最新策略標的", contents=reply_flex)]
-               )
-           )
+    """處理使用者對話與圖文選單按鈕觸發的查詢事件"""
+    user_msg = event.message.text.strip()
+    
+    # ==========================================
+    # 🤖 路由 1：攔截專屬 AI 交易員「比鼻」的動態對話
+    # 運用提早返回 (Early Return) 保持架構扁平化
+    # ==========================================
+    if user_msg.startswith("Hi 比鼻"):
+        
+        # 資料清洗：過濾雜訊，提取真實提問
+        query = user_msg.replace("Hi 比鼻", "").strip()
+        if query.startswith("，") or query.startswith(","):
+            query = query[1:].strip()
+            
+        # 防呆處理：給予預設指令
+        if not query:
+            query = "幫我分析今日市場大盤資金流向與板塊強弱。"
+
+        # 呼叫 Gemini 3.6 Flash 引擎
+        ai_reply = ask_bibi_agent(query)
+        
+        # 回傳純文字結果 (使用 LINE SDK v3 語法)
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text=ai_reply)]
+                )
+            )
+        # 提早結束，不觸發下方的靜態意圖解析
+        return  
+
+    # ==========================================
+    # 📊 路由 2：圖文選單靜態意圖解析 (Flex Message)
+    # ==========================================
+    action_intent = parse_user_intent(user_msg)
+    reply_flex = None
+    
+    if action_intent == "INTENT_WARRANT_3K":
+        signals, update_time = fetch_and_aggregate_signals("warrant_3k")
+        reply_flex = build_strategy_list_flex("🎫 權證主力發動", signals, update_time)
+        
+    elif action_intent == "INTENT_VOLUME_3K":
+        signals, update_time = fetch_and_aggregate_signals("volume_3k")
+        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
+        
+    elif action_intent == "INTENT_TIDE_HEATMAP":
+        # 預留給下一步開發：TIDE 族群熱力
+        pass
+        
+    elif action_intent == "INTENT_DASHBOARD":
+        # 預留給下一步開發：LIFF 視覺儀表板
+        pass
+
+    # ==========================================
+    # 📤 統一發送 Flex Message 回覆
+    # ==========================================
+    if reply_flex:
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[FlexMessage(alt_text="已為您查詢最新策略標的", contents=reply_flex)]
+                )
+            )
