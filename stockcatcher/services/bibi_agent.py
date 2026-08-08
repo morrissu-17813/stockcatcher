@@ -60,9 +60,9 @@ def ask_bibi_agent(user_message: str) -> str:
         # ==========================================
         generation_config = GenerationConfig(
             # 降低 temperature (0.4)：讓分析更精準客觀，杜絕發散式的廢話
-            temperature=0.4,         
-            # 放寬字數上限 (1500)：避免資料被截斷，完整呈現分析結果
-            max_output_tokens=1500,   
+            temperature=0.3,         
+            # 放寬字數上限 (4096)：避免資料被截斷，完整呈現分析結果
+            max_output_tokens=4096,   
         )
 
         response = model.generate_content(
