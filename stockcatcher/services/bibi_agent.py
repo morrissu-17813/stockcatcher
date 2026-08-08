@@ -43,7 +43,7 @@ def ask_bibi_agent(user_message: str) -> str:
 
     # 確保使用 gemini-1.5-flash 以兼顧速度
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name="gemini-3.6-flash",
         system_instruction=BIBI_SYSTEM_PROMPT
     )
 
