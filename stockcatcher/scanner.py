@@ -795,48 +795,37 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
     try:
         # ==========================================
         # 🎯 【資料清洗與提取】安全的擴充欄位取值
-        # 預設為 None 或空字典，避免舊版資料結構引發 KeyError
         # ==========================================
-        
-        # 假設 info 字典中會帶入這些新資訊，請依照你實際的 key 名稱調整
-        cb_info = info.get("cb_info", {})      # 可轉債詳細資訊 (例如: 發行日、溢價率等)
-        tide_info = info.get("tide_info", {})  # TIDE 族群熱力資訊 (例如: 熱力分數、資金流向等)
+        cb_info = info.get("cb_info", {})
+        tide_info = info.get("tide_info", {})
 
         # ==========================================
         # 📦 【Payload 組裝】準備寫入 Supabase JSONB
         # ==========================================
         stock_payload = {
-           "stock_id": str(sid),
-           "stock_name": info.get("name", ""),
-           "price": float(lp),                        
-           "pct": float(up_pct),                      
-           "vol_ratio": float(ratio),                
-           "stop_loss": float(stop_loss_price),      
-           "industry": info.get("industry", "-"),
-           "sub_industry": info.get("sub_industry", "-"),
-           "3k_high": float(data.get("high", 0.0)),  
-           "pressure_digestion": data.get("last_consumption", "0%"),
-           "energy_slope": "陡增" if is_acc else "平穩",
-           "derivatives": f"股期 {futures_flag} | CB {cb_flag}",
-           "cb_info": cb_info,
-           "tide_info": tide_info
-       }
-       # 由於 "權證" 字眼可能存在於 badge 中，我們必須將兩者組合後再進行判斷
-       full_strategy_string = f"{badge}{strategy_name}"
-        
-       # 執行策略名稱標準化 (Data Cleansing)
-       standard_category = clean_category_name(full_strategy_string)
- 
-       # 將包裹好的資料與標準化分類寫入資料庫
-       db_payload = {
-           "category": standard_category,  # 👈 寫入乾淨的英文代碼 (e.g., 'warrant_3k')
-           "data": stock_payload
-       }
-       
-       # 執行 Supabase 寫入
-       supabase.table("tianji_signals").insert(db_payload).execute()
-       print(f"✅ [DB 寫入成功] 策略: {strategy_name} | 標的: {sid} {info.get('name', '')}")
-
+            "stock_id": str(sid),
+            "stock_name": info.get("name", ""),
+            "price": float(lp),
+            "pct": float(up_pct),
+            "vol_ratio": float(ratio),
+            "stop_loss": float(stop_loss_price),
+            "industry": info.get("industry", "-"),
+            "sub_industry": info.get("sub_industry", "-"),
+            "3k_high": float(data.get("high", 0.0)),
+            "pressure_digestion": data.get("last_consumption", "0%"),
+            "energy_slope": "陡增" if is_acc else "平穩",
+            "derivatives": f"股期 {futures_flag} | CB {cb_flag}",
+            "cb_info": cb_info,
+            "tide_info": tide_info,
+        }
+        full_strategy_string = f"{badge}{strategy_name}"
+        standard_category = clean_category_name(full_strategy_string)
+        db_payload = {
+            "category": standard_category,
+            "data": stock_payload,
+        }
+        supabase.table("tianji_signals").insert(db_payload).execute()
+        print(f"✅ [DB 寫入成功] 策略: {strategy_name} | 標的: {sid} {info.get('name', '')}")
     except Exception as e:
         print(f"❌ [DB 寫入前置轉換或連線失敗] 錯誤: {e}")
 
