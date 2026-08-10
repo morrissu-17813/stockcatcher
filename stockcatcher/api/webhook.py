@@ -11,6 +11,7 @@ from linebot.v3.messaging import (
    ApiClient,
    MessagingApi,
    ReplyMessageRequest,
+   PushMessageRequest,  # 用於例外處理時的推播
    FlexMessage,
    TextMessage,
    FlexContainer
@@ -19,6 +20,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
 from dotenv import load_dotenv
  
+# 若未來升級 Gemini SDK，請依照官方指示更換 import 來源
 from services.bibi_agent import ask_bibi_agent
  
 # 載入環境變數
@@ -50,7 +52,7 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
    使用 ilike 進行關鍵字模糊比對，精準夾出台灣時間今日的全日區間資料。
    """
    try:
-       # 1. 取得台灣時間的今日起訖點
+       # 1. 取得台灣時間的今日起訖點 (Asia/Taipei UTC+8)
        tw_tz = timezone(timedelta(hours=8))
        tw_now = datetime.now(tw_tz)
        
@@ -58,7 +60,7 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
        start_of_day = datetime.combine(tw_now.date(), time.min, tzinfo=tw_tz).isoformat()
        end_of_day = datetime.combine(tw_now.date(), time.max, tzinfo=tw_tz).isoformat()
  
-       # 2. 執行資料庫查詢：改用 .ilike() 模糊比對，並夾出當日區間 (desc=True 確保最新)
+       # 2. 執行資料庫查詢：模糊比對 + 當日區間 + 最新優先
        response = supabase.table("tianji_signals") \
            .select("updated_at, data") \
            .ilike("category", f"%{keyword}%") \
@@ -71,7 +73,7 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
        if not records:
            return [], "今日尚無資料"
  
-       # 3. 效能優化：因為是降冪排序，第一筆 records[0] 絕對是最新時間，只需解析一次
+       # 3. 效能優化：因為是降冪排序，第一筆絕對是最新時間
        latest_time_str = "時間解析錯誤"
        raw_time = records[0].get("updated_at")
        if raw_time:
@@ -84,7 +86,7 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
                print(f"⚠️ [時間解析警告] {ve}")
                latest_time_str = str(raw_time)[:16].replace("T", " ")
  
-       # 4. 進行 O(N) 的高效去重與聚合
+       # 4. O(N) 高效去重與聚合
        stock_map = {}
        for row in records:
            payload = row.get("data", {})
@@ -96,16 +98,16 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
                continue
  
            if stock_id not in stock_map:
-               # 第一次遇到該股號 (因為降冪排序，此為最新一筆)
+               # 第一次遇到該股號 (因為降冪排序，此為最新狀態)
                stock_map[stock_id] = payload
                stock_map[stock_id]["notify_count"] = 1
            else:
-               # 後續遇到舊紀錄，只增加通知次數，不覆寫最新 payload
+               # 後續遇到舊紀錄，只累加通知次數
                stock_map[stock_id]["notify_count"] += 1
                
        aggregated_list = list(stock_map.values())
        
-       # 5. 商業邏輯排序：優先看通知次數 (遞減)，再看預估量比 (遞減)
+       # 5. 商業邏輯排序：通知次數 (遞減) -> 預估量比 (遞減)
        aggregated_list.sort(
            key=lambda x: (
                x.get("notify_count", 0),
@@ -128,8 +130,8 @@ def parse_user_intent(raw_msg: str) -> str:
    """將非結構化的自然語言收斂為標準的系統指令路由"""
    clean_msg = raw_msg.strip().replace(" ", "").lower()
  
-   warrant_keywords = ["權證主力", "權證發動", "權證介入", "主力發動", "主力權證"]
-   volume_3k_keywords = ["3k突破", "量能異常", "3k量能", "爆量", "3k發動"]
+   warrant_keywords = ["權證主力", "權證發動", "權證介入", "主力發動", "主力權證", "權證"]
+   volume_3k_keywords = ["3k突破", "量能異常", "3k量能", "爆量", "3k發動", "3k"]
    tide_keywords = ["tide", "族群熱力", "資金流向", "最強族群"]
    dashboard_keywords = ["視覺儀表板", "儀表板", "開啟liff", "選股地圖"]
  
@@ -144,15 +146,10 @@ def parse_user_intent(raw_msg: str) -> str:
 # 🎨 視覺渲染層 (Presentation Layer)
 # ==========================================
 def build_strategy_list_flex(title: str, signals: list, update_time: str) -> FlexContainer:
-   """
-   動態組裝 LINE Flex Message
-   (包含強制定型防護網，避免髒資料引發渲染崩潰)
-   """
-   # 處理空資料的預設卡片 (確保 JSON 結構符合 LINE 規範)
+   """動態組裝 LINE Flex Message (具備強制定型與容量限制防護)"""
    if not signals:
        return FlexContainer.from_dict({
-           "type": "bubble",
-           "size": "mega",
+           "type": "bubble", "size": "mega",
            "body": {
                "type": "box", "layout": "vertical", "paddingAll": "24px",
                "contents": [
@@ -161,8 +158,9 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            }
        })
  
+   # 🛡️ 容量防護：降低 MAX_BUBBLES 避免超過 LINE 的 50KB 限制
    ITEMS_PER_PAGE = 5  
-   MAX_BUBBLES = 12    
+   MAX_BUBBLES = 5    
    
    chunks = [signals[i:i + ITEMS_PER_PAGE] for i in range(0, len(signals), ITEMS_PER_PAGE)]
    if len(chunks) > MAX_BUBBLES:
@@ -188,7 +186,7 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            name = str(s.get("stock_name", "N/A"))
            industry = str(s.get("industry", "-"))
            
-           # 🛡️ 核心防護網：強制轉型，防止資料庫內的 null 或錯誤字串引發伺服器崩潰
+           # 🛡️ 髒資料防護：強制轉型，防止伺服器因型別異常而崩潰
            try:
                price = float(s.get("price", 0.0) or 0.0)
                pct = float(s.get("pct", 0.0) or 0.0)
@@ -272,7 +270,7 @@ async def callback(request: Request):
    except InvalidSignatureError:
        raise HTTPException(status_code=400, detail="Invalid signature. 請檢查 LINE Secret。")
    except Exception as e:
-       # 🛡️ 捕捉 FastAPI 頂層錯誤並印出詳細堆疊
+       # 🛡️ 全域防護：捕捉頂層錯誤並印出詳細堆疊，防止系統悄悄掛點
        print(f"❌ [系統嚴重崩潰] {e}")
        print(traceback.format_exc())
        raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -340,16 +338,20 @@ def handle_message(event):
                    )
                )
        except Exception as e:
-           # 🛡️ 攔截 LINE API 回傳的 400 Bad Request (通常是 Flex 格式錯誤)
-           print(f"❌ [LINE API 發送失敗] Flex 格式錯誤: {e}")
+           print(f"❌ [LINE API 發送失敗] Flex 格式錯誤或容量過大: {e}")
            print(traceback.format_exc())
            
-           # 降級處理：改發送純文字，確保使用者知道系統狀態
-           with ApiClient(configuration) as api_client:
-               line_bot_api = MessagingApi(api_client)
-               line_bot_api.reply_message(
-                   ReplyMessageRequest(
-                       reply_token=event.reply_token,
-                       messages=[TextMessage(text="抱歉，資料讀取成功，但在繪製卡片時發生格式錯誤，請通知工程師修復！")]
-                   )
-               )
+           # 🛡️ 降級防護：若 Reply Token 耗盡，改用 Push Message 發送緊急提示
+           try:
+               user_id = getattr(event.source, "user_id", None)
+               if user_id:
+                   with ApiClient(configuration) as api_client:
+                       line_bot_api = MessagingApi(api_client)
+                       line_bot_api.push_message(
+                           PushMessageRequest(
+                               to=user_id,
+                               messages=[TextMessage(text="抱歉，由於符合條件的股票過多或發生非預期錯誤，無法顯示卡片。工程師已介入處理中！")]
+                           )
+                       )
+           except Exception as push_err:
+               print(f"❌ [降級 Push 發送失敗] {push_err}")
