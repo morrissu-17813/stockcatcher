@@ -63,7 +63,7 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
        # 2. 執行資料庫查詢：模糊比對 + 當日區間 + 最新優先
        response = supabase.table("tianji_signals") \
            .select("updated_at, data") \
-           .ilike("category", f"%{keyword}%") \
+           .eq("category", keyword) \
            .gte("updated_at", start_of_day) \
            .lte("updated_at", end_of_day) \
            .order("updated_at", desc=True) \
@@ -311,11 +311,12 @@ def handle_message(event):
    reply_flex = None
    
    if action_intent == "INTENT_WARRANT_3K":
-       signals, update_time = fetch_and_aggregate_signals("權證")
+       # 💡 直接傳入標準英文代碼，享受 O(1) 等級的查詢速度
+       signals, update_time = fetch_and_aggregate_signals("warrant_3k")
        reply_flex = build_strategy_list_flex("🎫 權證主力發動", signals, update_time)
        
    elif action_intent == "INTENT_VOLUME_3K":
-       signals, update_time = fetch_and_aggregate_signals("3K")
+       signals, update_time = fetch_and_aggregate_signals("volume_3k")
        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
        
    elif action_intent == "INTENT_TIDE_HEATMAP":
