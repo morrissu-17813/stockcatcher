@@ -1,6 +1,7 @@
 # 檔案位置：api/webhook.py
  
 import os
+import traceback
 from datetime import datetime, timezone, timedelta, time
 from fastapi import FastAPI, Request, HTTPException
 from linebot.v3 import WebhookHandler
@@ -117,6 +118,7 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
  
    except Exception as e:
        print(f"❌ [DB 讀取與聚合錯誤] {e}")
+       print(traceback.format_exc())
        return [], "讀取錯誤"
  
 # ==========================================
@@ -144,11 +146,13 @@ def parse_user_intent(raw_msg: str) -> str:
 def build_strategy_list_flex(title: str, signals: list, update_time: str) -> FlexContainer:
    """
    動態組裝 LINE Flex Message
-   (無印櫻花奶茶系 + 雙欄式餘白排版 + 黃金比例分頁)
+   (包含強制定型防護網，避免髒資料引發渲染崩潰)
    """
+   # 處理空資料的預設卡片 (確保 JSON 結構符合 LINE 規範)
    if not signals:
        return FlexContainer.from_dict({
-           "type": "bubble", "size": "mega",
+           "type": "bubble",
+           "size": "mega",
            "body": {
                "type": "box", "layout": "vertical", "paddingAll": "24px",
                "contents": [
@@ -157,7 +161,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            }
        })
  
-   # 核心演算法：黃金比例 5 筆一頁
    ITEMS_PER_PAGE = 5  
    MAX_BUBBLES = 12    
    
@@ -170,7 +173,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
    for page_index, chunk in enumerate(chunks):
        page_title = f"{title} ({page_index + 1}/{len(chunks)})" if len(chunks) > 1 else title
        
-       # 卡片頭部 (櫻花奶茶)
        header_box = {
            "type": "box", "layout": "vertical", "backgroundColor": "#FAF5F0", "paddingAll": "16px",
            "contents": [
@@ -182,14 +184,19 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
        body_contents = []
        
        for item_index, s in enumerate(chunk):
-           sid = s.get("stock_id", "N/A")
-           name = s.get("stock_name", "N/A")
-           price = s.get("price", 0.0)
-           pct = s.get("pct", 0.0)
-           vol_ratio = s.get("vol_ratio", 0.0)
-           stop_loss = s.get("stop_loss", 0.0)
-           industry = s.get("industry", "-")
-           count = s.get("notify_count", 1)
+           sid = str(s.get("stock_id", "N/A"))
+           name = str(s.get("stock_name", "N/A"))
+           industry = str(s.get("industry", "-"))
+           
+           # 🛡️ 核心防護網：強制轉型，防止資料庫內的 null 或錯誤字串引發伺服器崩潰
+           try:
+               price = float(s.get("price", 0.0) or 0.0)
+               pct = float(s.get("pct", 0.0) or 0.0)
+               vol_ratio = float(s.get("vol_ratio", 0.0) or 0.0)
+               stop_loss = float(s.get("stop_loss", 0.0) or 0.0)
+               count = int(s.get("notify_count", 1) or 1)
+           except (ValueError, TypeError):
+               price, pct, vol_ratio, stop_loss, count = 0.0, 0.0, 0.0, 0.0, 1
  
            price_color = "#f43f5e" if pct > 0 else ("#10b981" if pct < 0 else "#94a3b8")
            
@@ -200,7 +207,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            else:
                count_color = "#eab308"  
  
-           # 雙欄對齊排版
            stock_row = {
                "type": "box", "layout": "vertical", "margin": "lg" if item_index > 0 else "none",
                "contents": [
@@ -239,7 +245,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            }
            body_contents.append(stock_row)
            
-           # 分隔線
            if item_index < len(chunk) - 1:
                body_contents.append({"type": "separator", "margin": "lg", "color": "#f1f5f9"})
  
@@ -266,6 +271,11 @@ async def callback(request: Request):
        handler.handle(body.decode("utf-8"), signature)
    except InvalidSignatureError:
        raise HTTPException(status_code=400, detail="Invalid signature. 請檢查 LINE Secret。")
+   except Exception as e:
+       # 🛡️ 捕捉 FastAPI 頂層錯誤並印出詳細堆疊
+       print(f"❌ [系統嚴重崩潰] {e}")
+       print(traceback.format_exc())
+       raise HTTPException(status_code=500, detail="Internal Server Error")
    return "OK"
  
 @handler.add(MessageEvent, message=TextMessageContent)
@@ -277,7 +287,6 @@ def handle_message(event):
    # 🤖 路由 1：攔截專屬 AI 交易員「比鼻」的動態對話
    # ==========================================
    if user_msg.startswith("Hi 比鼻"):
-       
        query = user_msg.replace("Hi 比鼻", "").strip()
        if query.startswith("，") or query.startswith(","):
            query = query[1:].strip()
@@ -285,7 +294,6 @@ def handle_message(event):
        if not query or "資金" in query or "大盤" in query or "流向" in query:
            query = "請深入剖析目前美股與台股大盤概況，並詳細列舉強勢板塊與弱勢板塊的資金流向、驅動因素與機構動態。"
  
-       # 呼叫 Gemini AI
        ai_reply = ask_bibi_agent(query)
        
        with ApiClient(configuration) as api_client:
@@ -296,7 +304,7 @@ def handle_message(event):
                    messages=[TextMessage(text=ai_reply)]
                )
            )
-       return  # 提早結束
+       return
  
    # ==========================================
    # 📊 路由 2：圖文選單靜態意圖解析 (Flex Message)
@@ -305,32 +313,43 @@ def handle_message(event):
    reply_flex = None
    
    if action_intent == "INTENT_WARRANT_3K":
-       # 傳入中文關鍵字，交由 .ilike() 進行比對
-       signals, update_time = fetch_and_aggregate_signals("權證主力")
+       signals, update_time = fetch_and_aggregate_signals("權證")
        reply_flex = build_strategy_list_flex("🎫 權證主力發動", signals, update_time)
        
    elif action_intent == "INTENT_VOLUME_3K":
-       # 傳入中文關鍵字，交由 .ilike() 進行比對
-       signals, update_time = fetch_and_aggregate_signals("3K突破")
+       signals, update_time = fetch_and_aggregate_signals("3K")
        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
        
    elif action_intent == "INTENT_TIDE_HEATMAP":
-       # 預留給下一步開發：TIDE 族群熱力
        pass
        
    elif action_intent == "INTENT_DASHBOARD":
-       # 預留給下一步開發：LIFF 視覺儀表板
        pass
  
    # ==========================================
    # 📤 統一發送 Flex Message 回覆
    # ==========================================
    if reply_flex:
-       with ApiClient(configuration) as api_client:
-           line_bot_api = MessagingApi(api_client)
-           line_bot_api.reply_message(
-               ReplyMessageRequest(
-                   reply_token=event.reply_token,
-                   messages=[FlexMessage(alt_text="已為您查詢最新策略標的", contents=reply_flex)]
+       try:
+           with ApiClient(configuration) as api_client:
+               line_bot_api = MessagingApi(api_client)
+               line_bot_api.reply_message(
+                   ReplyMessageRequest(
+                       reply_token=event.reply_token,
+                       messages=[FlexMessage(alt_text="已為您查詢最新策略標的", contents=reply_flex)]
+                   )
                )
-           )
+       except Exception as e:
+           # 🛡️ 攔截 LINE API 回傳的 400 Bad Request (通常是 Flex 格式錯誤)
+           print(f"❌ [LINE API 發送失敗] Flex 格式錯誤: {e}")
+           print(traceback.format_exc())
+           
+           # 降級處理：改發送純文字，確保使用者知道系統狀態
+           with ApiClient(configuration) as api_client:
+               line_bot_api = MessagingApi(api_client)
+               line_bot_api.reply_message(
+                   ReplyMessageRequest(
+                       reply_token=event.reply_token,
+                       messages=[TextMessage(text="抱歉，資料讀取成功，但在繪製卡片時發生格式錯誤，請通知工程師修復！")]
+                   )
+               )
