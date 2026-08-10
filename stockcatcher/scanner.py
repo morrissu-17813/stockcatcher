@@ -821,9 +821,11 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
            "cb_info": cb_info,
            "tide_info": tide_info
        }
- 
-       # 🛡️ 執行策略名稱標準化 (Data Cleansing)
-       standard_category = clean_category_name(strategy_name)
+       # 由於 "權證" 字眼可能存在於 badge 中，我們必須將兩者組合後再進行判斷
+       full_strategy_string = f"{badge}{strategy_name}"
+        
+       # 執行策略名稱標準化 (Data Cleansing)
+       standard_category = clean_category_name(full_strategy_string)
  
        # 將包裹好的資料與標準化分類寫入資料庫
        db_payload = {
