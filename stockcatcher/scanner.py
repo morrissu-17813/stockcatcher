@@ -680,7 +680,28 @@ def send_line_status_flex_message(version: str, mode: str, time_str: str):
             print(f"⚠️ [LINE] 系統通知發送失敗 (HTTP {res.status_code}): {res.text}")
     except Exception as e:
         print(f"❌ [LINE] 系統通知連線異常: {e}")
+# ==========================================
+# 1. 策略名稱標準化邏輯 (Data Normalization)
+# ==========================================
+def clean_category_name(raw_name: str) -> str:
+   """
+   將爬蟲抓取的中文策略名稱，轉換為標準英文代碼 (Slug)。
+   此舉確保資料庫欄位的一致性，利於後續建立 Index 與 API 查詢。
+   """
+   if not raw_name:
+       return "unknown_strategy"
+       
+   # 防禦性處理：去除空白並轉小寫，避免「3K 突破」或「3k突破」的差異導致判斷失敗
+   clean_name = str(raw_name).replace(" ", "").lower()
    
+   # 放寬條件，擷取核心關鍵字進行映射
+   if "權證" in clean_name:
+       return "warrant_3k"
+   elif "3k" in clean_name:
+       return "volume_3k"
+       
+   return "unknown_strategy"
+    
 def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0.0):
     if up_pct > 9.0:
         return
@@ -785,33 +806,34 @@ def send_tg_alert(sid, strategy_name, lp, high=0.0, low=0.0, ratio=0.0, up_pct=0
         # 📦 【Payload 組裝】準備寫入 Supabase JSONB
         # ==========================================
         stock_payload = {
-            "stock_id": str(sid),
-            "stock_name": info.get("name", ""),
-            "price": float(info.get("price", 0.0)),
-            "pct": float(info.get("pct", 0.0)),
-            "vol_ratio": float(info.get("vol_ratio", 0.0)),
-            "stop_loss": float(info.get("stop_loss", 0.0)),
-            "industry": info.get("industry", "-"),
-            "sub_industry": info.get("sub_industry", "-"),
-            "3k_high": float(info.get("3k_high", 0.0)),
-            "pressure_digestion": info.get("pressure_digestion", "0%"),
-            "energy_slope": info.get("energy_slope", "-"),
-            "derivatives": info.get("derivatives", ""),
-            
-            # 🚀 [新增] 未來 AI 分析與回測的關鍵特徵值
-            "cb_info": cb_info,
-            "tide_info": tide_info
-        }
-
-        # 將包裹好的資料與策略分類寫入資料庫
-        db_payload = {
-            "category": strategy_name,
-            "data": stock_payload
-        }
-        
-        # 執行 Supabase 寫入...
-        supabase.table("tianji_signals").insert(db_payload).execute()
-        print(f"✅ [DB 寫入成功] 策略: {strategy_name} | 標的: {sid} {info.get('name', '')}")
+           "stock_id": str(sid),
+           "stock_name": info.get("name", ""),
+           "price": float(lp),                        
+           "pct": float(up_pct),                      
+           "vol_ratio": float(ratio),                
+           "stop_loss": float(stop_loss_price),      
+           "industry": info.get("industry", "-"),
+           "sub_industry": info.get("sub_industry", "-"),
+           "3k_high": float(data.get("high", 0.0)),  
+           "pressure_digestion": data.get("last_consumption", "0%"),
+           "energy_slope": "陡增" if is_acc else "平穩",
+           "derivatives": f"股期 {futures_flag} | CB {cb_flag}",
+           "cb_info": cb_info,
+           "tide_info": tide_info
+       }
+ 
+       # 🛡️ 執行策略名稱標準化 (Data Cleansing)
+       standard_category = clean_category_name(strategy_name)
+ 
+       # 將包裹好的資料與標準化分類寫入資料庫
+       db_payload = {
+           "category": standard_category,  # 👈 寫入乾淨的英文代碼 (e.g., 'warrant_3k')
+           "data": stock_payload
+       }
+       
+       # 執行 Supabase 寫入
+       supabase.table("tianji_signals").insert(db_payload).execute()
+       print(f"✅ [DB 寫入成功] 策略: {strategy_name} | 標的: {sid} {info.get('name', '')}")
 
     except Exception as e:
         print(f"❌ [DB 寫入前置轉換或連線失敗] 錯誤: {e}")
