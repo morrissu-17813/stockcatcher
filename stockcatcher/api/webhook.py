@@ -20,7 +20,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
 from dotenv import load_dotenv
  
-# 若未來升級 Gemini SDK，請依照官方指示更換 import 來源
+# 引入 Bibi Agent
 from services.bibi_agent import ask_bibi_agent
  
 # 載入環境變數
@@ -160,7 +160,7 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
  
    # 🛡️ 容量防護：降低 MAX_BUBBLES 避免超過 LINE 的 50KB 限制
    ITEMS_PER_PAGE = 5  
-   MAX_BUBBLES = 5    
+   MAX_BUBBLES = 8    
    
    chunks = [signals[i:i + ITEMS_PER_PAGE] for i in range(0, len(signals), ITEMS_PER_PAGE)]
    if len(chunks) > MAX_BUBBLES:
@@ -236,7 +236,8 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
                        "type": "box", "layout": "horizontal", "margin": "xs",
                        "contents": [
                            {"type": "text", "text": f"停損: {stop_loss}", "size": "xs", "color": "#64748b", "flex": 1},
-                           {"type": "text", "text": f"通知 {count} 次", "size": "xs", "color": count_color, "align": "end", "weight": "bold", "flex": 1}
+                           # 💡 蘇蘇的修改：去除了此處的 "weight": "bold" 屬性
+                           {"type": "text", "text": f"通知 {count} 次", "size": "xs", "color": count_color, "align": "end", "flex": 1}
                        ]
                    }
                ]
