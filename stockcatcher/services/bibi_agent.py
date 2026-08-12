@@ -135,7 +135,7 @@ INTENT_ROUTER_PROMPT = """
 3. "INTENT_GENERAL_LIFE" : 一般閒聊、食衣住行、心情分享、非股市相關的問題。
  
 【輸出 JSON 格式】
-{"intent": "上述三種意圖之一", "stock_name": "若詢問特定個股請萃取股名，否則填 null"}
+｛{"intent": "上述三種意圖之一", "stock_name": "若詢問特定個股請萃取股名，否則填 null"}｝
  
 使用者：「{user_query}」
 輸出：
