@@ -55,7 +55,7 @@ def ask_bibi_agent(user_query: str) -> str:
        )
  
        # 初始化模型
-       model = genai.GenerativeModel('gemini-1.5-pro')
+       model = genai.GenerativeModel('gemini-3.6-flash')
  
        # 安全性設定 (配合金融分析需求，維持原本的配置)
        safety_settings = {
