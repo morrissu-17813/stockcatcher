@@ -29,7 +29,7 @@ BIBI_FLOW_PROMPT_TEMPLATE = """
 1. 直奔主題：嚴禁任何開場白、寒暄（不要說你好）。
 2. 拒絕廢話：絕對禁止向使用者重複或解釋「你的選股邏輯」、「不看新聞喊單」、「我們不談情緒」等理念。使用者已經懂了。
 3. 數據說話：直接給出市場大盤、資金流向與板塊強弱的「客觀分析與結論」。
-4. 結構化排版：使用 Markdown 條列式，適當使用 Emoji，保持專業冷靜。
+4. 結構化排版：使用重點條列式，適當使用 Emoji，保持專業冷靜。
 5. 推薦：根據國際資金流向與板塊強弱，給出「台股、美股標的推薦、潛在黑馬股，至少各5檔」。
  
 -------------------
@@ -107,7 +107,7 @@ BIBI_GENERAL_LIFE_PROMPT_TEMPLATE = """
 1. 展現熱情、幽默、有品味且富有同理心的語氣。
 2. 分享生活風格、美食、旅遊、科技新知或人際關係建議時，給出具體且獨到的見解。
 3. 若使用者抱怨或分享心情，請給予溫暖的傾聽與具人情味的回應。
-4. 適當使用 Markdown 與 Emoji 讓版面豐富有趣，像是一位有質感的知心好友。
+4. 適當使用 條列式與 Emoji 讓版面豐富有趣，像是一位有質感的知心好友。
  
 -------------------
 使用者提問：「{user_query}」
@@ -117,9 +117,9 @@ BIBI_GENERAL_LIFE_PROMPT_TEMPLATE = """
 # 🚦 意圖與模板註冊表 (Prompt Registry)
 # ==========================================
 PROMPT_REGISTRY = {
-   "INTENT_FLOW_ANALYSIS": BIBI_FLOW_PROMPT_TEMPLATE,
-   "INTENT_STOCK_FUNDAMENTAL": BIBI_FUNDAMENTAL_PROMPT_TEMPLATE,
-   "INTENT_GENERAL_LIFE": BIBI_GENERAL_LIFE_PROMPT_TEMPLATE,
+  "INTENT_FLOW_ANALYSIS": BIBI_FLOW_PROMPT_TEMPLATE,
+  "INTENT_STOCK_FUNDAMENTAL": BIBI_FUNDAMENTAL_PROMPT_TEMPLATE,
+  "INTENT_GENERAL_LIFE": BIBI_GENERAL_LIFE_PROMPT_TEMPLATE,
 }
  
 # ==========================================
@@ -141,60 +141,60 @@ INTENT_ROUTER_PROMPT = """
 輸出：
 """
  
-def route_and_ask_bibi(user_query: str) -> str:
-   """
-   高擴展性的 AI Agent 執行器：負責意圖解析與專家 Prompt 分發
-   """
-   # 💡 嚴格確保使用妳指定的 gemini-3.6-flash 模型
-   model = genai.GenerativeModel('gemini-3.6-flash')
-   
-   tw_tz = timezone(timedelta(hours=8))
-   current_date_str = datetime.now(tw_tz).strftime("%Y年%m月%d日 %H:%M (台灣時間)")
+def ask_bibi_agent (user_query: str) -> str:
+  """
+  高擴展性的 AI Agent 執行器：負責意圖解析與專家 Prompt 分發
+  """
+  # 💡 嚴格確保使用妳指定的 gemini-3.6-flash 模型
+  model = genai.GenerativeModel('gemini-3.6-flash')
  
-   try:
-       # --- 階段一：意圖解析 (分類器) ---
-       router_config = GenerationConfig(temperature=0.0, response_mime_type="application/json")
-       router_response = model.generate_content(
-           INTENT_ROUTER_PROMPT.format(user_query=user_query),
-           generation_config=router_config
-       )
-       
-       intent_data = json.loads(router_response.text.strip())
-       user_intent = intent_data.get("intent", "INTENT_GENERAL_LIFE")
-       stock_name = intent_data.get("stock_name")
-       
-       print(f"🔍 [AI 路由分析] 判定意圖: {user_intent} | 萃取實體: {stock_name}")
+  tw_tz = timezone(timedelta(hours=8))
+  current_date_str = datetime.now(tw_tz).strftime("%Y年%m月%d日 %H:%M (台灣時間)")
  
-       # --- 階段二：動態指派對應專家 Prompt ---
-       # 使用註冊表模式，若找不到意圖，則安全降級為生活聊天
-       selected_template = PROMPT_REGISTRY.get(user_intent, BIBI_GENERAL_LIFE_PROMPT_TEMPLATE)
+  try:
+      # --- 階段一：意圖解析 (分類器) ---
+      router_config = GenerationConfig(temperature=0.0, response_mime_type="application/json")
+      router_response = model.generate_content(
+          INTENT_ROUTER_PROMPT.format(user_query=user_query),
+          generation_config=router_config
+      )
+     
+      intent_data = json.loads(router_response.text.strip())
+      user_intent = intent_data.get("intent", "INTENT_GENERAL_LIFE")
+      stock_name = intent_data.get("stock_name")
+     
+      print(f"🔍 [AI 路由分析] 判定意圖: {user_intent} | 萃取實體: {stock_name}")
  
-       final_prompt = selected_template.format(
-           current_date_str=current_date_str,
-           user_query=user_query
-       )
+      # --- 階段二：動態指派對應專家 Prompt ---
+      # 使用註冊表模式，若找不到意圖，則安全降級為生活聊天
+      selected_template = PROMPT_REGISTRY.get(user_intent, BIBI_GENERAL_LIFE_PROMPT_TEMPLATE)
  
-       # --- 階段三：生成最終分析 (生成器) ---
-       analysis_config = GenerationConfig(temperature=0.3, max_output_tokens=4096)
-       safety_settings = {
-           HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-           HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-           HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-           HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-       }
+      final_prompt = selected_template.format(
+          current_date_str=current_date_str,
+          user_query=user_query
+      )
  
-       final_response = model.generate_content(
-           final_prompt,
-           safety_settings=safety_settings,
-           generation_config=analysis_config
-       )
-       
-       return final_response.text
+      # --- 階段三：生成最終分析 (生成器) ---
+      analysis_config = GenerationConfig(temperature=0.3, max_output_tokens=4096)
+      safety_settings = {
+          HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+          HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+      }
  
-   except json.JSONDecodeError:
-       print("❌ [意圖解析錯誤] LLM 回傳了非 JSON 格式的內容")
-       return "比鼻剛剛腦袋卡住了，可以換個方式再問我一次嗎？ 😵‍💫"
-   except Exception as e:
-       print(f"❌ [Bibi Agent 錯誤] {e}")
-       print(traceback.format_exc())
-       return "比鼻目前正在處理大量資訊，網路有點過載了，請稍後再試！ 😵‍💫"
+      final_response = model.generate_content(
+          final_prompt,
+          safety_settings=safety_settings,
+          generation_config=analysis_config
+      )
+     
+      return final_response.text
+ 
+  except json.JSONDecodeError:
+      print("❌ [意圖解析錯誤] LLM 回傳了非 JSON 格式的內容")
+      return "比鼻剛剛腦袋卡住了，可以換個方式再問我一次嗎？ 😵‍💫"
+  except Exception as e:
+      print(f"❌ [Bibi Agent 錯誤] {e}")
+      print(traceback.format_exc())
+      return "比鼻目前正在處理大量資訊，網路有點過載了，請稍後再試！ 😵‍💫"
