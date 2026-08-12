@@ -1,6 +1,7 @@
 # 檔案位置：api/webhook.py
  
 import os
+import re
 import traceback
 from datetime import datetime, timezone, timedelta, time
 from fastapi import FastAPI, Request, HTTPException
@@ -281,18 +282,31 @@ async def callback(request: Request):
 def handle_message(event):
    """處理使用者對話與圖文選單按鈕觸發的查詢事件"""
    user_msg = event.message.text.strip()
-   
+
    # ==========================================
    # 🤖 路由 1：攔截專屬 AI 交易員「比鼻」的動態對話
    # ==========================================
-   if user_msg.startswith("Hi 比鼻"):
-       query = user_msg.replace("Hi 比鼻", "").strip()
+   # 💡 蘇蘇的 Regex 魔法進化版：
+   # (?i)               : 忽略英文字母大小寫
+   # ^                  : 確保從字串的最開頭匹配
+   # (?:hi\s*[,，]?\s*)? : 非捕獲群組，將「Hi + 逗號 + 空白」設為可有可無
+   # 比鼻                : 匹配核心關鍵字 "比鼻"
+   match = re.match(r'(?i)^(?:hi\s*[,，]?\s*)?比鼻', user_msg)
+
+   if match:
+       # 🛡️ 安全剝除前綴：利用 match.end() 取得匹配結束的索引位置
+       query = user_msg[match.end():].strip()
+       
+       # 再次過濾緊接在「比鼻」後面的逗號 (完美攔截 "比鼻，大盤如何" 或 "比鼻,幫我看股票")
        if query.startswith("，") or query.startswith(","):
            query = query[1:].strip()
            
-       if not query or "資金" in query or "大盤" in query or "流向" in query:
-           query = "請深入剖析目前美股與台股大盤概況，並詳細列舉強勢板塊與弱勢板塊的資金流向、驅動因素與機構動態。"
- 
+       # 🛡️ 空白防呆機制
+       if not query:
+           # 若使用者只呼叫了名字，預設幫他查大盤
+           query = "請幫我分析目前大盤資金流向與盤勢概況。" 
+
+       # 將乾淨的問題傳給 Bibi Agent
        ai_reply = ask_bibi_agent(query)
        
        with ApiClient(configuration) as api_client:
@@ -304,7 +318,7 @@ def handle_message(event):
                )
            )
        return
- 
+
    # ==========================================
    # 📊 路由 2：圖文選單靜態意圖解析 (Flex Message)
    # ==========================================
