@@ -65,7 +65,7 @@ BIBI_FUNDAMENTAL_PROMPT_TEMPLATE = """
 * 技術面： 【必須提供數據】[說明股價近期走勢、重要關卡、短期均線狀態及技術指標]
 * 籌碼面： 【必須提供數據】[說明外資、投信或大戶持股比例等籌碼集中度狀態]
 
-### 總結分析表【必須提供數據】
+### 總結分析表
 | 項目 | 評價 (🟢強/🟡平/🔴弱) | 關鍵說明 |
 | :--- | :---: | :--- |
 | 成長性 | [評價] | [說明產能或營收狀況] |
@@ -76,7 +76,7 @@ BIBI_FUNDAMENTAL_PROMPT_TEMPLATE = """
 💡 投資建議：
 [提供投資心法建議，並根據國際情勢、大盤狀態等給出建議]
 
-💡 目標價 (近1~3年)：【必須提供數據】
+💡 目標價 (近1~3年)：
 | 期間 | 預估目標價格區間 | 爆發性成長優勢 / 潛在催化劑 |
 | :--- | :--- | :--- |
 | 1年內 | [預估價格區間] | [簡述相關爆發性成長優勢] |
@@ -86,7 +86,7 @@ BIBI_FUNDAMENTAL_PROMPT_TEMPLATE = """
 1. 直奔主題：嚴禁任何開場白、寒暄（不要說你好）。
 2. 拒絕廢話：絕對禁止向使用者重複或解釋「你的選股邏輯」、「不看新聞喊單」、「我們不談情緒」等理念。使用者已經懂了。
 3. 回覆內容【禁止】顯示「余森山」、「余森山老師」等字眼。
-4. 數據說話：相關價格、本益比、營收等數據必須如實提供參考，並且要有最新的時間戳記，不能提供過期或錯誤的日期資訊。
+4. 數據說話：相關價格、本益比、營收等數據必須如實提供參考，不能提供過期或錯誤的日期資訊。
 
 -------------------
 使用者提問：「{user_query}」
@@ -152,7 +152,7 @@ def _get_client() -> genai.Client:
     return _client
 
 # LINE webhook 對回覆時間敏感，避免單次呼叫無限期卡住
-_REQUEST_TIMEOUT_MS = 30_000
+_REQUEST_TIMEOUT_MS = 45_000
 
 def _build_config(is_router: bool, thinking_level: "types.ThinkingLevel") -> "types.GenerateContentConfig":
     safety_settings = [
@@ -190,8 +190,9 @@ def _generate_with_fallback(prompt_text: str, is_router: bool = False) -> str:
     # 路由時使用 MINIMAL 極速決策，產生報告時使用 MEDIUM 深度推理
     primary_config = _build_config(
         is_router,
-        types.ThinkingLevel.MINIMAL if is_router else types.ThinkingLevel.MEDIUM
-    )
+        # 將原本的 MEDIUM 改為 MINIMAL 以換取更快的生成速度
+        types.ThinkingLevel.MINIMAL
+        )
 
     try:
         response = client.models.generate_content(
