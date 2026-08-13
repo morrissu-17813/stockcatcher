@@ -154,21 +154,35 @@ def _get_client() -> genai.Client:
 # LINE webhook 對回覆時間敏感，避免單次呼叫無限期卡住
 _REQUEST_TIMEOUT_MS = 45_000
 
-def _build_config(is_router: bool, thinking_level: "types.ThinkingLevel") -> "types.GenerateContentConfig":
+def _build_config(is_router: bool, thinking_level: "types.ThinkingLevel" = None) -> "types.GenerateContentConfig":
+    """
+    動態組裝 API 請求參數。
+    若傳入 thinking_level，則啟用思考引擎；若無，則退回傳統 temperature 控制。
+    """
     safety_settings = [
         types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=types.HarmBlockThreshold.BLOCK_ONLY_HIGH),
         types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=types.HarmBlockThreshold.BLOCK_ONLY_HIGH),
         types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=types.HarmBlockThreshold.BLOCK_NONE),
         types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=types.HarmBlockThreshold.BLOCK_ONLY_HIGH),
     ]
-    return types.GenerateContentConfig(
-        response_mime_type="application/json" if is_router else "text/plain",
-        safety_settings=safety_settings,
-        # 意圖分類需要穩定輸出，固定 temperature=0 避免同一句話判斷出不同意圖
-        temperature=0 if is_router else None,
-        thinking_config=types.ThinkingConfig(thinking_level=thinking_level),
-        http_options=types.HttpOptions(timeout=_REQUEST_TIMEOUT_MS),
-    )
+    
+    # 建立基礎的共用設定字典
+    config_kwargs = {
+        "response_mime_type": "application/json" if is_router else "text/plain",
+        "safety_settings": safety_settings,
+        "http_options": types.HttpOptions(timeout=_REQUEST_TIMEOUT_MS),
+    }
+
+    # 🛡️ 參數分流邏輯：依據是否支援 Thinking API 決定入參
+    if thinking_level:
+        # 支援 Thinking 的模型 (如 3.6-flash)
+        config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level=thinking_level)
+    else:
+        # 輕量化模型 (如 3.5-flash-lite) 退回使用傳統 temperature 控制亂數
+        config_kwargs["temperature"] = 0.0 if is_router else 0.3
+
+    # 將字典解包為 GenerateContentConfig 物件
+    return types.GenerateContentConfig(**config_kwargs)
 
 def _extract_text(response) -> str:
     # 安全攔截或空候選會讓 response.text 為 None，直接 strip() 會拋未分類例外
@@ -187,12 +201,12 @@ def _generate_with_fallback(prompt_text: str, is_router: bool = False) -> str:
     # 🚀 策略 A: Primary Model (gemini-3.6-flash)
     # --------------------------------------------------
     primary_model = 'gemini-3.6-flash'
-    # 路由時使用 MINIMAL 極速決策，產生報告時使用 MEDIUM 深度推理
+    
+    # 主模型支援思考：路由時用 MINIMAL，產報告時用 MEDIUM
     primary_config = _build_config(
-        is_router,
-        # 將原本的 MEDIUM 改為 MINIMAL 以換取更快的生成速度
-        types.ThinkingLevel.MINIMAL
-        )
+        is_router=is_router,
+        thinking_level=types.ThinkingLevel.MINIMAL if is_router else types.ThinkingLevel.MEDIUM
+    )
 
     try:
         response = client.models.generate_content(
@@ -210,8 +224,9 @@ def _generate_with_fallback(prompt_text: str, is_router: bool = False) -> str:
         # 🛡️ 策略 B: Fallback Model (gemini-3.5-flash-lite)
         # --------------------------------------------------
         fallback_model = 'gemini-3.5-flash-lite'
-        # 備援模型一律採用 MINIMAL 確保極速與節省運算成本
-        fallback_config = _build_config(is_router, types.ThinkingLevel.MINIMAL)
+        
+        # 💡 關鍵修正：Lite 模型不支援 thinking_config，故傳入 None 讓其退回 temperature 控制
+        fallback_config = _build_config(is_router=is_router, thinking_level=None)
         
         try:
             fallback_response = client.models.generate_content(
