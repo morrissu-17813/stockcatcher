@@ -147,60 +147,91 @@ INTENT_ROUTER_PROMPT = """
 輸出：
 """
  
-def ask_bibi_agent (user_query: str) -> str:
-  """
-  高擴展性的 AI Agent 執行器：負責意圖解析與專家 Prompt 分發
-  """
-  # 💡 嚴格確保使用妳指定的 gemini-3.6-flash 模型
-  model = genai.GenerativeModel('gemini-3.6-flash')
+def ask_bibi_agent(user_query: str, force_intent: str = None) -> str:
+   """
+   高擴展性的 AI Agent 執行器：負責意圖解析與專家 Prompt 分發
+   
+   Args:
+       user_query (str): 使用者的原始提問或萃取後的乾淨字串。
+       force_intent (str, optional): 靜態注入意圖，若提供則直接略過 LLM 路由。
+   
+   Returns:
+       str: AI 最終生成的分析結果字串。
+   """
+   # 💡 依據官方文件替換為輕量化 Lite 模型，加快反應速度
+   model = genai.GenerativeModel('gemini-3.5-flash-lite')
+   
+   tw_tz = timezone(timedelta(hours=8))
+   current_date_str = datetime.now(tw_tz).strftime("%Y年%m月%d日 %H:%M (台灣時間)")
  
-  tw_tz = timezone(timedelta(hours=8))
-  current_date_str = datetime.now(tw_tz).strftime("%Y年%m月%d日 %H:%M (台灣時間)")
+   try:
+       # ==========================================
+       # ⚡ 階段一：意圖解析 (支援靜態強制路由)
+       # ==========================================
+       if force_intent:
+           user_intent = force_intent
+           print(f"⚡ [靜態路由] 觸發強制意圖注入: {user_intent}，節省一次 API 呼叫")
+       else:
+           router_config = GenerationConfig(temperature=0.0, response_mime_type="application/json")
+           router_response = model.generate_content(
+               INTENT_ROUTER_PROMPT.format(user_query=user_query),
+               generation_config=router_config
+           )
+           
+           # 🛡️ 安全解析 JSON，避免模型回傳夾雜 Markdown code block
+           raw_text = router_response.text.strip()
+           if raw_text.startswith("```json"):
+               raw_text = raw_text[7:-3].strip()
+               
+           intent_data = json.loads(raw_text)
+           user_intent = intent_data.get("intent", "INTENT_GENERAL_LIFE")
+           stock_name = intent_data.get("stock_name")
+           
+           print(f"🔍 [AI 路由分析] 判定意圖: {user_intent} | 萃取實體: {stock_name}")
  
-  try:
-      # --- 階段一：意圖解析 (分類器) ---
-      router_config = GenerationConfig(temperature=0.0, response_mime_type="application/json")
-      router_response = model.generate_content(
-          INTENT_ROUTER_PROMPT.format(user_query=user_query),
-          generation_config=router_config
-      )
-     
-      intent_data = json.loads(router_response.text.strip())
-      user_intent = intent_data.get("intent", "INTENT_GENERAL_LIFE")
-      stock_name = intent_data.get("stock_name")
-     
-      print(f"🔍 [AI 路由分析] 判定意圖: {user_intent} | 萃取實體: {stock_name}")
+       # ==========================================
+       # 📂 階段二：動態指派對應專家 Prompt
+       # ==========================================
+       # 使用註冊表模式，若找不到對應意圖，則安全降級為生活聊天
+       selected_template = PROMPT_REGISTRY.get(user_intent, BIBI_GENERAL_LIFE_PROMPT_TEMPLATE)
  
-      # --- 階段二：動態指派對應專家 Prompt ---
-      # 使用註冊表模式，若找不到意圖，則安全降級為生活聊天
-      selected_template = PROMPT_REGISTRY.get(user_intent, BIBI_GENERAL_LIFE_PROMPT_TEMPLATE)
+       final_prompt = selected_template.format(
+           current_date_str=current_date_str,
+           user_query=user_query
+       )
  
-      final_prompt = selected_template.format(
-          current_date_str=current_date_str,
-          user_query=user_query
-      )
+       # ==========================================
+       # 🚀 階段三：生成最終分析 (生成器)
+       # ==========================================
+       analysis_config = GenerationConfig(temperature=0.3, max_output_tokens=4096)
+       safety_settings = {
+           HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+           HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+           HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+           HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+       }
  
-      # --- 階段三：生成最終分析 (生成器) ---
-      analysis_config = GenerationConfig(temperature=0.3, max_output_tokens=4096)
-      safety_settings = {
-          HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-          HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-          HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-          HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-      }
+       final_response = model.generate_content(
+           final_prompt,
+           safety_settings=safety_settings,
+           generation_config=analysis_config
+       )
+       
+       return final_response.text
  
-      final_response = model.generate_content(
-          final_prompt,
-          safety_settings=safety_settings,
-          generation_config=analysis_config
-      )
-     
-      return final_response.text
- 
-  except json.JSONDecodeError:
-      print("❌ [意圖解析錯誤] LLM 回傳了非 JSON 格式的內容")
-      return "比鼻剛剛腦袋卡住了，可以換個方式再問我一次嗎？ 😵‍💫"
-  except Exception as e:
-      print(f"❌ [Bibi Agent 錯誤] {e}")
-      print(traceback.format_exc())
-      return "比鼻目前正在處理大量資訊，網路有點過載了，請稍後再試！ 😵‍💫"
+   except json.JSONDecodeError:
+       print("❌ [意圖解析錯誤] LLM 回傳了非 JSON 格式的內容")
+       return "比鼻剛剛腦袋卡住了，可以換個方式再問我一次嗎？ 😵‍💫"
+   
+   except Exception as e:
+       error_msg = str(e)
+       
+       # 🛡️ 蘇蘇的防護網：精準攔截 429 API 額度超限錯誤
+       if "429" in error_msg or "ResourceExhausted" in error_msg or "Quota exceeded" in error_msg:
+           print(f"⚠️ [API 限流保護] 觸發 429 錯誤: {error_msg}")
+           return "比鼻目前被太多人呼叫，腦袋有點塞車了 🚦 請大約等 1 到 2 分鐘，讓系統冷卻一下再問我喔！"
+           
+       # 處理未知的嚴重錯誤
+       print(f"❌ [Bibi Agent 錯誤] {error_msg}")
+       print(traceback.format_exc())
+       return "比鼻目前正在處理大量資訊，網路有點過載了，請稍後再試！ 😵‍💫"
