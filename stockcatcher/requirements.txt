@@ -8,7 +8,8 @@ requests
 # --- 服務串接 ---
 line-bot-sdk>=3.0.0
 supabase>=2.0.0
-google-generativeai
+# 🚀 關鍵更新：Google 最新的 GenAI SDK
+google-genai>=0.1.0
 
 # --- 環境變數與工具 ---
 python-dotenv>=1.0.0
