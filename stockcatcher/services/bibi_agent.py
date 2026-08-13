@@ -130,7 +130,7 @@ INTENT_ROUTER_PROMPT = """
 【支援的意圖清單】
 1. "INTENT_FLOW_ANALYSIS" : 詢問市場大盤、板塊熱度、資金流向、大方向盤勢。
 2. "INTENT_STOCK_FUNDAMENTAL" : 詢問「單一或特定股票」的基本面、分析、目標價、是否可買進。
-3. "INTENT_GENERAL_LIFE" : 一般閒聊、食衣住行、心情分享、非股市相關的問題。
+3. "INTENT_GENERAL_LIFE" : 一般閒聊、食衣住行、心情分享、旅遊、吃喝玩樂、非股市相關的問題。
 
 【輸出 JSON 格式】
 {{"intent": "上述三種意圖之一", "stock_name": "若詢問特定個股請萃取股名，否則填 null"}}
