@@ -131,8 +131,8 @@ def parse_user_intent(raw_msg: str) -> str:
    """將非結構化的自然語言收斂為標準的系統指令路由"""
    clean_msg = raw_msg.strip().replace(" ", "").lower()
  
-   warrant_keywords = ["權證主力", "權證發動", "權證介入", "主力發動", "主力權證", "權證"]
-   volume_3k_keywords = ["3k突破", "量能異常", "3k量能", "爆量", "3k發動", "3k"]
+   warrant_keywords = ["權證主力", "權證發動", "權證介入"]
+   volume_3k_keywords = ["3k突破", "量能異常", "3k量能", "3k發動"]
    tide_keywords = ["tide", "族群熱力", "資金流向", "最強族群"]
    dashboard_keywords = ["視覺儀表板", "儀表板", "開啟liff", "選股地圖"]
  
@@ -237,7 +237,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
                        "type": "box", "layout": "horizontal", "margin": "xs",
                        "contents": [
                            {"type": "text", "text": f"停損: {stop_loss}", "size": "xs", "color": "#64748b", "flex": 1},
-                           # 💡 蘇蘇的修改：去除了此處的 "weight": "bold" 屬性
                            {"type": "text", "text": f"通知 {count} 次", "size": "xs", "color": count_color, "align": "end", "flex": 1}
                        ]
                    }
@@ -282,31 +281,71 @@ async def callback(request: Request):
 def handle_message(event):
    """處理使用者對話與圖文選單按鈕觸發的查詢事件"""
    user_msg = event.message.text.strip()
-
+ 
    # ==========================================
    # 🤖 路由 1：攔截專屬 AI 交易員「比鼻」的動態對話
    # ==========================================
-   # 💡 蘇蘇的 Regex 魔法進化版：
-   # (?i)               : 忽略英文字母大小寫
-   # ^                  : 確保從字串的最開頭匹配
-   # (?:hi\s*[,，]?\s*)? : 非捕獲群組，將「Hi + 逗號 + 空白」設為可有可無
-   # 比鼻                : 匹配核心關鍵字 "比鼻"
-   match = re.match(r'(?i)^(?:hi\s*[,，]?\s*)?比鼻', user_msg)
-
-   if match:
-       # 🛡️ 安全剝除前綴：利用 match.end() 取得匹配結束的索引位置
-       query = user_msg[match.end():].strip()
+   # 💡 捷徑指令通道：#分析 股名 (跳過第一層 LLM，節省 API 額度)
+   match_fast_cmd = re.match(r'(?i)^#分析\s*(.+)?', user_msg)
+   
+   # 💡 自然語言通道：[Hi] [，] 比鼻 [問題]
+   match_natural = re.match(r'(?i)^(?:hi\s*[,，]?\s*)?比鼻', user_msg)
+ 
+   # ------------------------------------------
+   # 處理路徑 A: 快速指令 (#分析)
+   # ------------------------------------------
+   if match_fast_cmd:
+       query = match_fast_cmd.group(1)
+       if not query:
+           # 防呆：如果只輸入 "#分析" 卻沒有給股名
+           ai_reply = "請在 #分析 後面加上股票名稱或代號喔！（例如：#分析 2330台積電）"
+       else:
+           # 靜態注入個股意圖，呼叫 AI Agent
+           query = query.strip()
+           ai_reply = ask_bibi_agent(query, force_intent="INTENT_STOCK_FUNDAMENTAL")
+           
+       # 統一回覆文字訊息並結束
+       with ApiClient(configuration) as api_client:
+           line_bot_api = MessagingApi(api_client)
+           line_bot_api.reply_message(
+               ReplyMessageRequest(
+                   reply_token=event.reply_token,
+                   messages=[TextMessage(text=ai_reply)]
+               )
+           )
+       return
+ 
+   # ------------------------------------------
+   # 處理路徑 B: 自然對話 (呼叫比鼻)
+   # ------------------------------------------
+   elif match_natural:
+       # 安全切下 "比鼻" 後面的真實提問
+       query = user_msg[match_natural.end():].strip()
        
-       # 再次過濾緊接在「比鼻」後面的逗號 (完美攔截 "比鼻，大盤如何" 或 "比鼻,幫我看股票")
+       # 過濾緊接在 "比鼻" 後方的全形/半形逗號
        if query.startswith("，") or query.startswith(","):
            query = query[1:].strip()
            
-       # 🛡️ 空白防呆機制
+       # 🛡️ 零成本防呆保護：只叫名字，絕對不呼叫 Gemini API
        if not query:
-           # 若使用者只呼叫了名字，預設幫他查大盤
-           query = "請幫我分析目前大盤資金流向與盤勢概況。" 
-
-       # 將乾淨的問題傳給 Bibi Agent
+           static_guide = (
+               "你好！我是專屬 AI 交易員比鼻 🤖\n\n"
+               "請告訴我想分析哪一檔股票或市場資訊，例如：\n"
+               "👉 比鼻，請分析 2330 台積電\n"
+               "👉 比鼻，今天大盤資金流向如何？\n"
+               "👉 #分析 6568宏觀"
+           )
+           with ApiClient(configuration) as api_client:
+               line_bot_api = MessagingApi(api_client)
+               line_bot_api.reply_message(
+                   ReplyMessageRequest(
+                       reply_token=event.reply_token,
+                       messages=[TextMessage(text=static_guide)]
+                   )
+               )
+           return
+ 
+       # 有具體問題，走正常的雙腦解析流程
        ai_reply = ask_bibi_agent(query)
        
        with ApiClient(configuration) as api_client:
@@ -318,7 +357,7 @@ def handle_message(event):
                )
            )
        return
-
+ 
    # ==========================================
    # 📊 路由 2：圖文選單靜態意圖解析 (Flex Message)
    # ==========================================
@@ -326,7 +365,6 @@ def handle_message(event):
    reply_flex = None
    
    if action_intent == "INTENT_WARRANT_3K":
-       # 💡 直接傳入標準英文代碼，享受 O(1) 等級的查詢速度
        signals, update_time = fetch_and_aggregate_signals("warrant_3k")
        reply_flex = build_strategy_list_flex("🎫 權證主力發動", signals, update_time)
        
