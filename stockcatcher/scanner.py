@@ -1361,7 +1361,7 @@ def load_official_warrant_targets() -> List[str]:
         res = curl_requests.get(
             "https://openapi.twse.com.tw/v1/opendata/t187ap37_L",
             impersonate="chrome120",
-            timeout=50
+            timeout=110
         )
        
         if res.status_code == 200:
