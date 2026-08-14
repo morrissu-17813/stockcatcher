@@ -1349,78 +1349,100 @@ def fetch_convertible_bond_set() -> Set[str]:
     return set()
 
 def load_official_warrant_targets() -> List[str]:
-    print("📡 正在解析全市場權證發行清單 (TWSE官方映射 + 雙因子排序)...", flush=True)
-    valid_underlying_sids = set()
-   
-    name_to_sid = {}
+    print("📡 正在建立熱門認購權證對應現股池...", flush=True)
+    equity_universe = set(finmind_industry_map) | set(global_volume_lookup)
+    name_to_sids = {}
     for sid, info in finmind_industry_map.items():
-        clean_name = info['name'].replace('*', '').strip().replace('臺', '台')
-        name_to_sid[clean_name] = sid
-       
+        name = _norm_text(info.get('name')).replace('*', '').replace('臺', '台').replace(' ', '')
+        if name:
+            name_to_sids.setdefault(name, set()).add(sid)
+ 
     try:
-        res = curl_requests.get(
+        basic_res = curl_requests.get(
             "https://openapi.twse.com.tw/v1/opendata/t187ap37_L",
             impersonate="chrome120",
-            timeout=300
+            timeout=120
         )
-       
-        if res.status_code == 200:
-            data = res.json()
-            for row in data:
-                found_sid = False
-               
-                # 策略 A: 無結構暴力掃描 (Schema-less)
-                for key, val in row.items():
-                    str_val = str(val).strip()
-                    if len(str_val) == 4 and str_val.isdigit():
-                        if str_val in finmind_industry_map or str_val in global_volume_lookup:
-                            valid_underlying_sids.add(str_val)
-                            found_sid = True
-                            break
-               
-                # 策略 B: 如果數字找不到，掃描名稱進行反向映射
-                if not found_sid:
-                    for key, val in row.items():
-                        sname = str(val).replace('*', '').strip().replace('臺', '台')
-                        if sname in name_to_sid:
-                            valid_underlying_sids.add(name_to_sid[sname])
-                            break
-        else:
-            print(f"⚠️ [TWSE 權證清單] 伺服器異常，狀態碼: {res.status_code}")
-           
+        trade_res = curl_requests.get(
+            "https://openapi.twse.com.tw/v1/opendata/t187ap42_L",
+            impersonate="chrome120",
+            timeout=120
+        )
+        if basic_res.status_code != 200 or trade_res.status_code != 200:
+            print(f"⚠️ [TWSE 權證資料] 基本資料 HTTP {basic_res.status_code}，成交資料 HTTP {trade_res.status_code}。")
+            return []
+ 
+        basic_rows = basic_res.json()
+        trade_rows = trade_res.json()
+        if not isinstance(basic_rows, list) or not isinstance(trade_rows, list):
+            print("⚠️ [TWSE 權證資料] 回傳格式非預期陣列，略過熱門權證池建立。")
+            return []
     except Exception as e:
-        print(f"❌ [TWSE 權證清單解析失敗] {e}")
-
-    warrant_candidates = []
-    for sid in valid_underlying_sids:
-        if sid not in global_volume_lookup or sid not in global_turnover_lookup:
+        print(f"❌ [TWSE 權證資料讀取失敗] {e}")
+        return []
+ 
+    today = get_now_tw().date()
+    warrant_to_sid = {}
+    skipped_expired = 0
+    skipped_unmapped = 0
+ 
+    for row in basic_rows:
+        if not isinstance(row, dict) or "認購" not in _norm_text(row.get("權證類型")):
             continue
-           
-        today_vol = global_volume_lookup[sid]
-        today_turnover = global_turnover_lookup[sid]
-       
-        if today_vol > 0 and today_turnover > 0:
-            warrant_candidates.append({
-                'sid': sid,
-                'vol': today_vol,
-                'turnover': today_turnover
-            })
-
-    if warrant_candidates:
-        warrant_candidates.sort(key=lambda x: x['turnover'], reverse=True)
-        for idx, c in enumerate(warrant_candidates):
-            c['rank_t'] = idx
-           
-        warrant_candidates.sort(key=lambda x: x['vol'], reverse=True)
-        for idx, c in enumerate(warrant_candidates):
-            c['rank_v'] = idx
-           
-        warrant_candidates.sort(key=lambda x: x['rank_t'] + x['rank_v'])
-
-    clean_hot_sids = [item['sid'] for item in warrant_candidates][:Config.WARRANT_QUOTA]
-    print(f"✅ 權證熱門榜精準解析完成！從 {len(valid_underlying_sids)} 檔標的中篩出 {len(clean_hot_sids)} 檔頂級熱門標的。")
-   
-    return clean_hot_sids
+ 
+        last_trade_date = _extract_yyyy_mm_dd_from_text(row.get("最後交易日", ""))
+        if last_trade_date and last_trade_date < today:
+            skipped_expired += 1
+            continue
+ 
+        warrant_code = _norm_text(row.get("權證代號"))
+        underlying = _norm_text(row.get("標的證券/指數"))
+        sid = ""
+ 
+        code_match = re.search(r"(?<!\d)(\d{4})(?!\d)", underlying)
+        if code_match and code_match.group(1) in equity_universe:
+            sid = code_match.group(1)
+        else:
+            normalized_name = underlying.replace('*', '').replace('臺', '台').replace(' ', '')
+            matched_sids = name_to_sids.get(normalized_name, set())
+            if len(matched_sids) == 1:
+                sid = next(iter(matched_sids))
+ 
+        if warrant_code and sid:
+            warrant_to_sid[warrant_code] = sid
+        else:
+            skipped_unmapped += 1
+ 
+    underlying_stats = {}
+    for row in trade_rows:
+        if not isinstance(row, dict):
+            continue
+        sid = warrant_to_sid.get(_norm_text(row.get("權證代號")))
+        if not sid:
+            continue
+ 
+        stats = underlying_stats.setdefault(sid, {"turnover": 0.0, "volume": 0, "warrant_count": 0, "seen_warrants": set()})
+        stats["turnover"] += safe_cast(row.get("成交金額"), float, 0.0)
+        stats["volume"] += safe_cast(row.get("成交張數"), int, 0)
+        warrant_code = _norm_text(row.get("權證代號"))
+        if warrant_code and warrant_code not in stats["seen_warrants"]:
+            stats["seen_warrants"].add(warrant_code)
+            stats["warrant_count"] += 1
+ 
+    candidates = [
+        {"sid": sid, **stats}
+        for sid, stats in underlying_stats.items()
+        if stats["turnover"] > 0 and stats["volume"] > 0
+    ]
+    candidates.sort(key=lambda item: (item["turnover"], item["volume"], item["warrant_count"]), reverse=True)
+ 
+    selected_sids = [item["sid"] for item in candidates[:Config.WARRANT_QUOTA]]
+    print(
+        f"✅ 熱門認購權證池完成：{len(warrant_to_sid)} 檔有效映射、"
+        f"{len(candidates)} 檔標的有成交，選入 {len(selected_sids)} 檔；"
+        f"排除到期 {skipped_expired} 檔、無法映射 {skipped_unmapped} 檔。"
+    )
+    return selected_sids
 
 def _fetch_volume_from_finmind_fallback():
     prev_date = get_previous_trading_day()
