@@ -1361,12 +1361,12 @@ def load_official_warrant_targets() -> List[str]:
         basic_res = curl_requests.get(
             "https://openapi.twse.com.tw/v1/opendata/t187ap37_L",
             impersonate="chrome120",
-            timeout=120
+            timeout=300
         )
         trade_res = curl_requests.get(
             "https://openapi.twse.com.tw/v1/opendata/t187ap42_L",
             impersonate="chrome120",
-            timeout=120
+            timeout=300
         )
         if basic_res.status_code != 200 or trade_res.status_code != 200:
             print(f"⚠️ [TWSE 權證資料] 基本資料 HTTP {basic_res.status_code}，成交資料 HTTP {trade_res.status_code}。")
