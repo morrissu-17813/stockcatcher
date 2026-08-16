@@ -38,7 +38,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
  
  # 💡 [蘇蘇新增] LIFF URL 環境變數，避免硬編碼
-LIFF_TIDE_URL = os.getenv("LIFF_TIDE_URL", "https://liff.line.me/你的-LIFF-ID")
+LIFF_TIDE_URL = os.getenv("LIFF_TIDE_URL", "https://liff.line.me/2009666448-Cqkm4xS4")
  
 # 初始化 LINE API 與 Webhook Handler
 configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
