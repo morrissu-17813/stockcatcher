@@ -145,6 +145,42 @@ def fetch_tide_cache() -> dict | None:
         print(traceback.format_exc())
         return None
  
+# ==========================================
+# 💾 TIDE 資料調度層 (Cache-Aside Pattern)
+# ==========================================
+def get_tide_data_with_cache() -> list:
+    """
+    獲取 TIDE 共振資料，整合快取與即時運算，確保零假資料。
+    """
+    try:
+        # 1. 嘗試讀取快取
+        cached_data = fetch_tide_cache()
+        if cached_data and isinstance(cached_data, list):
+            print("👉 [Cache Hit] 成功從 system_cache 讀取 TIDE 快取")
+            return cached_data
+            
+        # 2. 快取未命中 (Cache Miss)，啟動正式盤中資料運算引擎
+        print("👉 [Cache Miss] 快取為空或失效，啟動即時 TIDE 運算引擎...")
+        real_data_list = get_real_tide_resonance(supabase, signals_table="tianji_signals")
+        
+        # 3. 非同步/同步回寫快取 (Update Cache)
+        if real_data_list:
+            try:
+                # 🚨 必須確保 system_cache 的 cache_key 欄位設有 Unique 限制 (Unique Constraint)
+                supabase.table("system_cache").upsert({
+                    "cache_key": "tide_top_5",
+                    "cache_value": real_data_list,
+                    # Supabase 若有 updated_at 欄位可一併更新
+                }).execute()
+                print("👉 [Cache Update] 成功將最新運算結果回寫至快取庫")
+            except Exception as cache_err:
+                print(f"⚠️ [Cache Update Warning] 快取回寫失敗，但不影響正常運作: {cache_err}")
+
+        return real_data_list
+        
+    except Exception as e:
+        print(f"❌ [TIDE 調度層錯誤] {e}")
+        return []
  
 # ==========================================
 # 🧠 意圖解析層 (Intent Parsing Layer)
@@ -280,14 +316,14 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
        "contents": carousel_bubbles
    })
 
-# 💡 [蘇蘇新增] TIDE 專屬卡片生成器
+
 # 💡 [蘇蘇更新] TIDE 專屬卡片生成器 (無印風格 Muji Style)
 def build_tide_flex(tide_data_list: list) -> FlexContainer:
-    """動態組裝 TIDE 族群共振卡片 (極簡無印風)"""
+    """動態組裝 TIDE 族群共振卡片 (無印風，純正式資料)"""
     body_contents = []
 
     if not tide_data_list:
-        # 防呆：當日無共振資料時的優雅降級
+        # 優雅降級：當資料庫完全無當日訊號時的顯示
         body_contents.append({
             "type": "text",
             "text": "今日盤面尚未偵測到強勢共振族群",
@@ -322,7 +358,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
                 "margin": "md"
             })
             
-            # 加入極簡灰分隔線 (最後一筆不加)
+            # 加入極簡分隔線 (最後一筆不加)
             if idx < len(tide_data_list) - 1:
                 body_contents.append({
                     "type": "separator",
@@ -352,7 +388,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
                 },
                 {
                     "type": "text",
-                    "text": "即時族群熱度追蹤 (動態運算)",
+                    "text": "即時族群熱度追蹤",
                     "size": "xs",
                     "color": "#999999",
                     "margin": "xs"
@@ -377,7 +413,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
                     "action": {
                         "type": "uri",
                         "label": "查看完整天機圖",
-                        "uri": LIFF_TIDE_URL # 直接使用你上方定義的全域環境變數
+                        "uri": LIFF_TIDE_URL
                     },
                     "style": "secondary",
                     "color": "#F4F6F8", 
@@ -503,12 +539,16 @@ def handle_message(event):
        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
        
    elif action_intent == "INTENT_TIDE_HEATMAP":
-        print("👉 [DEBUG] 準備計算並產生 TIDE 無印風即時卡片...")
-        # 💡 [蘇蘇更新] 呼叫真實的共振資料引擎，並傳入正確的資料表名稱
-        tide_data_list = get_real_tide_resonance(supabase, signals_table="tianji_signals")
-        
-        # 組裝無印風卡片
-        reply_flex = build_tide_flex(tide_data_list)
+        print("👉 [DEBUG] 觸發 TIDE 查詢...")
+        try:
+            # 💡 透過調度層取得資料 (自動處理 Cache 與即時運算)
+            tide_data_list = get_tide_data_with_cache()
+            reply_flex = build_tide_flex(tide_data_list)
+        except Exception as e:
+            print(f"❌ [TIDE 查詢錯誤] {e}")
+            import traceback
+            print(traceback.format_exc())
+            reply_flex = build_tide_flex([])  # 發生錯誤時回傳空陣列防呆
        
    elif action_intent == "INTENT_DASHBOARD":
        pass
