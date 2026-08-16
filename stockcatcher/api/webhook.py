@@ -148,40 +148,66 @@ def fetch_tide_cache() -> dict | None:
 # ==========================================
 # 💾 TIDE 資料調度層 (Cache-Aside Pattern)
 # ==========================================
+# ==========================================
+# 💾 TIDE 資料調度層與 TTL 快取機制 (專業修正版)
+# ==========================================
 def get_tide_data_with_cache() -> list:
     """
-    獲取 TIDE 共振資料，整合快取與即時運算，確保零假資料。
+    具備 60 秒 TTL 保護的盤中即時資料調度層。
+    修正了快取污染問題，確保空狀態 (Empty State) 也能正確覆寫舊快取。
     """
     try:
-        # 1. 嘗試讀取快取
-        cached_data = fetch_tide_cache()
-        if cached_data and isinstance(cached_data, list):
-            print("👉 [Cache Hit] 成功從 system_cache 讀取 TIDE 快取")
+        from datetime import datetime, timezone, timedelta
+        tw_tz = timezone(timedelta(hours=8))
+        
+        # 1. 嘗試讀取快取與其更新時間
+        cached_data, updated_at_str = fetch_tide_cache()
+        
+        # 2. 驗證快取是否過期 (TTL = 60 秒)
+        is_cache_valid = False
+        if cached_data is not None and updated_at_str:
+            try:
+                iso_time_str = str(updated_at_str).replace("Z", "+00:00")
+                cache_time = datetime.fromisoformat(iso_time_str).astimezone(tw_tz)
+                now_time = datetime.now(tw_tz)
+                
+                diff_seconds = (now_time - cache_time).total_seconds()
+                if diff_seconds < 60:  # 60秒內視為新鮮
+                    is_cache_valid = True
+            except Exception as time_err:
+                print(f"⚠️ [時間解析警告] 無法判斷快取新鮮度，強制重新運算: {time_err}")
+
+        # 3. 路由決策
+        if is_cache_valid:
+            print(f"👉 [Cache Hit] 讀取 60 秒內的高速即時快取")
             return cached_data
             
-        # 2. 快取未命中 (Cache Miss)，啟動正式盤中資料運算引擎
-        print("👉 [Cache Miss] 快取為空或失效，啟動即時 TIDE 運算引擎...")
+        # 4. 快取未命中或已過期，啟動正式盤中即時引擎
+        print("👉 [Cache Miss/Expired] 快取已過期，啟動資料庫即時重新運算...")
+        # 這裡會去呼叫我們稍早加上了「時間結界」的引擎，因為今天沒開盤，會拿到 []
         real_data_list = get_real_tide_resonance(supabase, signals_table="tianji_signals")
         
-        # 3. 非同步/同步回寫快取 (Update Cache)
-        if real_data_list:
-            try:
-                # 🚨 必須確保 system_cache 的 cache_key 欄位設有 Unique 限制 (Unique Constraint)
-                supabase.table("system_cache").upsert({
-                    "cache_key": "tide_top_5",
-                    "cache_value": real_data_list,
-                    # Supabase 若有 updated_at 欄位可一併更新
-                }).execute()
-                print("👉 [Cache Update] 成功將最新運算結果回寫至快取庫")
-            except Exception as cache_err:
-                print(f"⚠️ [Cache Update Warning] 快取回寫失敗，但不影響正常運作: {cache_err}")
+        # 5. 🚨 關鍵修正：強制回寫快取 (Force Upsert)
+        # 移除 if real_data_list: 的限制，即使是 [] 空陣列，也要寫入資料庫洗掉舊資料！
+        try:
+            # 確保寫入的資料型態是 list，若是 None 則強制轉為空陣列
+            safe_data = real_data_list if isinstance(real_data_list, list) else []
+            
+            supabase.table("system_cache").upsert({
+                "cache_key": "tide_top_5",
+                "cache_value": safe_data
+            }).execute()
+            print(f"👉 [Cache Update] 最新盤中狀態 (包含空值狀態) 已刷新至系統快取")
+        except Exception as cache_err:
+            print(f"⚠️ [Cache Update Warning] 快取回寫失敗: {cache_err}")
 
-        return real_data_list
+        return safe_data
         
     except Exception as e:
         print(f"❌ [TIDE 調度層錯誤] {e}")
         return []
- 
+
+
 # ==========================================
 # 🧠 意圖解析層 (Intent Parsing Layer)
 # ==========================================
