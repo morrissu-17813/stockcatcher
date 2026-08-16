@@ -37,6 +37,9 @@ LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
  
+ # 💡 [蘇蘇新增] LIFF URL 環境變數，避免硬編碼
+LIFF_TIDE_URL = os.getenv("LIFF_TIDE_URL", "https://liff.line.me/你的-LIFF-ID")
+ 
 # 初始化 LINE API 與 Webhook Handler
 configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -123,6 +126,23 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
        print(f"❌ [DB 讀取與聚合錯誤] {e}")
        print(traceback.format_exc())
        return [], "讀取錯誤"
+ 
+def fetch_tide_cache() -> dict | None:
+    """從 Supabase system_cache 讀取盤中大腦寫入的 TIDE 快取資料"""
+    try:
+        response = supabase.table("system_cache") \
+            .select("cache_value") \
+            .eq("cache_key", "tide_top_5") \
+            .execute()
+            
+        if response.data and len(response.data) > 0:
+            return response.data[0]["cache_value"]
+        return None
+    except Exception as e:
+        print(f"❌ [TIDE 快取讀取錯誤] {e}")
+        print(traceback.format_exc())
+        return None
+ 
  
 # ==========================================
 # 🧠 意圖解析層 (Intent Parsing Layer)
@@ -257,7 +277,115 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
        "type": "carousel",
        "contents": carousel_bubbles
    })
- 
+
+# 💡 [蘇蘇新增] TIDE 專屬卡片生成器
+def build_tide_flex(tide_data: dict) -> FlexContainer:
+    """動態組裝 TIDE 族群共振卡片 (內建空值防護與重整按鈕)"""
+    if not tide_data:
+        # 防呆：大腦還沒啟動或 Redis/Supabase 沒資料時的優雅降級
+        return FlexContainer.from_dict({
+            "type": "bubble", "size": "mega",
+            "body": {
+                "type": "box", "layout": "vertical", "paddingAll": "24px",
+                "contents": [
+                    {"type": "text", "text": "⚠️ 目前盤中 TIDE 數據尚未就緒，大腦正在暖機中，請稍後再試。", "color": "#f43f5e", "weight": "bold", "wrap": True}
+                ]
+            }
+        })
+
+    flex_dict = {
+      "type": "bubble",
+      "size": "mega",
+      "header": {
+        "type": "box",
+        "layout": "vertical",
+        "backgroundColor": "#1A1D24",
+        "paddingAll": "15px",
+        "contents": [
+          {
+            "type": "text",
+            "text": "⚡ 天機圖 盤中 TIDE 族群共振 TOP 5",
+            "weight": "bold",
+            "color": "#00E676",
+            "size": "md",
+            "wrap": True
+          },
+          {
+            "type": "text",
+            "text": f"更新時間：{tide_data.get('update_time', 'N/A')} | 系統狀態：即時連線",
+            "color": "#8C9BA5",
+            "size": "xs",
+            "margin": "xs"
+          }
+        ]
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "backgroundColor": "#111318",
+        "paddingAll": "15px",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": f"1. {tide_data.get('top1_name', '未知名稱')}",
+                "color": "#FFFFFF",
+                "weight": "bold",
+                "size": "sm",
+                "flex": 3,
+                "wrap": True
+              },
+              {
+                "type": "text",
+                "text": f"{tide_data.get('top1_score', '0')} 分",
+                "color": "#FF5252",
+                "weight": "bold",
+                "size": "sm",
+                "align": "end",
+                "flex": 2
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": f"🔥 領漲指標：{tide_data.get('top1_leader', '分析中...')}",
+            "color": "#B0BEC5",
+            "size": "xs",
+            "margin": "md",
+            "wrap": True
+          },
+          {
+            "type": "button",
+            "style": "primary",
+            "color": "#00C853",
+            "height": "sm",
+            "action": {
+              "type": "uri",
+              "label": "📊 查看詳細天機圖 (LIFF)",
+              "uri": f"{LIFF_TIDE_URL}?group=cpo"
+            },
+            "margin": "lg"
+          },
+          {
+            "type": "button",
+            "style": "secondary",
+            "color": "#2D3440",
+            "height": "sm",
+            "action": {
+              "type": "message",
+              "label": "🔄 取得最新 TIDE 數據",
+              "text": "TIDE"
+            },
+            "margin": "sm"
+          }
+        ]
+      }
+    }
+    return FlexContainer.from_dict(flex_dict)
+
 # ==========================================
 # 🌐 Webhook 路由與控制器 (Controller Layer)
 # ==========================================
@@ -373,7 +501,9 @@ def handle_message(event):
        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
        
    elif action_intent == "INTENT_TIDE_HEATMAP":
-       pass
+        # 💡 [蘇蘇新增] 接通 TIDE 路由：讀取快取 -> 組裝卡片
+        tide_data = fetch_tide_cache()
+        reply_flex = build_tide_flex(tide_data)
        
    elif action_intent == "INTENT_DASHBOARD":
        pass
