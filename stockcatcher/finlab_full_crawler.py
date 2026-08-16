@@ -128,8 +128,8 @@ async def fetch_single_theme_task(
 # ==========================================
 def sync_to_supabase(themes_data: List[Dict[str, Any]]):
     """將概念股清單安全地 Upsert 至 Supabase 資料庫"""
-    url: str = os.environ.get("SUPABASE_URL")
-    key: str = os.environ.get("SUPABASE_KEY")
+    url: str = "https://iatlchzzjkjaetorvvil.supabase.co"    
+    key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdGxjaHp6amtqYWV0b3J2dmlsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjAzMDQzMywiZXhwIjoyMTAxNjA2NDMzfQ.FckTSOyIo_QCocrgfaGd9mHV2wXRJxSeC5955936hSQ"
     
     if not url or not key:
         logger.error("❌ 找不到 Supabase 憑證！請確認 GitHub Secrets 或本機環境變數已正確設定。")
