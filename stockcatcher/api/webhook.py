@@ -23,6 +23,8 @@ from dotenv import load_dotenv
  
 # 引入 Bibi Agent
 from services.bibi_agent import ask_bibi_agent
+# 💡 [蘇蘇新增] 引入動態 TIDE 共振引擎
+from services.tide_service import get_real_tide_resonance
  
 # 載入環境變數
 load_dotenv()
@@ -279,110 +281,110 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
    })
 
 # 💡 [蘇蘇新增] TIDE 專屬卡片生成器
-def build_tide_flex(tide_data: dict) -> FlexContainer:
-    """動態組裝 TIDE 族群共振卡片 (內建空值防護與重整按鈕)"""
-    if not tide_data:
-        # 防呆：大腦還沒啟動或 Redis/Supabase 沒資料時的優雅降級
-        return FlexContainer.from_dict({
-            "type": "bubble", "size": "mega",
-            "body": {
-                "type": "box", "layout": "vertical", "paddingAll": "24px",
-                "contents": [
-                    {"type": "text", "text": "⚠️ 目前盤中 TIDE 數據尚未就緒，大腦正在暖機中，請稍後再試。", "color": "#f43f5e", "weight": "bold", "wrap": True}
-                ]
-            }
+# 💡 [蘇蘇更新] TIDE 專屬卡片生成器 (無印風格 Muji Style)
+def build_tide_flex(tide_data_list: list) -> FlexContainer:
+    """動態組裝 TIDE 族群共振卡片 (極簡無印風)"""
+    body_contents = []
+
+    if not tide_data_list:
+        # 防呆：當日無共振資料時的優雅降級
+        body_contents.append({
+            "type": "text",
+            "text": "今日盤面尚未偵測到強勢共振族群",
+            "size": "sm",
+            "color": "#888888",
+            "align": "center",
+            "margin": "md"
         })
+    else:
+        for idx, item in enumerate(tide_data_list):
+            body_contents.append({
+                "type": "box",
+                "layout": "horizontal",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": f"{idx + 1}. {item.get('cluster_name', '未知族群')}",
+                        "size": "sm",
+                        "color": "#555555",
+                        "weight": "regular",
+                        "flex": 2
+                    },
+                    {
+                        "type": "text",
+                        "text": f"熱度 {item.get('heat_score', 0)}",
+                        "size": "sm",
+                        "color": "#888888",
+                        "align": "end",
+                        "flex": 1
+                    }
+                ],
+                "margin": "md"
+            })
+            
+            # 加入極簡灰分隔線 (最後一筆不加)
+            if idx < len(tide_data_list) - 1:
+                body_contents.append({
+                    "type": "separator",
+                    "margin": "md",
+                    "color": "#EAEAEA"
+                })
 
     flex_dict = {
-      "type": "bubble",
-      "size": "mega",
-      "header": {
-        "type": "box",
-        "layout": "vertical",
-        "backgroundColor": "#1A1D24",
-        "paddingAll": "15px",
-        "contents": [
-          {
-            "type": "text",
-            "text": "⚡ 天機圖 盤中 TIDE 族群共振 TOP 5",
-            "weight": "bold",
-            "color": "#00E676",
-            "size": "md",
-            "wrap": True
-          },
-          {
-            "type": "text",
-            "text": f"更新時間：{tide_data.get('update_time', 'N/A')} | 系統狀態：即時連線",
-            "color": "#8C9BA5",
-            "size": "xs",
-            "margin": "xs"
-          }
-        ]
-      },
-      "body": {
-        "type": "box",
-        "layout": "vertical",
-        "backgroundColor": "#111318",
-        "paddingAll": "15px",
-        "contents": [
-          {
+        "type": "bubble",
+        "size": "mega",
+        "styles": {
+            "body": {"backgroundColor": "#FFFFFF"}
+        },
+        "header": {
             "type": "box",
-            "layout": "horizontal",
+            "layout": "vertical",
+            "paddingAll": "20px",
+            "paddingBottom": "10px",
             "contents": [
-              {
-                "type": "text",
-                "text": f"1. {tide_data.get('top1_name', '未知名稱')}",
-                "color": "#FFFFFF",
-                "weight": "bold",
-                "size": "sm",
-                "flex": 3,
-                "wrap": True
-              },
-              {
-                "type": "text",
-                "text": f"{tide_data.get('top1_score', '0')} 分",
-                "color": "#FF5252",
-                "weight": "bold",
-                "size": "sm",
-                "align": "end",
-                "flex": 2
-              }
+                {
+                    "type": "text",
+                    "text": "TIDE 資金共振",
+                    "weight": "bold",
+                    "color": "#333333",
+                    "size": "xl",
+                    "margin": "sm"
+                },
+                {
+                    "type": "text",
+                    "text": "即時族群熱度追蹤 (動態運算)",
+                    "size": "xs",
+                    "color": "#999999",
+                    "margin": "xs"
+                }
             ]
-          },
-          {
-            "type": "text",
-            "text": f"🔥 領漲指標：{tide_data.get('top1_leader', '分析中...')}",
-            "color": "#B0BEC5",
-            "size": "xs",
-            "margin": "md",
-            "wrap": True
-          },
-          {
-            "type": "button",
-            "style": "primary",
-            "color": "#00C853",
-            "height": "sm",
-            "action": {
-              "type": "uri",
-              "label": "📊 查看詳細天機圖 (LIFF)",
-              "uri": f"{LIFF_TIDE_URL}?group=cpo"
-            },
-            "margin": "lg"
-          },
-          {
-            "type": "button",
-            "style": "secondary",
-            "color": "#2D3440",
-            "height": "sm",
-            "action": {
-              "type": "message",
-              "label": "🔄 取得最新 TIDE 數據",
-              "text": "TIDE"
-            },
-            "margin": "sm"
-          }
-        ]
-      }
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "paddingAll": "20px",
+            "paddingTop": "10px",
+            "contents": body_contents
+        },
+        "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "paddingAll": "20px",
+            "paddingTop": "10px",
+            "contents": [
+                {
+                    "type": "button",
+                    "action": {
+                        "type": "uri",
+                        "label": "查看完整天機圖",
+                        "uri": LIFF_TIDE_URL # 直接使用你上方定義的全域環境變數
+                    },
+                    "style": "secondary",
+                    "color": "#F4F6F8", 
+                    "height": "sm"
+                }
+            ]
+        }
     }
     return FlexContainer.from_dict(flex_dict)
 
@@ -501,9 +503,12 @@ def handle_message(event):
        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
        
    elif action_intent == "INTENT_TIDE_HEATMAP":
-        # 💡 [蘇蘇新增] 接通 TIDE 路由：讀取快取 -> 組裝卡片
-        tide_data = fetch_tide_cache()
-        reply_flex = build_tide_flex(tide_data)
+        print("👉 [DEBUG] 準備計算並產生 TIDE 無印風即時卡片...")
+        # 💡 [蘇蘇更新] 呼叫真實的共振資料引擎，並傳入正確的資料表名稱
+        tide_data_list = get_real_tide_resonance(supabase, signals_table="tianji_signals")
+        
+        # 組裝無印風卡片
+        reply_flex = build_tide_flex(tide_data_list)
        
    elif action_intent == "INTENT_DASHBOARD":
        pass
