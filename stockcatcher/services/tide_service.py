@@ -79,92 +79,86 @@ def get_real_tide_resonance(supabase_client, signals_table: str = "tianji_signal
  
        print(f"👉 [TIDE Service] 進入運算階段，共 {len(data_rows)} 筆有效訊號...")
  
-       # ==========================================
-       # 🎯 核心映射與過濾邏輯
-       # ==========================================
        signal_stocks_map = {}
        for row in data_rows:
-           raw_data = row.get("data", {})
-           if isinstance(raw_data, str):
-               try:
-                   data_json = json.loads(raw_data)
-               except json.JSONDecodeError:
-                   continue
-           elif isinstance(raw_data, dict):
-               data_json = raw_data
-           else:
-               continue
- 
-           sid = data_json.get("stock_id")
-           sname = data_json.get("stock_name", "")
-           
-           # 🛡️ 剔除弱勢股 (下跌超過 3%)
-           try:
-               pct = float(data_json.get("pct", 0.0) or 0.0)
-           except (ValueError, TypeError):
-               pct = 0.0
- 
-           if pct <= -3.0:
-               continue
- 
-           if sid:
-               signal_stocks_map[str(sid)] = str(sname).strip()
-       
-       if not signal_stocks_map:
-           print("⚠️ [TIDE Service] 經過過濾後，無有效或強勢的股票代號。")
-           return []
- 
-       # 查詢族群概念
-       concept_response = supabase_client.table("theme_stocks") \
-           .select("symbol, themes(concept_name)") \
-           .in_("symbol", list(signal_stocks_map.keys())) \
-           .execute()
-       
+            raw_data = row.get("data", {})
+            data_json = json.loads(raw_data) if isinstance(raw_data, str) else raw_data
+            if not isinstance(data_json, dict): continue
+
+            sid = data_json.get("stock_id")
+            sname = data_json.get("stock_name", "")
+            
+            try: pct = float(data_json.get("pct", 0.0) or 0.0)
+            except: pct = 0.0
+            
+            # 💡 提取量能比 (如果 JSON 內沒傳，預設給 1.0)
+            try: vol_ratio = float(data_json.get("vol_ratio", 1.0) or 1.0)
+            except: vol_ratio = 1.0
+
+            if pct <= -3.0: continue # 剔除弱勢股
+
+            if sid:
+                # 🚨 改變結構：改為存入完整的 Detail Dict
+                signal_stocks_map[str(sid)] = {
+                    "sid": str(sid),
+                    "name": str(sname).strip(),
+                    "pct": pct,
+                    "vol_ratio": vol_ratio
+                }
+        
+       if not signal_stocks_map: return []
+
+        # 查詢族群概念
+       concept_response = supabase_client.table("theme_stocks").select("symbol, themes(concept_name)").in_("symbol", list(signal_stocks_map.keys())).execute()
        concept_to_stocks = defaultdict(list)
-       
+        
        for row in concept_response.data:
-           theme_info = row.get("themes")
-           sid = str(row.get("symbol"))
-           sname = signal_stocks_map.get(sid, "")
-           display_text = f"{sid} {sname}".strip()
- 
-           if not theme_info:
-               continue
- 
-           # 兼容單一族群(dict)與多重族群(list)結構
-           if isinstance(theme_info, list):
-               for t in theme_info:
-                   c_name = t.get("concept_name")
-                   if c_name and display_text not in concept_to_stocks[c_name]:
-                       concept_to_stocks[c_name].append(display_text)
-           elif isinstance(theme_info, dict):
-               c_name = theme_info.get("concept_name")
-               if c_name and display_text not in concept_to_stocks[c_name]:
-                   concept_to_stocks[c_name].append(display_text)
-       
-       # 計算分數並排序
+            theme_info = row.get("themes")
+            sid = str(row.get("symbol"))
+            stock_detail = signal_stocks_map.get(sid)
+
+            if not theme_info or not stock_detail: continue
+
+            if isinstance(theme_info, list):
+                for t in theme_info:
+                    c_name = t.get("concept_name")
+                    if c_name and not any(s['sid'] == sid for s in concept_to_stocks[c_name]):
+                        concept_to_stocks[c_name].append(stock_detail)
+            elif isinstance(theme_info, dict):
+                c_name = theme_info.get("concept_name")
+                if c_name and not any(s['sid'] == sid for s in concept_to_stocks[c_name]):
+                    concept_to_stocks[c_name].append(stock_detail)
+        
+        # 排序並產生最終 Payload
        cluster_counts = {name: len(stocks) for name, stocks in concept_to_stocks.items()}
        top_5 = Counter(cluster_counts).most_common(5)
-       
+        
        tide_data_list = []
        for name, score in top_5:
-           rep_stocks = concept_to_stocks[name][:2]
-           rep_stocks_str = "、".join(rep_stocks)
-           
-           tide_data_list.append({
-               "cluster_name": name,
-               "heat_score": score,
-               "representative_stocks": rep_stocks_str
-           })
-           
-       print(f"✅ [TIDE Service] 運算完成！強勢族群：{[t['cluster_name'] for t in tide_data_list]}")
+            # 將族群內的股票依據漲跌幅 (pct) 降冪排序
+            stocks_list = sorted(concept_to_stocks[name], key=lambda x: x['pct'], reverse=True)
+            
+            # 計算該族群的平均資金量能比
+            avg_vol_ratio = sum(s['vol_ratio'] for s in stocks_list) / len(stocks_list) if stocks_list else 1.0
+            
+            rep_stocks = [f"{s['sid']} {s['name']}" for s in stocks_list[:2]]
+            
+            tide_data_list.append({
+                "cluster_name": name,
+                "heat_score": score,
+                "vol_ratio": round(avg_vol_ratio, 2),
+                "representative_stocks": "、".join(rep_stocks),
+                # 🚨 新增：供應給前端點擊後顯示的完整明細陣列
+                "stocks_detail": stocks_list 
+            })
+            
        return tide_data_list
- 
+
    except Exception as e:
-       import traceback
-       print(f"❌ [TIDE Service Error] {str(e)}")
-       print(traceback.format_exc())
-       return []
+        import traceback
+        print(f"❌ [TIDE Service Error] {str(e)}")
+        print(traceback.format_exc())
+        return []
 
 # ==========================================
 # 🧪 本地端單元測試區塊 

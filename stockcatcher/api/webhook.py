@@ -577,6 +577,25 @@ async def callback(request: Request):
        print(traceback.format_exc())
        raise HTTPException(status_code=500, detail="Internal Server Error")
    return "OK"
+
+# 🌟 新增：專供給 Vue 3 儀表板呼叫的 API 端點
+@app.get("/api/tide")
+async def get_tide_dashboard_data():
+    """
+    提供前端儀表板即時拉取 TIDE 共振族群與個股明細
+    """
+    try:
+        # 注意：請傳入你專案中正確初始化的 supabase_client
+        # tide_data = get_real_tide_resonance(supabase_client)
+        tide_data = get_real_tide_resonance(supabase) # 請依你專案變數名稱調整
+        
+        return {
+            "status": "success",
+            "message": "即時資金共振資料取得成功",
+            "data": tide_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"伺服器內部錯誤: {str(e)}")
  
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
