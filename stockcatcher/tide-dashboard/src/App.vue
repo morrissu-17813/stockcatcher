@@ -5,14 +5,16 @@
     <!-- 頁面標題區塊 -->
     <header class="mb-8 border-b border-slate-800 pb-6 shrink-0">
       <div class="flex items-center space-x-4">
-        <h1 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-wider">
+        <!-- 💡 調整 1：縮小主標題字級為 text-2xl md:text-3xl -->
+        <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-wider">
           TIDE 資金共振天機圖
         </h1>
+        <!-- 💡 調整 2：縮小標籤字體為 text-[11px]，並等比例縮小 padding 與燈號大小 -->
         <span 
-          class="px-3 py-1 text-xs font-bold rounded-full border flex items-center"
+          class="px-2.5 py-0.5 text-[11px] font-bold rounded-full border flex items-center"
           :class="statusClasses"
         >
-          <span class="w-2 h-2 rounded-full mr-2" :class="statusIndicatorClasses"></span>
+          <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="statusIndicatorClasses"></span>
           {{ statusText }}
         </span>
       </div>
@@ -87,7 +89,6 @@
             
             <!-- 漲跌幅與量能比 -->
             <div class="flex flex-col items-end text-right">
-              <!-- 依據漲跌幅顯示紅色或綠色 (台股習慣：紅漲綠跌) -->
               <span 
                 class="font-black text-lg"
                 :class="stock.pct >= 0 ? 'text-rose-500' : 'text-emerald-500'"
@@ -112,7 +113,7 @@ import TideBubbleChart from './components/TideBubbleChart.vue';
 const tideData = ref([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
-const selectedCluster = ref(null); // 控制抽屜的狀態與資料
+const selectedCluster = ref(null);
 
 // 開關抽屜的方法
 const openDetailDrawer = (clusterInfo) => {
@@ -133,10 +134,12 @@ const statusIndicatorClasses = computed(() => {
   if (errorMessage.value) return 'bg-rose-400';
   return 'bg-emerald-400 animate-pulse';
 });
+
+// 💡 調整 3：精簡文案，拔除「連線」二字
 const statusText = computed(() => {
   if (isLoading.value) return '資料同步中...';
   if (errorMessage.value) return '連線中斷';
-  return '盤中即時連線';
+  return '盤中即時'; 
 });
 
 // 擷取 API 邏輯
@@ -144,7 +147,7 @@ const fetchTideData = async () => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    const baseUrl =  "https://stockcatcher-jet.vercel.app";
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
     if (!baseUrl) throw new Error('系統未設定後端 API 網址');
 
     const response = await fetch(`${baseUrl}/api/tide`, { method: 'GET', headers: { 'Accept': 'application/json' } });
