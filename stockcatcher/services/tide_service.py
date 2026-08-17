@@ -39,7 +39,18 @@ def get_real_tide_resonance(supabase_client, signals_table: str = "tianji_signal
  
            sid = data_json.get("stock_id")
            sname = data_json.get("stock_name", "")
-           if sid:
+           # 🚨 [蘇蘇優化] 擷取漲跌幅 (pct)，進行型別防呆與過濾
+            try:
+                # 確保 pct 是浮點數，若資料庫沒存則預設為 0.0
+                pct = float(data_json.get("pct", 0.0) or 0.0)
+            except (ValueError, TypeError):
+                pct = 0.0
+
+            # 💡 核心商業邏輯：剔除下跌超過 3% (包含 -3%) 的出貨/弱勢標的
+            if pct <= -3.0:
+                continue
+               
+            if sid:
                # 去重並保留代號與名稱
                signal_stocks_map[str(sid)] = sname.strip()
        
