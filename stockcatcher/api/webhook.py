@@ -20,6 +20,7 @@ from linebot.v3.messaging import (
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
  
 # 引入 Bibi Agent
 from services.bibi_agent import ask_bibi_agent
@@ -30,6 +31,19 @@ from services.tide_service import get_real_tide_resonance
 load_dotenv()
  
 app = FastAPI()
+
+# 🛡️ 企業級 CORS 安全設定
+app.add_middleware(
+    CORSMiddleware,
+    # 🚨 嚴格限制：只允許你的 Vercel 前端正式網址與本地開發環境發起請求
+    allow_origins=[
+        "https://tide-dashboard-ebon.vercel.app", 
+        "http://localhost:5173"  # 保留本地開發測試彈性
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+) 
  
 # ==========================================
 # ⚙️ 環境變數與安全憑證配置
@@ -40,7 +54,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
  
  # 💡 [蘇蘇新增] LIFF URL 環境變數，避免硬編碼
-LIFF_TIDE_URL = os.getenv("LIFF_TIDE_URL", "https://liff.line.me/2009666448-Cqkm4xS4")
+LIFF_TIDE_URL = os.getenv("LIFF_TIDE_URL", "https://tide-dashboard-ebon.vercel.app")
  
 # 初始化 LINE API 與 Webhook Handler
 configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
