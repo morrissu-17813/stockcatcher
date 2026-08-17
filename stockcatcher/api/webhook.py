@@ -129,21 +129,29 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
        print(traceback.format_exc())
        return [], "讀取錯誤"
  
-def fetch_tide_cache() -> dict | None:
-    """從 Supabase system_cache 讀取盤中大腦寫入的 TIDE 快取資料"""
-    try:
-        response = supabase.table("system_cache") \
-            .select("cache_value") \
-            .eq("cache_key", "tide_top_5") \
-            .execute()
-            
-        if response.data and len(response.data) > 0:
-            return response.data[0]["cache_value"]
-        return None
-    except Exception as e:
-        print(f"❌ [TIDE 快取讀取錯誤] {e}")
-        print(traceback.format_exc())
-        return None
+def fetch_tide_cache() -> tuple:
+   """
+   從 Supabase 讀取 TIDE 快取，並同時回傳「資料內容」與「最後更新時間」。
+   回傳格式: (cache_value, updated_at_str)
+   """
+   try:
+       # 💡 [蘇蘇修正] 查詢時必須同時 select 兩個欄位：cache_value 與 updated_at
+       response = supabase.table("system_cache") \
+           .select("cache_value, updated_at") \
+           .eq("cache_key", "tide_top_5") \
+           .execute()
+           
+       if response.data and len(response.data) > 0:
+           return response.data[0].get("cache_value"), response.data[0].get("updated_at")
+           
+       # 若資料庫中沒有此快取，必須回傳兩個 None 以符合解包格式
+       return None, None
+       
+   except Exception as e:
+       print(f"❌ [TIDE 快取讀取錯誤] {e}")
+       import traceback
+       print(traceback.format_exc())
+       return None, None
  
 # ==========================================
 # 💾 TIDE 資料調度層 (Cache-Aside Pattern)
