@@ -106,7 +106,7 @@ watch(() => props.clusterData, (newData) => {
     });
   }
 }, { deep: true });
-
+//TTT
 // 視窗 RWD 縮放監聽
 watch([width, height], () => {
   if (chartInstance.value) chartInstance.value.resize();
