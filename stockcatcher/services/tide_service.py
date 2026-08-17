@@ -2,8 +2,10 @@ import os
 import json
 # 💡 [蘇蘇提醒] 必須確保匯入處理時間的相關套件
 from datetime import datetime, timezone, timedelta, time
-from collections import Counter
+# 🚨 關鍵修正：必須從 collections 模組同時匯入 Counter 與 defaultdict
+from collections import Counter, defaultdict
 from typing import List, Dict
+
 def get_real_tide_resonance(supabase_client, signals_table: str = "tianji_signals") -> List[Dict]:
    """
    動態計算 TIDE 族群共振熱度核心引擎 (附帶領漲標的萃取)。
