@@ -13,7 +13,7 @@
 import { ref, onMounted, onUnmounted, watch, shallowRef } from 'vue';
 import * as echarts from 'echarts';
 import { useElementSize } from '@vueuse/core';
-
+const emit = defineEmits(['node-click']);
 const props = defineProps({
   clusterData: {
     type: Array,
@@ -96,6 +96,16 @@ const initChart = () => {
   };
 
   chartInstance.value.setOption(option);
+
+  // 🚨 新增關鍵邏輯：綁定 ECharts 點擊事件
+  chartInstance.value.on('click', (params) => {
+    // 確保點擊的是節點(泡泡)，而不是背景
+    if (params.dataType === 'node' && params.data && params.data.raw) {
+      // 將該泡泡夾帶的完整資料(包含 stocks_detail) 發送給外層 App.vue
+      emit('node-click', params.data.raw);
+    }
+  });
+
 };
 
 // 監聽資料變化，動態更新圖表 (ECharts 會自動平滑動畫)
