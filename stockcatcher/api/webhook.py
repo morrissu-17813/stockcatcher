@@ -353,202 +353,197 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
 
 # 💡 [蘇蘇更新] TIDE 專屬卡片生成器 (無印風格 Muji Style)
 def build_tide_flex(tide_data_list: list) -> FlexContainer:
-    """動態組裝 TIDE 族群共振卡片 (專業交易終端風格 Pro-Dashboard)"""
-    
-    # 取得當前台灣時間，增加卡片的即時感與專業度
-    from datetime import datetime, timezone, timedelta
-    tw_tz = timezone(timedelta(hours=8))
-    current_time = datetime.now(tw_tz).strftime("%H:%M:%S")
-
-    # ---------------------------------------------------------
-    # 1. 異常防呆處理 (Empty State)
-    # ---------------------------------------------------------
-    if not tide_data_list:
-        return FlexContainer.from_dict({
-            "type": "bubble", "size": "mega",
-            "styles": {"body": {"backgroundColor": "#0F172A"}}, # 深色背景
-            "body": {
-                "type": "box", "layout": "vertical", "paddingAll": "24px",
-                "contents": [
-                    {"type": "text", "text": "⚠️ 盤中監控系統", "color": "#F87171", "weight": "bold", "size": "sm"},
-                    {"type": "text", "text": "今日尚未偵測到強勢共振族群", "color": "#94A3B8", "margin": "md", "size": "xs"}
-                ]
-            }
-        })
-
-    # ---------------------------------------------------------
-    # 2. 構建 Top 1 榜首專屬高光卡片 (Hero Section)
-    # ---------------------------------------------------------
-    top1 = tide_data_list[0]
-    body_contents = [
-        {
-            "type": "box",
-            "layout": "vertical",
-            "backgroundColor": "#1E293B", # 較淺的深色突顯區塊
-            "paddingAll": "16px",
-            "cornerRadius": "md",
-            "contents": [
-                {
-                    "type": "text", 
-                    "text": "👑 本日最強共振", 
-                    "color": "#F59E0B", # 專業橘金色
-                    "size": "xs", 
-                    "weight": "bold"
-                },
-                {
-                    "type": "box", 
-                    "layout": "horizontal", 
-                    "marginTop": "sm",
-                    "contents": [
-                        {
-                            "type": "text", 
-                            "text": str(top1.get('cluster_name', '未知')), 
-                            "color": "#FFFFFF", 
-                            "size": "xl", 
-                            "weight": "bold", 
-                            "flex": 3,
-                            "wrap": True
-                        },
-                        {
-                            "type": "text", 
-                            "text": f"🔥 {top1.get('heat_score', 0)}", 
-                            "color": "#EF4444", # 強勢紅
-                            "size": "xl", 
-                            "weight": "bold", 
-                            "align": "end", 
-                            "flex": 1
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-
-    # ---------------------------------------------------------
-    # 3. 構建 Top 2 ~ 5 追蹤清單 (List Section)
-    # ---------------------------------------------------------
-    if len(tide_data_list) > 1:
-        list_contents = []
-        for idx in range(1, len(tide_data_list)):
-            item = tide_data_list[idx]
-            score = item.get('heat_score', 0)
-            
-            # 依據分數給予不同層級的顏色標籤
-            score_color = "#F97316" if score >= 5 else "#38BDF8" 
-
-            list_contents.append({
-                "type": "box", 
-                "layout": "horizontal", 
-                "contents": [
-                    {
-                        "type": "text", 
-                        "text": f"{idx + 1}. {item.get('cluster_name', '未知')}", 
-                        "size": "sm", 
-                        "color": "#E2E8F0", 
-                        "weight": "bold", 
-                        "flex": 3
-                    },
-                    {
-                        "type": "text", 
-                        "text": f"熱度 {score}", 
-                        "size": "xs", 
-                        "color": score_color, 
-                        "align": "end", 
-                        "weight": "bold", 
-                        "flex": 1
-                    }
-                ]
-            })
-            
-            # 加上科技感的深色分隔線 (最後一筆不加)
-            if idx < len(tide_data_list) - 1:
-                list_contents.append({"type": "separator", "margin": "md", "color": "#334155"})
-                
-        body_contents.append({
-            "type": "box", 
-            "layout": "vertical", 
-            "margin": "lg", 
-            "paddingAll": "8px",
-            "contents": list_contents
-        })
-
-    # ---------------------------------------------------------
-    # 4. 組裝完整 Flex Message JSON
-    # ---------------------------------------------------------
-    flex_dict = {
-        "type": "bubble",
-        "size": "mega",
-        "styles": {
-            "body": {"backgroundColor": "#0F172A"} # 極深藍灰 (Slate 900)
-        },
-        "header": {
-            "type": "box",
-            "layout": "vertical",
-            "paddingAll": "20px",
-            "paddingBottom": "10px",
-            "backgroundColor": "#0F172A",
-            "contents": [
-                {
-                    "type": "box",
-                    "layout": "horizontal",
-                    "contents": [
-                        {
-                            "type": "text",
-                            "text": "TIDE 資金共振天機圖",
-                            "weight": "bold",
-                            "color": "#38BDF8", # 科技藍
-                            "size": "lg",
-                            "flex": 4
-                        },
-                        {
-                            "type": "text",
-                            "text": "🟢 即時",
-                            "color": "#10B981", # 運作中綠色
-                            "size": "xs",
-                            "weight": "bold",
-                            "align": "end",
-                            "flex": 1
-                        }
-                    ]
-                },
-                {
-                    "type": "text",
-                    "text": f"資料更新時間: {current_time}",
-                    "size": "xxs",
-                    "color": "#64748B",
-                    "margin": "sm"
-                }
-            ]
-        },
-        "body": {
-            "type": "box",
-            "layout": "vertical",
-            "paddingAll": "20px",
-            "paddingTop": "10px",
-            "contents": body_contents
-        },
-        "footer": {
-            "type": "box",
-            "layout": "vertical",
-            "paddingAll": "20px",
-            "paddingTop": "10px",
-            "backgroundColor": "#0F172A",
-            "contents": [
-                {
-                    "type": "button",
-                    "action": {
-                        "type": "uri",
-                        "label": "📊 開啟深度儀表板",
-                        "uri": LIFF_TIDE_URL # 從全域環境變數讀取
-                    },
-                    "style": "primary",
-                    "color": "#2563EB", # 專業操作按鈕藍
-                    "height": "sm"
-                }
-            ]
-        }
-    }
-    return FlexContainer.from_dict(flex_dict)
+   """動態組裝 TIDE 族群共振卡片 (專業交易終端風格，帶有引流代表股)"""
+   
+   from datetime import datetime, timezone, timedelta
+   tw_tz = timezone(timedelta(hours=8))
+   current_time = datetime.now(tw_tz).strftime("%H:%M:%S")
+ 
+   if not tide_data_list:
+       return FlexContainer.from_dict({
+           "type": "bubble", "size": "mega",
+           "styles": {"body": {"backgroundColor": "#0F172A"}},
+           "body": {
+               "type": "box", "layout": "vertical", "paddingAll": "24px",
+               "contents": [
+                   {"type": "text", "text": "⚠️ 盤中監控系統", "color": "#F87171", "weight": "bold", "size": "sm"},
+                   {"type": "text", "text": "今日尚未偵測到強勢共振族群", "color": "#94A3B8", "margin": "md", "size": "xs"}
+               ]
+           }
+       })
+ 
+   # 👑 Top 1 榜首 (Hero Section)
+   top1 = tide_data_list[0]
+   body_contents = [
+       {
+           "type": "box",
+           "layout": "vertical",
+           "backgroundColor": "#1E293B",
+           "paddingAll": "16px",
+           "cornerRadius": "md",
+           "contents": [
+               {
+                   "type": "text",
+                   "text": "👑 本日最強共振",
+                   "color": "#F59E0B",
+                   "size": "xs",
+                   "weight": "bold"
+               },
+               {
+                   "type": "box",
+                   "layout": "horizontal",
+                   "marginTop": "sm",
+                   "contents": [
+                       {
+                           "type": "text",
+                           "text": str(top1.get('cluster_name', '未知')),
+                           "color": "#FFFFFF",
+                           "size": "xl",
+                           "weight": "bold",
+                           "flex": 3,
+                           "wrap": True
+                       },
+                       {
+                           "type": "text",
+                           "text": f"🔥 {top1.get('heat_score', 0)}",
+                           "color": "#EF4444",
+                           "size": "xl",
+                           "weight": "bold",
+                           "align": "end",
+                           "flex": 1
+                       }
+                   ]
+               },
+               # 💡 [新增] Top 1 的代表性股票，微小但精緻的引流資訊
+               {
+                   "type": "text",
+                   "text": f"發動標的：{top1.get('representative_stocks', '')}",
+                   "color": "#94A3B8",
+                   "size": "xs",
+                   "marginTop": "md",
+                   "wrap": True
+               }
+           ]
+       }
+   ]
+ 
+   # 📊 Top 2 ~ 5 追蹤清單 (List Section)
+   if len(tide_data_list) > 1:
+       list_contents = []
+       for idx in range(1, len(tide_data_list)):
+           item = tide_data_list[idx]
+           score = item.get('heat_score', 0)
+           score_color = "#F97316" if score >= 5 else "#38BDF8"
+ 
+           list_contents.append({
+               "type": "box",
+               "layout": "vertical", # 改為垂直排列以容納下方小字
+               "spacing": "xs",
+               "contents": [
+                   {
+                       "type": "box",
+                       "layout": "horizontal",
+                       "contents": [
+                           {
+                               "type": "text",
+                               "text": f"{idx + 1}. {item.get('cluster_name', '未知')}",
+                               "size": "sm",
+                               "color": "#E2E8F0",
+                               "weight": "bold",
+                               "flex": 3
+                           },
+                           {
+                               "type": "text",
+                               "text": f"熱度 {score}",
+                               "size": "xs",
+                               "color": score_color,
+                               "align": "end",
+                               "weight": "bold",
+                               "flex": 1
+                           }
+                       ]
+                   },
+                   # 💡 [新增] Top 2-5 的代表性股票，極低調的暗示字體
+                   {
+                       "type": "text",
+                       "text": item.get('representative_stocks', ''),
+                       "color": "#64748B",  # 比主色調更暗的灰色
+                       "size": "xxs",       # 極小字體
+                       "wrap": True
+                   }
+               ]
+           })
+           
+           if idx < len(tide_data_list) - 1:
+               list_contents.append({"type": "separator", "margin": "md", "color": "#334155"})
+               
+       body_contents.append({
+           "type": "box",
+           "layout": "vertical",
+           "margin": "lg",
+           "paddingAll": "8px",
+           "contents": list_contents
+       })
+ 
+   # 🔗 完整組裝與按鈕
+   flex_dict = {
+       "type": "bubble",
+       "size": "mega",
+       "styles": {"body": {"backgroundColor": "#0F172A"}},
+       "header": {
+           "type": "box",
+           "layout": "vertical",
+           "paddingAll": "20px",
+           "paddingBottom": "10px",
+           "backgroundColor": "#0F172A",
+           "contents": [
+               {
+                   "type": "box",
+                   "layout": "horizontal",
+                   "contents": [
+                       {
+                           "type": "text",
+                           "text": "TIDE 資金共振天機圖",
+                           "weight": "bold",
+                           "color": "#38BDF8",
+                           "size": "lg",
+                           "flex": 4
+                       },
+                       {
+                           "type": "text",
+                           "text": "🟢 即時",
+                           "color": "#10B981",
+                           "size": "xs",
+                           "weight": "bold",
+                           "align": "end",
+                           "flex": 1
+                       }
+                   ]
+               },
+               {"type": "text", "text": f"資料更新時間: {current_time}", "size": "xxs", "color": "#64748B", "margin": "sm"}
+           ]
+       },
+       "body": {
+           "type": "box", "layout": "vertical", "paddingAll": "20px", "paddingTop": "10px", "contents": body_contents
+       },
+       "footer": {
+           "type": "box", "layout": "vertical", "paddingAll": "20px", "paddingTop": "10px", "backgroundColor": "#0F172A",
+           "contents": [
+               {
+                   "type": "button",
+                   "action": {
+                       "type": "uri",
+                       "label": "📊 開啟深度儀表板 (Vue3)",
+                       "uri": LIFF_TIDE_URL
+                   },
+                   "style": "primary",
+                   "color": "#2563EB",
+                   "height": "sm"
+               }
+           ]
+       }
+   }
+   return FlexContainer.from_dict(flex_dict)
 
 # ==========================================
 # 🌐 Webhook 路由與控制器 (Controller Layer)
