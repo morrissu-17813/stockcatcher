@@ -1,0 +1,17 @@
+<!-- 檔案位置: tide-dashboard/index.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TIDE 資金共振天機圖</title>
+  </head>
+  <!-- 這裡的 bg-slate-950 可避免 Vue 載入前的瞬間閃白 (FOUC) -->
+  <body class="bg-slate-950">
+    <!-- Vue 實體的掛載點 -->
+    <div id="app"></div>
+    
+    <!-- 🚨 Vite 的核心機制：透過 ES Module 載入前端程式 -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

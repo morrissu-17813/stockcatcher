@@ -1,0 +1,11 @@
+/* 檔案位置: tide-dashboard/src/style.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 企業級終端機暗黑風格重置 */
+@layer base {
+  html, body {
+    @apply bg-slate-950 text-slate-100 m-0 p-0 overflow-x-hidden antialiased;
+  }
+}
