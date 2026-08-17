@@ -4,99 +4,88 @@ import json
 from datetime import datetime, timezone, timedelta, time
 from collections import Counter
 from typing import List, Dict
-
 def get_real_tide_resonance(supabase_client, signals_table: str = "tianji_signals") -> List[Dict]:
-    """
-    動態計算 TIDE 族群共振熱度核心引擎。
-    包含嚴謹的「台灣時間 (UTC+8) 當日邊界」過濾，確保資料 100% 為盤中即時。
-    """
-    try:
-        print("👉 [TIDE Service] 開始從資料庫撈取今日發動訊號...")
-        
-        # ==========================================
-        # Step 1: 取得精確的台灣時間 (UTC+8) 當日邊界
-        # ==========================================
-        tw_tz = timezone(timedelta(hours=8))
-        tw_now = datetime.now(tw_tz)
-        
-        # 產出 ISO 8601 格式的今日 00:00:00 與 23:59:59
-        start_of_day = datetime.combine(tw_now.date(), time.min, tzinfo=tw_tz).isoformat()
-        end_of_day = datetime.combine(tw_now.date(), time.max, tzinfo=tw_tz).isoformat()
-
-        # ==========================================
-        # Step 2: 執行帶有時間結界的嚴謹查詢
-        # ==========================================
-        response = supabase_client.table(signals_table) \
-            .select("category, data, updated_at") \
-            .in_("category", ["volume_3k", "warrant_3k"]) \
-            .gte("updated_at", start_of_day) \
-            .lte("updated_at", end_of_day) \
-            .execute()
-            
-        # 若今日盤中尚無資料，提早結束並回傳空陣列
-        if not response.data:
-            print("👉 [TIDE Service] 今日盤中尚無符合條件的訊號資料。")
-            return []
-
-        # ==========================================
-        # Step 3: 解析 JSON 並提取唯一的股票代號 (動態型別防呆)
-        # ==========================================
-        signal_stocks = set()
-        for row in response.data:
-            raw_data = row.get("data", {})
-            
-            # 處理字串或已解析的字典型別
-            if isinstance(raw_data, str):
-                try:
-                    data_json = json.loads(raw_data)
-                except json.JSONDecodeError:
-                    continue
-            elif isinstance(raw_data, dict):
-                data_json = raw_data
-            else:
-                continue
-
-            stock_id = data_json.get("stock_id")
-            if stock_id:
-                signal_stocks.add(str(stock_id))
-        
-        if not signal_stocks:
-            return []
-
-        # ==========================================
-        # Step 4: 核心查詢 - 透過 Inner Join 取得族群概念
-        # ==========================================
-        concept_response = supabase_client.table("theme_stocks") \
-            .select("symbol, themes(concept_name)") \
-            .in_("symbol", list(signal_stocks)) \
-            .execute()
-        
-        # ==========================================
-        # Step 5: 統計熱度並回傳 Top 5
-        # ==========================================
-        cluster_names = []
-        for row in concept_response.data:
-            theme_info = row.get("themes")
-            if theme_info and isinstance(theme_info, dict):
-                concept_name = theme_info.get("concept_name")
-                if concept_name:
-                    cluster_names.append(concept_name)
-        
-        # 利用 Counter 計算共振分數
-        top_5 = Counter(cluster_names).most_common(5)
-        
-        # 轉換為前端 Flex Message 所需的資料結構
-        tide_data_list = [
-            {"cluster_name": name, "heat_score": score} 
-            for name, score in top_5
-        ]
-        
-        print(f"✅ [TIDE Service] 盤中運算完成，今日 Top 5 族群: {tide_data_list}")
-        return tide_data_list
-
-    except Exception as e:
-        print(f"❌ [TIDE Service Error] 系統發生致命錯誤: {str(e)}")
-        return []
+   """
+   動態計算 TIDE 族群共振熱度核心引擎 (附帶領漲標的萃取)。
+   """
+   try:
+       tw_tz = timezone(timedelta(hours=8))
+       tw_now = datetime.now(tw_tz)
+       start_of_day = datetime.combine(tw_now.date(), time.min, tzinfo=tw_tz).isoformat()
+       end_of_day = datetime.combine(tw_now.date(), time.max, tzinfo=tw_tz).isoformat()
+ 
+       # 1. 撈取今日盤中訊號
+       response = supabase_client.table(signals_table) \
+           .select("category, data, updated_at") \
+           .in_("category", ["volume_3k", "warrant_3k"]) \
+           .gte("updated_at", start_of_day) \
+           .lte("updated_at", end_of_day) \
+           .execute()
+           
+       if not response.data:
+           return []
+ 
+       # 2. 💡 [蘇蘇優化] 建立股票映射表 (stock_id -> stock_name)
+       signal_stocks_map = {}
+       for row in response.data:
+           raw_data = row.get("data", {})
+           if isinstance(raw_data, str):
+               try: data_json = json.loads(raw_data)
+               except: continue
+           elif isinstance(raw_data, dict): data_json = raw_data
+           else: continue
+ 
+           sid = data_json.get("stock_id")
+           sname = data_json.get("stock_name", "")
+           if sid:
+               # 去重並保留代號與名稱
+               signal_stocks_map[str(sid)] = sname.strip()
+       
+       if not signal_stocks_map:
+           return []
+ 
+       # 3. 查詢族群概念
+       concept_response = supabase_client.table("theme_stocks") \
+           .select("symbol, themes(concept_name)") \
+           .in_("symbol", list(signal_stocks_map.keys())) \
+           .execute()
+       
+       # 4. 💡 [蘇蘇優化] 將發動的股票，反向歸類回對應的族群中
+       concept_to_stocks = defaultdict(list)
+       for row in concept_response.data:
+           theme_info = row.get("themes")
+           sid = str(row.get("symbol"))
+           if theme_info and isinstance(theme_info, dict):
+               concept_name = theme_info.get("concept_name")
+               if concept_name:
+                   # 組合出 "3363 上詮" 的格式
+                   sname = signal_stocks_map.get(sid, "")
+                   display_text = f"{sid} {sname}".strip()
+                   if display_text not in concept_to_stocks[concept_name]:
+                       concept_to_stocks[concept_name].append(display_text)
+       
+       # 5. 計算分數並排序
+       cluster_counts = {name: len(stocks) for name, stocks in concept_to_stocks.items()}
+       top_5 = Counter(cluster_counts).most_common(5)
+       
+       # 6. 萃取回傳結構：加入代表性標的 (最多取 2 檔)
+       tide_data_list = []
+       for name, score in top_5:
+           # 取該族群前兩檔股票，用頓號連接
+           rep_stocks = concept_to_stocks[name][:2]
+           rep_stocks_str = "、".join(rep_stocks)
+           
+           tide_data_list.append({
+               "cluster_name": name,
+               "heat_score": score,
+               "representative_stocks": rep_stocks_str  # 新增的領漲標的欄位
+           })
+           
+       return tide_data_list
+ 
+   except Exception as e:
+       print(f"❌ [TIDE Service Error] {str(e)}")
+       return []
 
 # ==========================================
 # 🧪 本地端單元測試區塊 
