@@ -54,7 +54,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
  
  # 💡 [蘇蘇新增] LIFF URL 環境變數，避免硬編碼
-LIFF_TIDE_URL = os.getenv("LIFF_TIDE_URL", "https://tide-dashboard-ebon.vercel.app")
+LIFF_TIDE_URL = "https://tide-dashboard-ebon.vercel.app"
  
 # 初始化 LINE API 與 Webhook Handler
 configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
@@ -547,7 +547,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
                    "type": "button",
                    "action": {
                        "type": "uri",
-                       "label": "📊 開啟深度儀表板 (Vue3)",
+                       "label": "📊 開啟深度儀表板",
                        "uri": LIFF_TIDE_URL
                    },
                    "style": "primary",
