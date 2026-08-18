@@ -2,6 +2,7 @@
  
 import os
 import re
+import json
 import traceback
 from datetime import datetime, timezone, timedelta, time
 from fastapi import FastAPI, Request, HTTPException
@@ -15,7 +16,8 @@ from linebot.v3.messaging import (
    PushMessageRequest,  # 用於例外處理時的推播
    FlexMessage,
    TextMessage,
-   FlexContainer
+   FlexContainer,
+   ShowLoadingAnimationRequest  # 💡 蘇蘇新增：用於顯示「思考中...」動畫
 )
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
@@ -24,26 +26,26 @@ from fastapi.middleware.cors import CORSMiddleware
  
 # 引入 Bibi Agent
 from services.bibi_agent import ask_bibi_agent
-# 💡 [蘇蘇新增] 引入動態 TIDE 共振引擎
+# 引入動態 TIDE 共振引擎
 from services.tide_service import get_real_tide_resonance
  
 # 載入環境變數
 load_dotenv()
  
 app = FastAPI()
-
+ 
 # 🛡️ 企業級 CORS 安全設定
 app.add_middleware(
-    CORSMiddleware,
-    # 🚨 嚴格限制：只允許你的 Vercel 前端正式網址與本地開發環境發起請求
-    allow_origins=[
-        "https://tide-dashboard-ebon.vercel.app", 
-        "http://localhost:5173"  # 保留本地開發測試彈性
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-) 
+   CORSMiddleware,
+   # 🚨 嚴格限制：只允許 Vercel 前端正式網址與本地開發環境發起請求
+   allow_origins=[
+       "https://tide-dashboard-ebon.vercel.app",
+       "http://localhost:5173"  
+   ],
+   allow_credentials=True,
+   allow_methods=["GET", "POST", "OPTIONS"],
+   allow_headers=["*"],
+)
  
 # ==========================================
 # ⚙️ 環境變數與安全憑證配置
@@ -53,7 +55,7 @@ LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
  
- # 💡 [蘇蘇新增] LIFF URL 環境變數，避免硬編碼
+# LIFF URL 環境變數，避免硬編碼
 LIFF_TIDE_URL = "https://tide-dashboard-ebon.vercel.app"
  
 # 初始化 LINE API 與 Webhook Handler
@@ -72,15 +74,12 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
    使用 ilike 進行關鍵字模糊比對，精準夾出台灣時間今日的全日區間資料。
    """
    try:
-       # 1. 取得台灣時間的今日起訖點 (Asia/Taipei UTC+8)
        tw_tz = timezone(timedelta(hours=8))
        tw_now = datetime.now(tw_tz)
        
-       # 產出 ISO 8601 格式的今日邊界
        start_of_day = datetime.combine(tw_now.date(), time.min, tzinfo=tw_tz).isoformat()
        end_of_day = datetime.combine(tw_now.date(), time.max, tzinfo=tw_tz).isoformat()
  
-       # 2. 執行資料庫查詢：模糊比對 + 當日區間 + 最新優先
        response = supabase.table("tianji_signals") \
            .select("updated_at, data") \
            .eq("category", keyword) \
@@ -93,7 +92,6 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
        if not records:
            return [], "今日尚無資料"
  
-       # 3. 效能優化：因為是降冪排序，第一筆絕對是最新時間
        latest_time_str = "時間解析錯誤"
        raw_time = records[0].get("updated_at")
        if raw_time:
@@ -106,7 +104,6 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
                print(f"⚠️ [時間解析警告] {ve}")
                latest_time_str = str(raw_time)[:16].replace("T", " ")
  
-       # 4. O(N) 高效去重與聚合
        stock_map = {}
        for row in records:
            payload = row.get("data", {})
@@ -118,16 +115,13 @@ def fetch_and_aggregate_signals(keyword: str) -> tuple[list, str]:
                continue
  
            if stock_id not in stock_map:
-               # 第一次遇到該股號 (因為降冪排序，此為最新狀態)
                stock_map[stock_id] = payload
                stock_map[stock_id]["notify_count"] = 1
            else:
-               # 後續遇到舊紀錄，只累加通知次數
                stock_map[stock_id]["notify_count"] += 1
                
        aggregated_list = list(stock_map.values())
        
-       # 5. 商業邏輯排序：通知次數 (遞減) -> 預估量比 (遞減)
        aggregated_list.sort(
            key=lambda x: (
                x.get("notify_count", 0),
@@ -149,7 +143,6 @@ def fetch_tide_cache() -> tuple:
    回傳格式: (cache_value, updated_at_str)
    """
    try:
-       # 💡 [蘇蘇修正] 查詢時必須同時 select 兩個欄位：cache_value 與 updated_at
        response = supabase.table("system_cache") \
            .select("cache_value, updated_at") \
            .eq("cache_key", "tide_top_5") \
@@ -158,78 +151,59 @@ def fetch_tide_cache() -> tuple:
        if response.data and len(response.data) > 0:
            return response.data[0].get("cache_value"), response.data[0].get("updated_at")
            
-       # 若資料庫中沒有此快取，必須回傳兩個 None 以符合解包格式
        return None, None
        
    except Exception as e:
        print(f"❌ [TIDE 快取讀取錯誤] {e}")
-       import traceback
        print(traceback.format_exc())
        return None, None
  
 # ==========================================
-# 💾 TIDE 資料調度層 (Cache-Aside Pattern)
-# ==========================================
-# ==========================================
-# 💾 TIDE 資料調度層與 TTL 快取機制 (專業修正版)
+# 💾 TIDE 資料調度層與 TTL 快取機制
 # ==========================================
 def get_tide_data_with_cache() -> list:
-    """
-    具備 60 秒 TTL 保護的盤中即時資料調度層。
-    修正了快取污染問題，確保空狀態 (Empty State) 也能正確覆寫舊快取。
-    """
-    try:
-        from datetime import datetime, timezone, timedelta
-        tw_tz = timezone(timedelta(hours=8))
-        
-        # 1. 嘗試讀取快取與其更新時間
-        cached_data, updated_at_str = fetch_tide_cache()
-        
-        # 2. 驗證快取是否過期 (TTL = 60 秒)
-        is_cache_valid = False
-        if cached_data is not None and updated_at_str:
-            try:
-                iso_time_str = str(updated_at_str).replace("Z", "+00:00")
-                cache_time = datetime.fromisoformat(iso_time_str).astimezone(tw_tz)
-                now_time = datetime.now(tw_tz)
-                
-                diff_seconds = (now_time - cache_time).total_seconds()
-                if diff_seconds < 60:  # 60秒內視為新鮮
-                    is_cache_valid = True
-            except Exception as time_err:
-                print(f"⚠️ [時間解析警告] 無法判斷快取新鮮度，強制重新運算: {time_err}")
-
-        # 3. 路由決策
-        if is_cache_valid:
-            print(f"👉 [Cache Hit] 讀取 60 秒內的高速即時快取")
-            return cached_data
-            
-        # 4. 快取未命中或已過期，啟動正式盤中即時引擎
-        print("👉 [Cache Miss/Expired] 快取已過期，啟動資料庫即時重新運算...")
-        # 這裡會去呼叫我們稍早加上了「時間結界」的引擎，因為今天沒開盤，會拿到 []
-        real_data_list = get_real_tide_resonance(supabase, signals_table="tianji_signals")
-        
-        # 5. 🚨 關鍵修正：強制回寫快取 (Force Upsert)
-        # 移除 if real_data_list: 的限制，即使是 [] 空陣列，也要寫入資料庫洗掉舊資料！
-        try:
-            # 確保寫入的資料型態是 list，若是 None 則強制轉為空陣列
-            safe_data = real_data_list if isinstance(real_data_list, list) else []
-            
-            supabase.table("system_cache").upsert({
-                "cache_key": "tide_top_5",
-                "cache_value": safe_data
-            }).execute()
-            print(f"👉 [Cache Update] 最新盤中狀態 (包含空值狀態) 已刷新至系統快取")
-        except Exception as cache_err:
-            print(f"⚠️ [Cache Update Warning] 快取回寫失敗: {cache_err}")
-
-        return safe_data
-        
-    except Exception as e:
-        print(f"❌ [TIDE 調度層錯誤] {e}")
-        return []
-
-
+   """具備 60 秒 TTL 保護的盤中即時資料調度層。"""
+   try:
+       tw_tz = timezone(timedelta(hours=8))
+       
+       cached_data, updated_at_str = fetch_tide_cache()
+       
+       is_cache_valid = False
+       if cached_data is not None and updated_at_str:
+           try:
+               iso_time_str = str(updated_at_str).replace("Z", "+00:00")
+               cache_time = datetime.fromisoformat(iso_time_str).astimezone(tw_tz)
+               now_time = datetime.now(tw_tz)
+               
+               diff_seconds = (now_time - cache_time).total_seconds()
+               if diff_seconds < 60:
+                   is_cache_valid = True
+           except Exception as time_err:
+               print(f"⚠️ [時間解析警告] 無法判斷快取新鮮度，強制重新運算: {time_err}")
+ 
+       if is_cache_valid:
+           print(f"👉 [Cache Hit] 讀取 60 秒內的高速即時快取")
+           return cached_data
+           
+       print("👉 [Cache Miss/Expired] 快取已過期，啟動資料庫即時重新運算...")
+       real_data_list = get_real_tide_resonance(supabase, signals_table="tianji_signals")
+       
+       try:
+           safe_data = real_data_list if isinstance(real_data_list, list) else []
+           supabase.table("system_cache").upsert({
+               "cache_key": "tide_top_5",
+               "cache_value": safe_data
+           }).execute()
+           print(f"👉 [Cache Update] 最新盤中狀態已刷新至系統快取")
+       except Exception as cache_err:
+           print(f"⚠️ [Cache Update Warning] 快取回寫失敗: {cache_err}")
+ 
+       return safe_data
+       
+   except Exception as e:
+       print(f"❌ [TIDE 調度層錯誤] {e}")
+       return []
+ 
 # ==========================================
 # 🧠 意圖解析層 (Intent Parsing Layer)
 # ==========================================
@@ -253,7 +227,7 @@ def parse_user_intent(raw_msg: str) -> str:
 # 🎨 視覺渲染層 (Presentation Layer)
 # ==========================================
 def build_strategy_list_flex(title: str, signals: list, update_time: str) -> FlexContainer:
-   """動態組裝 LINE Flex Message (具備強制定型與容量限制防護)"""
+   """動態組裝 LINE Flex Message"""
    if not signals:
        return FlexContainer.from_dict({
            "type": "bubble", "size": "mega",
@@ -265,7 +239,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            }
        })
  
-   # 🛡️ 容量防護：降低 MAX_BUBBLES 避免超過 LINE 的 50KB 限制
    ITEMS_PER_PAGE = 5  
    MAX_BUBBLES = 8    
    
@@ -293,7 +266,6 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
            name = str(s.get("stock_name", "N/A"))
            industry = str(s.get("industry", "-"))
            
-           # 🛡️ 髒資料防護：強制轉型，防止伺服器因型別異常而崩潰
            try:
                price = float(s.get("price", 0.0) or 0.0)
                pct = float(s.get("pct", 0.0) or 0.0)
@@ -305,12 +277,9 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
  
            price_color = "#f43f5e" if pct > 0 else ("#10b981" if pct < 0 else "#94a3b8")
            
-           if count >= 5:
-               count_color = "#f43f5e"  
-           elif 2 <= count <= 4:
-               count_color = "#f97316"  
-           else:
-               count_color = "#eab308"  
+           if count >= 5: count_color = "#f43f5e"  
+           elif 2 <= count <= 4: count_color = "#f97316"  
+           else: count_color = "#eab308"  
  
            stock_row = {
                "type": "box", "layout": "vertical", "margin": "lg" if item_index > 0 else "none",
@@ -363,13 +332,9 @@ def build_strategy_list_flex(title: str, signals: list, update_time: str) -> Fle
        "type": "carousel",
        "contents": carousel_bubbles
    })
-
-
-# 💡 [蘇蘇更新] TIDE 專屬卡片生成器 (無印風格 Muji Style)
+ 
 def build_tide_flex(tide_data_list: list) -> FlexContainer:
-   """動態組裝 TIDE 族群共振卡片 (專業交易終端風格，帶有引流代表股)"""
-   
-   from datetime import datetime, timezone, timedelta
+   """動態組裝 TIDE 族群共振卡片"""
    tw_tz = timezone(timedelta(hours=8))
    current_time = datetime.now(tw_tz).strftime("%H:%M:%S")
  
@@ -386,7 +351,6 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
            }
        })
  
-   # 👑 Top 1 榜首 (Hero Section)
    top1 = tide_data_list[0]
    body_contents = [
        {
@@ -428,7 +392,6 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
                        }
                    ]
                },
-               # 💡 [新增] Top 1 的代表性股票，微小但精緻的引流資訊
                {
                    "type": "text",
                    "text": f"發動標的：{top1.get('representative_stocks', '')}",
@@ -441,7 +404,6 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
        }
    ]
  
-   # 📊 Top 2 ~ 5 追蹤清單 (List Section)
    if len(tide_data_list) > 1:
        list_contents = []
        for idx in range(1, len(tide_data_list)):
@@ -451,7 +413,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
  
            list_contents.append({
                "type": "box",
-               "layout": "vertical", # 改為垂直排列以容納下方小字
+               "layout": "vertical",
                "spacing": "xs",
                "contents": [
                    {
@@ -477,12 +439,11 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
                            }
                        ]
                    },
-                   # 💡 [新增] Top 2-5 的代表性股票，極低調的暗示字體
                    {
                        "type": "text",
                        "text": item.get('representative_stocks', ''),
-                       "color": "#64748B",  # 比主色調更暗的灰色
-                       "size": "xxs",       # 極小字體
+                       "color": "#64748B",
+                       "size": "xxs",
                        "wrap": True
                    }
                ]
@@ -499,7 +460,6 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
            "contents": list_contents
        })
  
-   # 🔗 完整組裝與按鈕
    flex_dict = {
        "type": "bubble",
        "size": "mega",
@@ -558,7 +518,29 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
        }
    }
    return FlexContainer.from_dict(flex_dict)
-
+ 
+# ==========================================
+# 🔄 輔助工具：顯示思考中動畫
+# ==========================================
+def show_bot_loading(user_id: str, seconds: int = 20):
+   """
+   呼叫 LINE 官方 API 顯示「思考中...」的對話動畫。
+   具備容錯機制，即使發生網路異常也不影響核心業務邏輯。
+   """
+   if not user_id:
+       return
+   try:
+       with ApiClient(configuration) as api_client:
+           line_bot_api = MessagingApi(api_client)
+           line_bot_api.show_loading_animation(
+               ShowLoadingAnimationRequest(
+                   chatId=user_id,
+                   loadingSeconds=seconds
+               )
+           )
+   except Exception as e:
+       print(f"⚠️ [Loading Animation] 無法顯示思考中動畫: {e}")
+ 
 # ==========================================
 # 🌐 Webhook 路由與控制器 (Controller Layer)
 # ==========================================
@@ -572,43 +554,69 @@ async def callback(request: Request):
    except InvalidSignatureError:
        raise HTTPException(status_code=400, detail="Invalid signature. 請檢查 LINE Secret。")
    except Exception as e:
-       # 🛡️ 全域防護：捕捉頂層錯誤並印出詳細堆疊，防止系統悄悄掛點
        print(f"❌ [系統嚴重崩潰] {e}")
        print(traceback.format_exc())
        raise HTTPException(status_code=500, detail="Internal Server Error")
    return "OK"
-
-# 🌟 新增：專供給 Vue 3 儀表板呼叫的 API 端點
+ 
+# ==========================================
+# 🌟 給 Vue 3 儀表板專用的 API 端點 (極速快取版)
+# ==========================================
 @app.get("/api/tide")
 async def get_tide_dashboard_data():
-    """
-    提供前端儀表板即時拉取 TIDE 共振族群與個股明細
-    """
-    try:
-        # 注意：請傳入你專案中正確初始化的 supabase_client
-        # tide_data = get_real_tide_resonance(supabase_client)
-        tide_data = get_real_tide_resonance(supabase) # 請依你專案變數名稱調整
-        
-        return {
-            "status": "success",
-            "message": "即時資金共振資料取得成功",
-            "data": tide_data
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"伺服器內部錯誤: {str(e)}")
+   """
+   提供給 Vue 3 前端儀表板的 API 端點。
+   直接讀取 system_cache 中的 tide_top_5 快取，達到 O(1) 極速響應與零運算成本。
+   保留了原有的 function 名稱確保系統相依性不被破壞。
+   """
+   try:
+       # 1️⃣ 直接向 Supabase 查詢快取資料
+       response = supabase.table("system_cache") \
+           .select("cache_value, updated_at") \
+           .eq("cache_key", "tide_top_5") \
+           .execute()
  
+       # 2️⃣ 處理快取不存在的邊界情況
+       if not response.data:
+           return {
+               "status": "success",
+               "message": "目前無盤中快取資料",
+               "data": []
+           }
+ 
+       # 3️⃣ 解析資料
+       cache_row = response.data[0]
+       raw_value = cache_row.get("cache_value", "[]")
+       
+       # 安全地將 JSON 字串轉回 Python List/Dict
+       tide_data = json.loads(raw_value) if isinstance(raw_value, str) else raw_value
+ 
+       # 4️⃣ 回傳給前端
+       return {
+           "status": "success",
+           "message": "盤中快取資料讀取成功",
+           "data": tide_data,
+           "updated_at": cache_row.get("updated_at")
+       }
+ 
+   except Exception as e:
+       import traceback
+       print(f"❌ [API Error] 讀取 system_cache 失敗: {str(e)}")
+       print(traceback.format_exc())
+       raise HTTPException(status_code=500, detail="伺服器內部錯誤，無法取得資金共振資料")
+ 
+# ==========================================
+# 🤖 LINE 訊息事件處理中樞 (Message Handler)
+# ==========================================
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
    """處理使用者對話與圖文選單按鈕觸發的查詢事件"""
    user_msg = event.message.text.strip()
- 
-   # ==========================================
-   # 🤖 路由 1：攔截專屬 AI 交易員「比鼻」的動態對話
-   # ==========================================
-   # 💡 捷徑指令通道：#分析 股名 (跳過第一層 LLM，節省 API 額度)
-   match_fast_cmd = re.match(r'(?i)^#分析\s*(.+)?', user_msg)
    
-   # 💡 自然語言通道：[Hi] [，] 比鼻 [問題]
+   # 擷取使用者 ID，供 Loading Animation 使用
+   user_id = getattr(event.source, "user_id", None)
+ 
+   match_fast_cmd = re.match(r'(?i)^#分析\s*(.+)?', user_msg)
    match_natural = re.match(r'(?i)^(?:hi\s*[,，]?\s*)?比鼻', user_msg)
  
    # ------------------------------------------
@@ -617,14 +625,13 @@ def handle_message(event):
    if match_fast_cmd:
        query = match_fast_cmd.group(1)
        if not query:
-           # 防呆：如果只輸入 "#分析" 卻沒有給股名
            ai_reply = "請在 #分析 後面加上股票名稱或代號喔！（例如：#分析 2330台積電）"
        else:
-           # 靜態注入個股意圖，呼叫 AI Agent
            query = query.strip()
+           # 💡 [新增 UX] 在呼叫 LLM 前顯示思考動畫
+           show_bot_loading(user_id=user_id, seconds=20)
            ai_reply = ask_bibi_agent(query, force_intent="INTENT_STOCK_FUNDAMENTAL")
            
-       # 統一回覆文字訊息並結束
        with ApiClient(configuration) as api_client:
            line_bot_api = MessagingApi(api_client)
            line_bot_api.reply_message(
@@ -639,14 +646,11 @@ def handle_message(event):
    # 處理路徑 B: 自然對話 (呼叫比鼻)
    # ------------------------------------------
    elif match_natural:
-       # 安全切下 "比鼻" 後面的真實提問
        query = user_msg[match_natural.end():].strip()
        
-       # 過濾緊接在 "比鼻" 後方的全形/半形逗號
        if query.startswith("，") or query.startswith(","):
            query = query[1:].strip()
            
-       # 🛡️ 零成本防呆保護：只叫名字，絕對不呼叫 Gemini API
        if not query:
            static_guide = (
                "你好！我是專屬 AI 交易員比鼻 🤖\n\n"
@@ -665,7 +669,8 @@ def handle_message(event):
                )
            return
  
-       # 有具體問題，走正常的雙腦解析流程
+       # 💡 [新增 UX] 在呼叫複雜的 AI 解析流程前顯示思考動畫
+       show_bot_loading(user_id=user_id, seconds=30)
        ai_reply = ask_bibi_agent(query)
        
        with ApiClient(configuration) as api_client:
@@ -678,9 +683,9 @@ def handle_message(event):
            )
        return
  
-   # ==========================================
-   # 📊 路由 2：圖文選單靜態意圖解析 (Flex Message)
-   # ==========================================
+   # ------------------------------------------
+   # 處理路徑 C: 圖文選單與制式意圖
+   # ------------------------------------------
    action_intent = parse_user_intent(user_msg)
    reply_flex = None
    
@@ -693,17 +698,17 @@ def handle_message(event):
        reply_flex = build_strategy_list_flex("🔥 3K 量能異常", signals, update_time)
        
    elif action_intent == "INTENT_TIDE_HEATMAP":
-        print("👉 [DEBUG] 觸發 TIDE 查詢...")
-        try:
-            # 💡 透過調度層取得資料 (自動處理 Cache 與即時運算)
-            tide_data_list = get_tide_data_with_cache()
-            reply_flex = build_tide_flex(tide_data_list)
-        except Exception as e:
-            print(f"❌ [TIDE 查詢錯誤] {e}")
-            import traceback
-            print(traceback.format_exc())
-            reply_flex = build_tide_flex([])  # 發生錯誤時回傳空陣列防呆
-       
+       print("👉 [DEBUG] 觸發 TIDE 查詢...")
+       # 💡 [新增 UX] 即使有快取，仍可顯示極短暫的載入動畫，提升科技感
+       show_bot_loading(user_id=user_id, seconds=5)
+       try:
+           tide_data_list = get_tide_data_with_cache()
+           reply_flex = build_tide_flex(tide_data_list)
+       except Exception as e:
+           print(f"❌ [TIDE 查詢錯誤] {e}")
+           print(traceback.format_exc())
+           reply_flex = build_tide_flex([])  
+     
    elif action_intent == "INTENT_DASHBOARD":
        pass
  
@@ -724,9 +729,7 @@ def handle_message(event):
            print(f"❌ [LINE API 發送失敗] Flex 格式錯誤或容量過大: {e}")
            print(traceback.format_exc())
            
-           # 🛡️ 降級防護：若 Reply Token 耗盡，改用 Push Message 發送緊急提示
            try:
-               user_id = getattr(event.source, "user_id", None)
                if user_id:
                    with ApiClient(configuration) as api_client:
                        line_bot_api = MessagingApi(api_client)
