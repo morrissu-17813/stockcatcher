@@ -87,6 +87,217 @@ _stocks_with_futures = set()   # 有股票期貨的標的
 _stocks_with_cb = set()        # 有可轉債的標的
 _cb_primary_market_map = {}    # CB初級市場資訊：sid -> {auction:[], filing:[], board:[]}
 _tide_analyzer = None          # TIDE族群共振分析器
+
+# ============================================================
+# 🎯 [SMC 引擎核心模組] 天機網格、跳空防禦、K線聚合與形態評估
+# ============================================================
+from collections import deque
+from typing import Dict, List, Tuple, Optional
+
+# 新增全域 SMC 網格記憶體
+smc_grid_map = {}
+
+class SMCGridCalculator:
+    """SMC 盤前靜態網格計算器 (CDP 演算法)"""
+    @staticmethod
+    def calculate(high: float, low: float, close: float) -> Optional[Dict[str, float]]:
+        # 1. 防禦性檢查：過濾無效的 K 線數據
+        if high <= 0 or low <= 0 or close <= 0 or high < low:
+            return None
+        
+        # 2. 核心運算：計算中軸價 (PT)
+        # 演算法邏輯：(昨高 + 昨低 + 2 * 昨收) / 4
+        # 賦予收盤價雙倍權重，確保中軸貼近經過一天多空交戰後的真實籌碼共識
+        pt = (high + low + 2 * close) / 4
+        
+        # 3. 封裝與回傳網格物件
+        return {
+            "mh_h": round(pt + (high - low), 2),
+            "egg_ll": round(pt * 2 - low, 2),
+            "pt": round(pt, 2),
+            "egg_hh": round(pt * 2 - high, 2),
+            "mh_l": round(pt - (high - low), 2),
+            "ref_close": close,
+            "status": "active",
+            "is_calibrated": False,
+            "is_gapped": False
+        }
+
+def print_smc_grid_logs(max_display: int = 200):
+    """
+    [系統日誌] 於 GitHub Actions Console 印出 SMC 盤前網格抽樣
+    以 monitor_data 為唯一基準，確保只處理這 200 檔。
+    """
+    if not monitor_data:
+        print("⚠️ [SMC 天機網格] 尚未建立任何監控狀態資料 (monitor_data 為空)。")
+        return
+
+    print(f"\n{'='*105}")
+    print(f"🎯 [SMC 天機網格] 監控股池網格抽樣總覽 (最多顯示 {max_display} 筆)")
+    print(f"{wide_ljust('股號', 6)} | {wide_ljust('股名', 10)} | {wide_ljust('MH_H(強壓)', 12)} | {wide_ljust('Egg_LL(次壓)', 12)} | {wide_ljust('中軸價(PT)', 12)} | {wide_ljust('Egg_HH(次撐)', 12)} | {wide_ljust('MH_L(防守)', 12)}")
+    print("-" * 105)
+
+    active_sids = list(monitor_data.keys())
+    
+    sorted_sids = sorted(
+        active_sids, 
+        key=lambda sid: 0 if stock_info_map.get(sid, {}).get('is_protected') else (1 if stock_info_map.get(sid, {}).get('market') == '上市' else 2)
+    )
+    
+    valid_count = 0
+    displayed_count = 0
+    
+    for sid in sorted_sids:
+        grid = smc_grid_map.get(sid)
+        if not grid:
+            continue
+            
+        valid_count += 1
+        
+        if displayed_count < max_display:
+            name = stock_info_map.get(sid, {}).get('name', '未知')
+            print(
+                f"{wide_ljust(sid, 6)} | "
+                f"{wide_ljust(name, 10)} | "
+                f"{wide_ljust(grid.get('mh_h', 0), 12)} | "
+                f"{wide_ljust(grid.get('egg_ll', 0), 12)} | "
+                f"{wide_ljust(grid.get('pt', 0), 12)} | "
+                f"{wide_ljust(grid.get('egg_hh', 0), 12)} | "
+                f"{wide_ljust(grid.get('mh_l', 0), 12)}"
+            )
+            displayed_count += 1
+
+    print(f"{'-'*105}")
+    print(f"📊 狀態總結: 系統實時追蹤 {len(active_sids)} 檔標的，其中 {valid_count} 檔成功掛載 SMC 網格。")
+    if valid_count > max_display:
+        print(f"💡 (隱藏其餘 {valid_count - max_display} 筆)")
+    print(f"{'='*105}\n")
+
+class DynamicGridCalibrator:
+    """動態網格校正器：兩階段跳空防禦狀態機"""
+    GAP_THRESHOLD = 0.03
+    ORB_CANDLE_COUNT = 3
+
+    @classmethod
+    def check_gap_at_open(cls, grid: Dict, first_tick_price: float) -> None:
+        """階段一：開盤瞬間 (09:00) 偵測跳空並凍結網格"""
+        if not grid or grid.get("status") != "active": return
+        ref_close = grid.get("ref_close", 0.0)
+        if ref_close <= 0: return
+        
+        gap_pct = abs(first_tick_price - ref_close) / ref_close
+        if gap_pct >= cls.GAP_THRESHOLD:
+            grid["status"] = "suspended"
+            grid["is_gapped"] = True
+
+    @classmethod
+    def rebuild_grid_at_15m(cls, grid: Dict, orb_klines: List[dict]) -> None:
+        """階段二：09:15 收集滿 3 根 5m K 線後重鑄網格"""
+        if not grid or grid.get("status") != "suspended" or len(orb_klines) < cls.ORB_CANDLE_COUNT:
+            return
+        
+        orb_high = max(k["h"] for k in orb_klines[:cls.ORB_CANDLE_COUNT])
+        orb_low = min(k["l"] for k in orb_klines[:cls.ORB_CANDLE_COUNT])
+        orb_close = orb_klines[cls.ORB_CANDLE_COUNT - 1]["c"]
+
+        pt = (orb_high + orb_low + 2 * orb_close) / 4
+        range_val = orb_high - orb_low
+        grid.update({
+            "mh_h": round(pt + range_val, 2),
+            "egg_ll": round(pt * 2 - orb_low, 2),
+            "pt": round(pt, 2),
+            "egg_hh": round(pt * 2 - orb_high, 2),
+            "mh_l": round(pt - range_val, 2),
+            "status": "active",
+            "is_calibrated": True
+        })
+
+class KLineAggregator:
+    """雙週期 K 線聚合器 (支援跨日自動重置)"""
+    def __init__(self, max_1m_history: int = 30, max_5m_history: int = 60):
+        self.history_1m: Dict[str, deque] = {}
+        self.history_5m: Dict[str, deque] = {}
+        self.buffer_1m: Dict[str, dict] = {}
+        self.buffer_5m: Dict[str, dict] = {}
+        self.last_vol: Dict[str, int] = {}
+        self.max_1m_history = max_1m_history
+        self.max_5m_history = max_5m_history
+        self.current_minute: Optional[str] = None
+        self.current_date: Optional[str] = None
+
+    def _check_cross_day(self):
+        today_str = get_now_tw().strftime('%Y-%m-%d')
+        if self.current_date != today_str:
+            self.history_1m.clear()
+            self.history_5m.clear()
+            self.buffer_1m.clear()
+            self.buffer_5m.clear()
+            self.last_vol.clear()
+            self.current_date = today_str
+            self.current_minute = None
+
+    def update(self, sid: str, price: float, total_vol: int):
+        self._check_cross_day()
+        for buf in (self.buffer_1m, self.buffer_5m):
+            if sid not in buf:
+                buf[sid] = {"o": price, "h": price, "l": price, "c": price, "v": total_vol}
+            else:
+                b = buf[sid]
+                b["h"], b["l"], b["c"], b["v"] = max(b["h"], price), min(b["l"], price), price, total_vol
+
+    def flush_1m(self) -> None:
+        for sid, b in list(self.buffer_1m.items()):
+            prev_v = self.last_vol.get(sid, b["v"])
+            minute_v = max(0, b["v"] - prev_v)
+            self.last_vol[sid] = b["v"]
+            kline = {"sid": sid, "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": minute_v}
+            if sid not in self.history_1m:
+                self.history_1m[sid] = deque(maxlen=self.max_1m_history)
+            self.history_1m[sid].append(kline)
+        self.buffer_1m.clear()
+
+    def flush_5m(self) -> None:
+        today_str = self.current_date
+        for sid, b in list(self.buffer_5m.items()):
+            prev_v = self.last_vol.get(f"{sid}_5m_base", b["v"])
+            period_v = max(0, b["v"] - prev_v)
+            self.last_vol[f"{sid}_5m_base"] = b["v"]
+            kline = {"sid": sid, "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": period_v, "date": today_str}
+            if sid not in self.history_5m:
+                self.history_5m[sid] = deque(maxlen=self.max_5m_history)
+            self.history_5m[sid].append(kline)
+        self.buffer_5m.clear()
+
+    def get_5m_history(self, sid: str) -> List[dict]:
+        return list(self.history_5m[sid]) if sid in self.history_5m else []
+
+class SMCStandaloneEvaluator:
+    """SMC 形態評估引擎 (ABC評級與紅K過濾)"""
+    def __init__(self, tolerance: float = 0.005):
+        self.tolerance = tolerance
+
+    def evaluate(self, sid: str, klines_5m: List[dict], grid: dict) -> Tuple[bool, str, str, float]:
+        if not grid or not klines_5m or grid.get("status") != "active":
+            return False, "", "", 0.0
+
+        latest_5m_k = klines_5m[-1]
+        if latest_5m_k["c"] <= latest_5m_k["o"]:
+            return False, "", "", 0.0
+
+        mh_l, egg_hh = grid.get("mh_l", 0.0), grid.get("egg_hh", 0.0)
+        mh_h, egg_ll = grid.get("mh_h", 0.0), grid.get("egg_ll", 0.0)
+        lowest_price, close_price = latest_5m_k["l"], latest_5m_k["c"]
+
+        if mh_l > 0 and lowest_price <= mh_l * (1 + self.tolerance) and close_price > mh_l:
+            return True, "🔥 A+ (90分)", "主波段破底翻 (5分紅K確認)", mh_l
+        if egg_hh > 0 and lowest_price <= egg_hh * (1 + self.tolerance) and close_price > egg_hh:
+            return True, "🔥 A+ (88分)", "次級強撐打樁 (5分紅K確認)", egg_hh
+        if egg_ll > 0 and lowest_price <= egg_ll * (1 + self.tolerance) and close_price > egg_ll:
+            return True, "🎯 A (82分)", "次壓轉換支撐 (5分紅K確認)", egg_ll
+        if mh_h > 0 and close_price >= mh_h * (1 - self.tolerance) and close_price < mh_h:
+             return True, "⚠️ C (50分)", "價格逼近假突破強壓區", mh_h
+
+        return False, "", "", 0.0
  
 # ============================================================
 # 🛡️ 🔏 [真．全域落鎖區] 核心工具與通訊函數強制置頂
@@ -859,7 +1070,79 @@ def save_signal_to_supabase(category: str, stock_data: dict) -> None:
        # 發生錯誤時僅印出 Log，不使用 raise 拋出異常，確保 TG 通知繼續執行
        print(f"❌ [DB 寫入失敗] {category} | 錯誤原因: {e}")
  
- 
+def build_tianji_wall_block(grid: dict, current_price: float) -> list:
+    """生成 Telegram 底部天機牆文字區塊"""
+    if not grid or current_price <= 0: return []
+    def calc_dist(target: float) -> str:
+        if target <= 0: return "無資料"
+        dist_pct = ((target - current_price) / current_price) * 100
+        return f"距 {'+' if dist_pct > 0 else ''}{dist_pct:.1f}%"
+
+    return [
+        "🎯 *5m SMC 關鍵位階天機牆 (攻防座標)*",
+        f"🔴 假突破/強壓 (MH_H) ：`{grid.get('mh_h', 0)}` ({calc_dist(grid.get('mh_h', 0))})",
+        f"🟠 次級壓力 (Egg_LL) ：`{grid.get('egg_ll', 0)}` ({calc_dist(grid.get('egg_ll', 0))})",
+        f"⚪ 多空分水嶺 (PT)    ：`{grid.get('pt', 0)}` ({calc_dist(grid.get('pt', 0))})", # 新增中軸價
+        f"🟢 次級強撐 (Egg_HH) ：`{grid.get('egg_hh', 0)}` ({calc_dist(grid.get('egg_hh', 0))})",
+        f"🟢 結構防守區 (MH_L) ：`{grid.get('mh_l', 0)}` ({calc_dist(grid.get('mh_l', 0))})"
+    ]
+
+def save_and_notify_smc(sid: str, name: str, lp: float, up_pct: float, ratio: float, 
+                        defense_price: float, grid: dict, badge: str, desc: str):
+    """處理 SMC 專屬的 Supabase 寫入與 TG 通知 (保持與原有 3K 策略解耦)"""
+    
+    # 1. 寫入 Supabase (JSONB 動態擴充格式)
+    stock_payload = {
+        "stock_id": str(sid),
+        "stock_name": name,
+        "price": float(lp),
+        "pct": float(up_pct),
+        "vol_ratio": float(ratio),
+        "stop_loss": float(defense_price),
+        "morphology_rating": badge,
+        "morphology_desc": desc,
+        "smc_grid": {
+            "mh_h": float(grid.get("mh_h", 0.0)),
+            "egg_ll": float(grid.get("egg_ll", 0.0)),
+            "pt": float(grid.get("pt", 0.0)),
+            "egg_hh": float(grid.get("egg_hh", 0.0)),
+            "mh_l": float(grid.get("mh_l", 0.0)),
+            "ref_close": float(grid.get("ref_close", 0.0)),
+            "is_gapped": grid.get("is_gapped", False)
+        }
+    }
+    
+    if supabase:
+        try:
+            supabase.table("tianji_signals").insert({
+                "category": "smc_standalone",
+                "data": stock_payload
+            }).execute()
+            print(f"✅ [DB] SMC 訊號寫入成功: {sid} {name}")
+        except Exception as e:
+            print(f"❌ [DB] SMC 寫入失敗: {e}")
+
+    # 2. 發送 Telegram 通知
+    msg_lines = [
+        "🚨 [SMC 雷達觸發]",
+        f"📈 *標的：* [{sid} {name}](https://www.nstock.tw/stock_info?stock_id={sid})",
+        f"💰 *現價：* `{lp}` ({up_pct:+.2f}%)",
+        "━━━━━━━━━━━━",
+        f"🏆 *形態評級：* {badge}",
+        f"🧬 *觸發形態：* {desc}" + (" (跳空重鑄網格)" if grid.get("is_gapped") else "")
+    ]
+    
+    msg_lines.extend(["━━━━━━━━━━━━"] + build_tianji_wall_block(grid, lp))
+    msg_lines.extend(["━━━━━━━━━━━━", f"⏰ {get_now_tw().strftime('%H:%M:%S')}"])
+    
+    try:
+        standard_requests.post(
+            f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage", 
+            json={"chat_id": Config.TELEGRAM_CHAT_ID, "text": "\n".join(msg_lines), "parse_mode": "Markdown"}, 
+            timeout=5
+        )
+    except Exception as e:
+        print(f"❌ [Telegram] SMC 發送失敗: {e}") 
  
 def perform_strategy_test():
   print("📡 啟動自動化測試：發送驗證訊號...", flush=True)
@@ -881,7 +1164,7 @@ def perform_strategy_test():
   # 2. 準備啟動廣播訊息
   startup_msg = f"🚀 系統啟動成功\n天機選股雷達上線運作中！\n時間：{time_str}\n模式：TG & LINE 雙軌監控"
   print(startup_msg)
-  send_line_status_flex_message("v2.3", "Telegram & LINE 雙軌監控", time_str)
+  send_line_status_flex_message("v2.4", "Telegram & LINE 雙軌監控", time_str)
   print("✅ 自動化測試驗證訊號已成功送出！")
  
 def should_exclude(sid, name, industry):
@@ -1063,7 +1346,7 @@ def refresh_pool_v90():
           }
  
 # ============================================================
-# 🕵️♂️ ✅ [V2.3 真．衍生商品與無結構權證解析] 導入 curl_cffi 與限流防禦
+# 🕵️♂️ ✅ [V2.4 真．衍生商品與無結構權證解析] 導入 curl_cffi 與限流防禦
 # ============================================================
  
 def _extract_sids_from_taifex_rows(rows: List, keys_to_check: List[str]) -> Set[str]:
@@ -1474,6 +1757,14 @@ def _fetch_volume_from_finmind_fallback():
               if vol > 0:
                   global_volume_lookup[sid] = vol
                   global_turnover_lookup[sid] = turnover
+              
+              # 🛡️ 補強：在 Fallback 模式下依然確保天機網格被建立
+              h = safe_cast(row.get('max', 0), float) # FinMind 欄位可能為 max/min
+              l = safe_cast(row.get('min', 0), float)
+              c = safe_cast(row.get('close', 0), float)
+              if h > 0 and l > 0 and c > 0:
+                  grid = SMCGridCalculator.calculate(h, l, c)
+                  if grid: smc_grid_map[sid] = grid
   except Exception as e:
       print(f"❌ FinMind 前一交易日資料取得失敗: {e}")
  
@@ -1492,6 +1783,13 @@ def pre_market_initialization():
                   global_volume_lookup[code] = safe_cast(row.get('TradeVolume'), int) // 1000
                   global_turnover_lookup[code] = safe_cast(row.get('TradeValue'), float)
                   twse_sids.add(code)
+                  
+                  # 🎯 [SMC 擴充] 建立上市盤前網格
+                  h = safe_cast(row.get('HighestPrice'), float)
+                  l = safe_cast(row.get('LowestPrice'), float)
+                  c = safe_cast(row.get('ClosingPrice'), float)
+                  grid = SMCGridCalculator.calculate(h, l, c)
+                  if grid: smc_grid_map[code] = grid
   except: pass
   try:
       tpex_data = curl_requests.get("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes", impersonate="chrome120", timeout=10).json()
@@ -1501,6 +1799,14 @@ def pre_market_initialization():
               if len(code) == 4:
                   global_volume_lookup[code] = safe_cast(row.get('TradingShares'), int) // 1000
                   global_turnover_lookup[code] = safe_cast(row.get('TradingAmount'), float)
+                  
+                  # 🎯 [SMC 擴充] 建立上櫃盤前網格
+                  h = safe_cast(row.get('High'), float)
+                  l = safe_cast(row.get('Low'), float)
+                  c = safe_cast(row.get('Close'), float)
+                  grid = SMCGridCalculator.calculate(h, l, c)
+                  if grid: smc_grid_map[code] = grid
+                  
   except: pass
  
   if len(global_volume_lookup) == 0:
@@ -1592,25 +1898,32 @@ def recover_3k_data(target_list: List[str]):
  
 def main():
   global _last_fugle_scan, finmind_industry_map
-  print(f"🛡️ 蘇蘇的天機選股 V2.3 啟動完成。")
+  print(f"🛡️ 蘇蘇的天機選股 V2.4 啟動完成。")
   print(f"{get_now_tw().strftime('%H:%M:%S')} 執行盤前籌碼映射與官方 Profile 基本面同步...")
  
   finmind_industry_map = fetch_finmind_industry_mapping()
   pre_market_initialization()
- 
+  
   print("🛰️ 啟動市場動態配額同步模組...")
   refresh_pool_v90()
- 
+    
   w_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '權證'])
   l_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '上市'])
   o_count = len([s for s in stock_info_map if stock_info_map[s]['market'] == '上櫃'])
   print(f"✅ 初始化：上市 {l_count} 檔、上櫃 {o_count} 檔、權證主力(protected) {w_count} 檔。")
- 
+  # 🎯 SMC 擴充：在股池確立後，立刻印出這 200 檔的 SMC 網格日誌
+  print_smc_grid_logs()
   perform_strategy_test()
   recover_3k_data(list(stock_info_map.keys()))
   print("🚀 系統初始化完畢，準備進入監控模式...\n")
   time.sleep(0.5)
- 
+  
+  # 初始化 SMC 核心引擎與當日狀態管理
+  smc_aggregator = KLineAggregator(max_1m_history=30, max_5m_history=60)
+  smc_evaluator = SMCStandaloneEvaluator(tolerance=0.005)
+  daily_stock_states = {}
+  current_date_str = get_now_tw().strftime('%Y-%m-%d')
+  
   max_results = {}
  
   while True:
@@ -1626,6 +1939,47 @@ def main():
           if tw_now.weekday() < 5 and tw_now.time() >= Config.AUTO_SHUTDOWN_TIME:
               print(f"\n[系統時鐘觸發熄火] 當前台北時間 {tw_now.strftime('%H:%M:%S')} 已達 13:35。")
               sys.exit(0)
+     
+      # 🎯 [SMC 擴充] 跨日狀態重置
+      new_date_str = tw_now.strftime('%Y-%m-%d')
+      if new_date_str != current_date_str:
+          daily_stock_states.clear()
+          current_date_str = new_date_str
+
+      # 🎯 [SMC 擴充] 時間邊界處理：結算與網格重鑄
+      current_min_str = tw_now.strftime('%H:%M')
+      current_minute_int = tw_now.minute
+      if smc_aggregator.current_minute is not None and current_min_str != smc_aggregator.current_minute:
+          smc_aggregator.flush_1m()
+          
+          if current_minute_int % 5 == 0:
+              smc_aggregator.flush_5m()
+              
+              for sid in stock_info_map.keys():
+                  grid = smc_grid_map.get(sid)
+                  klines_5m = smc_aggregator.get_5m_history(sid)
+                  
+                  if grid and klines_5m:
+                      # 階段二：09:15 重鑄被凍結的跳空網格
+                      DynamicGridCalibrator.rebuild_grid_at_15m(grid, klines_5m)
+                      
+                      # 進行 SMC 碰撞評估
+                      is_triggered, badge, desc, defense_price = smc_evaluator.evaluate(sid, klines_5m, grid)
+                      
+                      # 過濾 C 級警告，僅發送 A 級以上
+                      if is_triggered and "C" not in badge: 
+                          alert_times = monitor_data[sid].setdefault('last_alert_by_strategy', {})
+                          if tw_now.timestamp() - alert_times.get("SMC_STANDALONE", 0) > 1800:
+                              save_and_notify_smc(
+                                  sid=sid, name=stock_info_map[sid].get("name", ""), 
+                                  lp=klines_5m[-1]["c"], up_pct=monitor_data[sid].get("last_up_pct", 0), 
+                                  ratio=monitor_data[sid].get("last_ratio", 0),
+                                  defense_price=defense_price, grid=grid, badge=badge, desc=desc
+                              )
+                              alert_times["SMC_STANDALONE"] = tw_now.timestamp()
+
+      smc_aggregator.current_minute = current_min_str
+ 
  
       timer_str = tw_now.strftime('%Y-%m-%d %H:%M:%S')
       print(f"\n[監控週期: {timer_str}]")
@@ -1702,7 +2056,18 @@ def main():
               deriv_flag = f"期{fut_flag}|債{cb_flag}"
            
               print(f"{wide_ljust(stock_label, 20)} | {wide_ljust(market_label, 6)} | {wide_ljust(lp, 10)} | {wide_ljust(ratio, 8)} | {wide_ljust(data['high'], 10)} | {wide_ljust(data['low'], 10)} | {deriv_flag}")
- 
+              
+              # 🎯 [SMC 擴充] 第一筆 Tick 攔截與資料餵入
+              state = daily_stock_states.setdefault(sid, {"gap_checked": False})
+              grid = smc_grid_map.get(sid)
+              
+              if not state["gap_checked"] and grid:
+                  DynamicGridCalibrator.check_gap_at_open(grid, lp)
+                  state["gap_checked"] = True
+
+              if lp_is_fresh:
+                  smc_aggregator.update(sid, lp, v)
+              
               if not lp_is_fresh:
                   if Config.IS_LOCAL and info.get('is_protected'):
                       time.sleep(Config.API_THROTTLE_SLEEP)
