@@ -179,9 +179,14 @@ class DynamicGridCalibrator:
     ORB_CANDLE_COUNT = 3
 
     @classmethod
-    def check_gap_at_open(cls, grid: Dict, first_tick_price: float) -> None:
+    def check_gap_at_open(cls, grid: Dict, first_tick_price: float, current_time: dtime = None) -> None:
         """階段一：開盤瞬間 (09:00) 偵測跳空並凍結網格"""
         if not grid or grid.get("status") != "active": return
+        
+        # 🛡️ 盤中重啟防禦：若超過 09:05 才啟動，強制略過跳空檢查，避免網格永久死鎖
+        if current_time and current_time > dtime(9, 5): 
+            return
+            
         ref_close = grid.get("ref_close", 0.0)
         if ref_close <= 0: return
         
@@ -1078,13 +1083,18 @@ def build_tianji_wall_block(grid: dict, current_price: float) -> list:
         dist_pct = ((target - current_price) / current_price) * 100
         return f"距 {'+' if dist_pct > 0 else ''}{dist_pct:.1f}%"
 
+    # 🛡️ 架構師細節：
+    # 1. 移除中文，使排版更俐落。
+    # 2. 為了避免 Telegram 將 '_' 誤認為斜體導致「字體怪怪的」，使用 '\_' 進行跳脫 (Escape)。
+    # 3. 使用全形冒號「：」並補齊英文字母後方的空白，確保垂直對齊。
+    # 4. MH_L 改為藍色球體 (🔵)，代表最深層的水位防守。
     return [
-        "🎯 *5m SMC 關鍵位階天機牆 (攻防座標)*",
-        f"🔴 假突破/強壓 (MH_H) ：`{grid.get('mh_h', 0)}` ({calc_dist(grid.get('mh_h', 0))})",
-        f"🟠 次級壓力 (Egg_LL) ：`{grid.get('egg_ll', 0)}` ({calc_dist(grid.get('egg_ll', 0))})",
-        f"⚪ 多空分水嶺 (PT)    ：`{grid.get('pt', 0)}` ({calc_dist(grid.get('pt', 0))})", # 新增中軸價
-        f"🟢 次級強撐 (Egg_HH) ：`{grid.get('egg_hh', 0)}` ({calc_dist(grid.get('egg_hh', 0))})",
-        f"🟢 結構防守區 (MH_L) ：`{grid.get('mh_l', 0)}` ({calc_dist(grid.get('mh_l', 0))})"
+        "🎯 *5m SMC 關鍵位階*",
+        f"🔴 *MH\\_H*   ：`{grid.get('mh_h', 0)}` ({calc_dist(grid.get('mh_h', 0))})",
+        f"🟠 *Egg\\_LL* ：`{grid.get('egg_ll', 0)}` ({calc_dist(grid.get('egg_ll', 0))})",
+        f"⚪ *PT*      ：`{grid.get('pt', 0)}` ({calc_dist(grid.get('pt', 0))})",
+        f"🟢 *Egg\\_HH* ：`{grid.get('egg_hh', 0)}` ({calc_dist(grid.get('egg_hh', 0))})",
+        f"🔵 *MH\\_L*   ：`{grid.get('mh_l', 0)}` ({calc_dist(grid.get('mh_l', 0))})"
     ]
 
 def save_and_notify_smc(sid: str, name: str, lp: float, up_pct: float, ratio: float, 
@@ -1924,6 +1934,10 @@ def main():
   daily_stock_states = {}
   current_date_str = get_now_tw().strftime('%Y-%m-%d')
   
+  # 🛡️ 新增：精確時間區塊追蹤器，防禦迴圈超時導致的漏觸發
+  last_1m_block = get_now_tw().minute
+  last_5m_block = get_now_tw().minute // 5
+  
   max_results = {}
  
   while True:
@@ -1946,37 +1960,46 @@ def main():
           daily_stock_states.clear()
           current_date_str = new_date_str
 
-      # 🎯 [SMC 擴充] 時間邊界處理：結算與網格重鑄
+      # 🎯 [SMC 擴充] 時間邊界處理：結算與網格重鑄 (區塊防超時穩健版)
       current_min_str = tw_now.strftime('%H:%M')
-      current_minute_int = tw_now.minute
-      if smc_aggregator.current_minute is not None and current_min_str != smc_aggregator.current_minute:
+      current_1m_block = tw_now.minute
+      current_5m_block = tw_now.minute // 5
+      
+      # 1 分鐘結算
+      if current_1m_block != last_1m_block:
           smc_aggregator.flush_1m()
+          last_1m_block = current_1m_block
           
-          if current_minute_int % 5 == 0:
-              smc_aggregator.flush_5m()
+      # 5 分鐘結算與 SMC 評估 (保證每 5 分鐘必定觸發一次，不會被迴圈延遲吃掉)
+      if current_5m_block != last_5m_block:
+          smc_aggregator.flush_5m()
+          last_5m_block = current_5m_block
+          print(f"🔄 [SMC 引擎] 執行 5m K線結算與網格碰撞評估 (時間區塊: {current_5m_block})")
+          
+          for sid in list(stock_info_map.keys()):
+              grid = smc_grid_map.get(sid)
+              klines_5m = smc_aggregator.get_5m_history(sid)
               
-              for sid in stock_info_map.keys():
-                  grid = smc_grid_map.get(sid)
-                  klines_5m = smc_aggregator.get_5m_history(sid)
+              if grid and klines_5m:
+                  # 階段二：09:15 重鑄被凍結的跳空網格
+                  DynamicGridCalibrator.rebuild_grid_at_15m(grid, klines_5m)
                   
-                  if grid and klines_5m:
-                      # 階段二：09:15 重鑄被凍結的跳空網格
-                      DynamicGridCalibrator.rebuild_grid_at_15m(grid, klines_5m)
+                  # 進行 SMC 碰撞評估
+                  is_triggered, badge, desc, defense_price = smc_evaluator.evaluate(sid, klines_5m, grid)
+                  
+                  if is_triggered and "C" not in badge: 
+                      m_data = monitor_data.get(sid)
+                      if not m_data: continue
                       
-                      # 進行 SMC 碰撞評估
-                      is_triggered, badge, desc, defense_price = smc_evaluator.evaluate(sid, klines_5m, grid)
-                      
-                      # 過濾 C 級警告，僅發送 A 級以上
-                      if is_triggered and "C" not in badge: 
-                          alert_times = monitor_data[sid].setdefault('last_alert_by_strategy', {})
-                          if tw_now.timestamp() - alert_times.get("SMC_STANDALONE", 0) > 1800:
-                              save_and_notify_smc(
-                                  sid=sid, name=stock_info_map[sid].get("name", ""), 
-                                  lp=klines_5m[-1]["c"], up_pct=monitor_data[sid].get("last_up_pct", 0), 
-                                  ratio=monitor_data[sid].get("last_ratio", 0),
-                                  defense_price=defense_price, grid=grid, badge=badge, desc=desc
-                              )
-                              alert_times["SMC_STANDALONE"] = tw_now.timestamp()
+                      alert_times = m_data.setdefault('last_alert_by_strategy', {})
+                      if tw_now.timestamp() - alert_times.get("SMC_STANDALONE", 0) > 1800:
+                          save_and_notify_smc(
+                              sid=sid, name=stock_info_map[sid].get("name", ""), 
+                              lp=klines_5m[-1]["c"], up_pct=m_data.get("last_up_pct", 0), 
+                              ratio=m_data.get("last_ratio", 0),
+                              defense_price=defense_price, grid=grid, badge=badge, desc=desc
+                          )
+                          alert_times["SMC_STANDALONE"] = tw_now.timestamp()
 
       smc_aggregator.current_minute = current_min_str
  
@@ -2062,7 +2085,7 @@ def main():
               grid = smc_grid_map.get(sid)
               
               if not state["gap_checked"] and grid:
-                  DynamicGridCalibrator.check_gap_at_open(grid, lp)
+                  DynamicGridCalibrator.check_gap_at_open(grid, lp, tw_now.time())
                   state["gap_checked"] = True
 
               if lp_is_fresh:
