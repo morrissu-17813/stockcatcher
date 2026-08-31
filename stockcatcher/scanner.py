@@ -1089,12 +1089,12 @@ def build_tianji_wall_block(grid: dict, current_price: float) -> list:
     # 3. 使用全形冒號「：」並補齊英文字母後方的空白，確保垂直對齊。
     # 4. MH_L 改為藍色球體 (🔵)，代表最深層的水位防守。
     return [
-        "🎯 *5m SMC 關鍵位階*",
-        f"🔴 *MH\\_H*   ：`{grid.get('mh_h', 0)}` ({calc_dist(grid.get('mh_h', 0))})",
-        f"🟠 *Egg\\_LL* ：`{grid.get('egg_ll', 0)}` ({calc_dist(grid.get('egg_ll', 0))})",
+        "🎯 *金蛋蛋 SMC 關鍵位階*",
+        f"🔴 *MH-H*   ：`{grid.get('mh_h', 0)}` ({calc_dist(grid.get('mh_h', 0))})",
+        f"🟠 *Egg-LL* ：`{grid.get('egg_ll', 0)}` ({calc_dist(grid.get('egg_ll', 0))})",
         f"⚪ *PT*      ：`{grid.get('pt', 0)}` ({calc_dist(grid.get('pt', 0))})",
-        f"🟢 *Egg\\_HH* ：`{grid.get('egg_hh', 0)}` ({calc_dist(grid.get('egg_hh', 0))})",
-        f"🔵 *MH\\_L*   ：`{grid.get('mh_l', 0)}` ({calc_dist(grid.get('mh_l', 0))})"
+        f"🟢 *Egg-HH* ：`{grid.get('egg_hh', 0)}` ({calc_dist(grid.get('egg_hh', 0))})",
+        f"🔵 *MH-L*   ：`{grid.get('mh_l', 0)}` ({calc_dist(grid.get('mh_l', 0))})"
     ]
 
 def save_and_notify_smc(sid: str, name: str, lp: float, up_pct: float, ratio: float, 
