@@ -225,7 +225,9 @@ def parse_user_intent(raw_msg: str) -> str:
    if any(k in clean_msg for k in volume_3k_keywords): return "INTENT_VOLUME_3K"
    if any(k in clean_msg for k in tide_keywords): return "INTENT_TIDE_HEATMAP"
    if any(k in clean_msg for k in dashboard_keywords): return "INTENT_DASHBOARD"
-       
+   # 🚨 [修正 2] 補上缺失的路由判斷！這行才是真正啟動金蛋蛋查詢的鑰匙
+   if any(k in clean_msg for k in smc_keywords): return "INTENT_SMC_GRID"  
+     
    return "INTENT_UNKNOWN"
  
 # ==========================================
