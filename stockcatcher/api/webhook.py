@@ -64,7 +64,10 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
  
 # 初始化 Supabase 客戶端
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
- 
+
+def get_now_tw():
+    """取得台灣時間 (UTC+8)"""
+    return datetime.now(timezone(timedelta(hours=8))) 
 # ==========================================
 # 💾 資料庫讀取與聚合層 (Data Access & Aggregation)
 # ==========================================
@@ -215,6 +218,8 @@ def parse_user_intent(raw_msg: str) -> str:
    volume_3k_keywords = ["3k突破", "量能異常", "3k量能", "3k發動"]
    tide_keywords = ["tide", "族群熱力", "資金流向", "最強族群"]
    dashboard_keywords = ["視覺儀表板", "儀表板", "開啟liff", "選股地圖"]
+   # 🎯 [新增] SMC 網格查詢關鍵字
+   smc_keywords = ["SMC金蛋蛋", "金蛋蛋網格"]
  
    if any(k in clean_msg for k in warrant_keywords): return "INTENT_WARRANT_3K"
    if any(k in clean_msg for k in volume_3k_keywords): return "INTENT_VOLUME_3K"
@@ -518,7 +523,147 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
        }
    }
    return FlexContainer.from_dict(flex_dict)
- 
+
+def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
+    """
+    [展示層] 將 DB 撈出的網格資料，轉換為 LINE Flex Message (無印極簡風 / Carousel)
+    """
+    if not records:
+        return FlexContainer.from_dict({
+            "type": "bubble", "size": "mega",
+            "body": {
+                "type": "box", "layout": "vertical", "paddingAll": "24px",
+                "contents": [
+                    {"type": "text", "text": f"📭 {date_str} 尚無有效的 SMC 網格資料。", "color": "#94a3b8", "align": "center"}
+                ]
+            }
+        })
+
+    CHUNK_SIZE = 25  # 每個泡泡最多顯示 25 檔
+    bubbles = []
+
+    # 無印風配色學
+    muji_bg = "#F9F9F6"       
+    muji_text_main = "#333333" 
+    muji_text_sub = "#888888"  
+    muji_border = "#E5E5E5"    
+
+    for i in range(0, len(records), CHUNK_SIZE):
+        chunk = records[i:i + CHUNK_SIZE]
+        
+        # 1. 構建標題與欄位表頭
+        box_contents = [
+            {
+                "type": "text",
+                "text": f"SMC 金蛋蛋網格 ． {date_str}",
+                "weight": "bold",
+                "size": "sm",
+                "color": muji_text_main
+            },
+            {"type": "separator", "margin": "md", "color": muji_border},
+            {
+                "type": "box",
+                "layout": "horizontal",
+                "margin": "md",
+                "contents": [
+                    {"type": "text", "text": "標的", "size": "xxs", "color": muji_text_sub, "weight": "bold", "flex": 3},
+                    {"type": "text", "text": "MH-H", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "E-LL", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "PT", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "E-HH", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "MH-L", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2}
+                ]
+            },
+            {"type": "separator", "margin": "sm", "color": muji_border}
+        ]
+
+        # 2. 迭代寫入每一列股票資料
+        for row in chunk:
+            short_name = f"{row.get('stock_id', '')} {row.get('stock_name', '')[:3]}" 
+            
+            row_box = {
+                "type": "box",
+                "layout": "horizontal",
+                "margin": "sm",
+                "contents": [
+                    {"type": "text", "text": short_name, "size": "xxs", "color": muji_text_main, "weight": "bold", "flex": 3, "wrap": False},
+                    {"type": "text", "text": str(row.get('mh_h', 0)), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2, "wrap": False},
+                    {"type": "text", "text": str(row.get('egg_ll', 0)), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2, "wrap": False},
+                    {"type": "text", "text": str(row.get('pt', 0)), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2, "wrap": False},
+                    {"type": "text", "text": str(row.get('egg_hh', 0)), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2, "wrap": False},
+                    {"type": "text", "text": str(row.get('mh_l', 0)), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2, "wrap": False}
+                ]
+            }
+            box_contents.append(row_box)
+
+        # 3. 封裝單個 Bubble (設定 size 為 giga 以獲得最大寬度)
+        bubble = {
+            "type": "bubble",
+            "size": "giga",  
+            "styles": {"body": {"backgroundColor": muji_bg}},
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "paddingAll": "15px",
+                "contents": box_contents
+            }
+        }
+        bubbles.append(bubble)
+
+    # 🛡️ 企業級防護：LINE Carousel 最多只允許 10 個 Bubble
+    if len(bubbles) > 10:
+        bubbles = bubbles[:10]
+
+    return FlexContainer.from_dict({
+        "type": "carousel",
+        "contents": bubbles
+    })
+
+# ==========================================
+# 🎯 SMC 金蛋蛋：資料庫查詢與 Flex 封裝層
+# ==========================================
+def fetch_smc_grid_flex() -> FlexContainer:
+    """
+    從 DB 撈取最新 SMC 網格資料，並封裝成無印風 Flex Message。
+    具備智慧日期探測，可自動降級至最近一個有效交易日。
+    """
+    if not supabase:
+        return generate_muji_style_smc_flex([], get_now_tw().strftime('%Y-%m-%d'))
+
+    try:
+        # 1. 🛡️ 智慧探測：查詢資料庫中最新的一筆網格資料是哪一天
+        latest_date_res = supabase.table("tianji_smc_grids") \
+            .select("date") \
+            .order("date", desc=True) \
+            .limit(1) \
+            .execute()
+
+        if not latest_date_res.data:
+            print("⚠️ [SMC 查詢] 資料庫中沒有任何網格紀錄。")
+            return generate_muji_style_smc_flex([], get_now_tw().strftime('%Y-%m-%d'))
+            
+        # 取得資料庫中最新的交易日
+        target_date = latest_date_res.data[0]['date']
+        
+        # 2. 撈取該「最新交易日」的所有網格快照
+        response = supabase.table("tianji_smc_grids") \
+            .select("*") \
+            .eq("date", target_date) \
+            .order("stock_id") \
+            .execute()
+            
+        records = response.data
+        print(f"✅ [SMC 查詢] 成功組裝 {len(records)} 檔網格卡片 (日期: {target_date})。")
+        
+        # 回傳組裝好的 FlexContainer 給控制器
+        return generate_muji_style_smc_flex(records, target_date)
+        
+    except Exception as e:
+        import traceback
+        print(f"❌ [SMC 查詢錯誤] {e}")
+        print(traceback.format_exc())
+        return generate_muji_style_smc_flex([], get_now_tw().strftime('%Y-%m-%d'))
+
 # ==========================================
 # 🔄 輔助工具：顯示思考中動畫
 # ==========================================
@@ -708,9 +853,16 @@ def handle_message(event):
            print(f"❌ [TIDE 查詢錯誤] {e}")
            print(traceback.format_exc())
            reply_flex = build_tide_flex([])  
-     
+           
+    # 🎯 [新增] SMC 金蛋蛋查詢邏輯
+   elif action_intent == "INTENT_SMC_GRID":
+        print("👉 [DEBUG] 觸發 SMC 金蛋蛋查詢...")
+        show_bot_loading(user_id=user_id, seconds=5)
+        # 呼叫強大的查詢與封裝引擎，直接取得 Flex 卡片
+        reply_flex = fetch_smc_grid_flex()        
+
    elif action_intent == "INTENT_DASHBOARD":
-       pass
+        pass
  
    # ==========================================
    # 📤 統一發送 Flex Message 回覆
