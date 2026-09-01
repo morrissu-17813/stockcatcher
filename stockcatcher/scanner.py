@@ -1330,7 +1330,7 @@ def perform_strategy_test():
   # 2. 準備啟動廣播訊息
   startup_msg = f"🚀 系統啟動成功\n天機選股雷達上線運作中！\n時間：{time_str}\n模式：TG & LINE 雙軌監控"
   print(startup_msg)
-  send_line_status_flex_message("v2.4", "Telegram & LINE 雙軌監控", time_str)
+  #send_line_status_flex_message("v2.4", "Telegram & LINE 雙軌監控", time_str)
   print("✅ 自動化測試驗證訊號已成功送出！")
  
 def should_exclude(sid, name, industry):
