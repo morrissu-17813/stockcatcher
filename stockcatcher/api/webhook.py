@@ -558,7 +558,7 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
         box_contents = [
             {
                 "type": "text",
-                "text": f"SMC 網格 ． {date_str} (頁{i//CHUNK_SIZE + 1})",
+                "text": f"SMC 金蛋蛋網格 ． {date_str} (頁{i//CHUNK_SIZE + 1})",
                 "weight": "bold",
                 "size": "sm",
                 "color": muji_text_main
