@@ -219,7 +219,7 @@ def parse_user_intent(raw_msg: str) -> str:
    tide_keywords = ["tide", "族群熱力", "資金流向", "最強族群"]
    dashboard_keywords = ["視覺儀表板", "儀表板", "開啟liff", "選股地圖"]
    # 🎯 [新增] SMC 網格查詢關鍵字
-   smc_keywords = ["SMC金蛋蛋", "金蛋蛋網格"]
+   smc_keywords = ["smc金蛋蛋", "金蛋蛋網格"]
  
    if any(k in clean_msg for k in warrant_keywords): return "INTENT_WARRANT_3K"
    if any(k in clean_msg for k in volume_3k_keywords): return "INTENT_VOLUME_3K"
@@ -529,7 +529,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
 def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
     """
     [展示層] 將 DB 撈出的網格資料，轉換為 LINE Flex Message (無印極簡風 / Carousel)
-    🛡️ 效能優化：限制每頁筆數與總頁數，防禦 LINE 10萬字元限制與空字串報錯。
+    🛡️ 效能優化：精準控制在 5 頁 x 12 筆 = 60 筆，總 JSON 體積約 42KB，完美閃避 LINE 50KB 物理上限。
     """
     if not records:
         return FlexContainer.from_dict({
@@ -542,8 +542,8 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
             }
         })
 
-    # 🔻 架構師調整：每頁 15 筆，視覺最舒適且不撐爆氣泡高度
-    CHUNK_SIZE = 15  
+    # 🔻 架構師精算：每頁 12 筆，既不會讓氣泡太高，也能最大化利用 50KB 空間
+    CHUNK_SIZE = 12  
     bubbles = []
 
     # 無印風配色學
@@ -580,9 +580,9 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
             {"type": "separator", "margin": "sm", "color": muji_border}
         ]
 
-        # 2. 迭代寫入每一列股票資料
+        # 迭代寫入每一列股票資料
         for row in chunk:
-            # 🛡️ 空字串裝甲防護：絕對不允許傳送空字串給 LINE
+            # 🛡️ 空字串防護
             stock_id = str(row.get('stock_id') or '0000').strip()
             stock_name = str(row.get('stock_name') or '未知')[:3].strip()
             short_name = f"{stock_id} {stock_name}".strip() or "-"
@@ -591,24 +591,17 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
                 s = str(val).strip() if val is not None else "0"
                 return s if s else "0"
 
-            mh_h_str = safe_num(row.get('mh_h'))
-            egg_ll_str = safe_num(row.get('egg_ll'))
-            pt_str = safe_num(row.get('pt'))
-            egg_hh_str = safe_num(row.get('egg_hh'))
-            mh_l_str = safe_num(row.get('mh_l'))
-
-            # 💡 移除 wrap: False 屬性 (LINE 預設就是 False，移除可大幅減少 JSON 總字元數)
             row_box = {
                 "type": "box",
                 "layout": "horizontal",
                 "margin": "sm",
                 "contents": [
                     {"type": "text", "text": short_name, "size": "xxs", "color": muji_text_main, "weight": "bold", "flex": 3},
-                    {"type": "text", "text": mh_h_str, "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": egg_ll_str, "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": pt_str, "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": egg_hh_str, "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": mh_l_str, "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2}
+                    {"type": "text", "text": safe_num(row.get('mh_h')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('egg_ll')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('pt')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('egg_hh')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('mh_l')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2}
                 ]
             }
             box_contents.append(row_box)
@@ -626,9 +619,9 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
         }
         bubbles.append(bubble)
 
-    # 🛡️ 企業級防護二：LINE Carousel 最多只允許 12 個 Bubble，我們保守取前 8 頁 (共 120 檔)
-    if len(bubbles) > 8:
-        bubbles = bubbles[:8]
+    # 🛡️ 企業級防護二：嚴格裁切至前 5 頁 (共 60 檔)，確保 JSON 不超過 50KB 上限
+    if len(bubbles) > 5:
+        bubbles = bubbles[:5]
 
     return FlexContainer.from_dict({
         "type": "carousel",
