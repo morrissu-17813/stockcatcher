@@ -561,7 +561,7 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
                 "contents": [
                     {
                         "type": "text",
-                        "text": f"🥚 SMC 金蛋蛋網格 ． {date_str}",
+                        "text": f"🥚 SMC 金蛋蛋網格 ． {date_str.replace('-', '')}",
                         "weight": "bold",
                         "size": "sm",
                         "color": warm_accent,
