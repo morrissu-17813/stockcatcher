@@ -528,8 +528,7 @@ def build_tide_flex(tide_data_list: list) -> FlexContainer:
 
 def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
     """
-    [展示層] 將 DB 撈出的網格資料，轉換為 LINE Flex Message (無印極簡風 / Carousel)
-    🛡️ 效能優化：精準控制在 5 頁 x 12 筆 = 60 筆，總 JSON 體積約 42KB，完美閃避 LINE 50KB 物理上限。
+    [展示層] 將 DB 撈出的網格資料，轉換為 LINE Flex Message (日式溫馨風 / Carousel)
     """
     if not records:
         return FlexContainer.from_dict({
@@ -537,52 +536,65 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
             "body": {
                 "type": "box", "layout": "vertical", "paddingAll": "24px",
                 "contents": [
-                    {"type": "text", "text": f"📭 {date_str} 尚無有效的 SMC 網格資料。", "color": "#94a3b8", "align": "center"}
+                    {"type": "text", "text": f"☕ {date_str} 暫無溫馨網格資料。", "color": "#8C7B70", "align": "center"}
                 ]
             }
         })
 
-    # 🔻 架構師精算：每頁 12 筆，既不會讓氣泡太高，也能最大化利用 50KB 空間
     CHUNK_SIZE = 12  
     bubbles = []
 
-    # 無印風配色學
-    muji_bg = "#F9F9F6"       
-    muji_text_main = "#333333" 
-    muji_text_sub = "#888888"  
-    muji_border = "#E5E5E5"    
+    # 🍊 日式溫馨風配色學 (Warm & Cozy Palette)
+    warm_bg = "#FAF6F0"        # 柔和的暖米白底色 (類似棉麻紙質)
+    warm_main = "#4A403A"      # 溫潤的深咖啡色主字體
+    warm_sub = "#8C7B70"       # 溫暖的灰褐色輔助字體
+    warm_accent = "#D97706"    # 溫柔的琥珀橘標題點綴
+    warm_border = "#E8DFD8"    # 柔和的暖色系分割線
 
     for i in range(0, len(records), CHUNK_SIZE):
         chunk = records[i:i + CHUNK_SIZE]
         
         box_contents = [
             {
-                "type": "text",
-                "text": f"SMC 金蛋蛋網格 ． {date_str} (頁{i//CHUNK_SIZE + 1})",
-                "weight": "bold",
-                "size": "sm",
-                "color": muji_text_main
+                "type": "box",
+                "layout": "horizontal",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": f"🍞 SMC 金蛋蛋網格 ． {date_str}",
+                        "weight": "bold",
+                        "size": "sm",
+                        "color": warm_accent,
+                        "flex": 4
+                    },
+                    {
+                        "type": "text",
+                        "text": f"P.{i//CHUNK_SIZE + 1}",
+                        "size": "xxs",
+                        "color": warm_sub,
+                        "align": "end",
+                        "flex": 1
+                    }
+                ]
             },
-            {"type": "separator", "margin": "md", "color": muji_border},
+            {"type": "separator", "margin": "md", "color": warm_border},
             {
                 "type": "box",
                 "layout": "horizontal",
                 "margin": "md",
                 "contents": [
-                    {"type": "text", "text": "標的", "size": "xxs", "color": muji_text_sub, "weight": "bold", "flex": 3},
-                    {"type": "text", "text": "MH-H", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
-                    {"type": "text", "text": "E-LL", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
-                    {"type": "text", "text": "PT", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
-                    {"type": "text", "text": "E-HH", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2},
-                    {"type": "text", "text": "MH-L", "size": "xxs", "color": muji_text_sub, "align": "end", "flex": 2}
+                    {"type": "text", "text": "標的", "size": "xxs", "color": warm_sub, "weight": "bold", "flex": 3},
+                    {"type": "text", "text": "MH-H", "size": "xxs", "color": warm_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "E-LL", "size": "xxs", "color": warm_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "PT", "size": "xxs", "color": warm_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "E-HH", "size": "xxs", "color": warm_sub, "align": "end", "flex": 2},
+                    {"type": "text", "text": "MH-L", "size": "xxs", "color": warm_sub, "align": "end", "flex": 2}
                 ]
             },
-            {"type": "separator", "margin": "sm", "color": muji_border}
+            {"type": "separator", "margin": "sm", "color": warm_border}
         ]
 
-        # 迭代寫入每一列股票資料
         for row in chunk:
-            # 🛡️ 空字串防護
             stock_id = str(row.get('stock_id') or '0000').strip()
             stock_name = str(row.get('stock_name') or '未知')[:3].strip()
             short_name = f"{stock_id} {stock_name}".strip() or "-"
@@ -596,12 +608,12 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
                 "layout": "horizontal",
                 "margin": "sm",
                 "contents": [
-                    {"type": "text", "text": short_name, "size": "xxs", "color": muji_text_main, "weight": "bold", "flex": 3},
-                    {"type": "text", "text": safe_num(row.get('mh_h')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": safe_num(row.get('egg_ll')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": safe_num(row.get('pt')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": safe_num(row.get('egg_hh')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2},
-                    {"type": "text", "text": safe_num(row.get('mh_l')), "size": "xxs", "color": muji_text_main, "align": "end", "flex": 2}
+                    {"type": "text", "text": short_name, "size": "xxs", "color": warm_main, "weight": "bold", "flex": 3},
+                    {"type": "text", "text": safe_num(row.get('mh_h')), "size": "xxs", "color": warm_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('egg_ll')), "size": "xxs", "color": warm_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('pt')), "size": "xxs", "color": warm_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('egg_hh')), "size": "xxs", "color": warm_main, "align": "end", "flex": 2},
+                    {"type": "text", "text": safe_num(row.get('mh_l')), "size": "xxs", "color": warm_main, "align": "end", "flex": 2}
                 ]
             }
             box_contents.append(row_box)
@@ -609,7 +621,7 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
         bubble = {
             "type": "bubble",
             "size": "giga",  
-            "styles": {"body": {"backgroundColor": muji_bg}},
+            "styles": {"body": {"backgroundColor": warm_bg}},
             "body": {
                 "type": "box",
                 "layout": "vertical",
@@ -619,7 +631,6 @@ def generate_muji_style_smc_flex(records: list, date_str: str) -> FlexContainer:
         }
         bubbles.append(bubble)
 
-    # 🛡️ 企業級防護二：嚴格裁切至前 5 頁 (共 60 檔)，確保 JSON 不超過 50KB 上限
     if len(bubbles) > 5:
         bubbles = bubbles[:5]
 
