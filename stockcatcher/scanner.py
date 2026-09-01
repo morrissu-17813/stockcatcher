@@ -1166,18 +1166,17 @@ def save_signal_to_supabase(category: str, stock_data: dict) -> None:
        print(f"❌ [DB 寫入失敗] {category} | 錯誤原因: {e}")
 
 # ==========================================
-# 🎯 第 2 步：SMC 網格同步模組 (零空窗期 GC 版)
+# 🎯 SMC 網格同步模組 (精準 50 檔權證核心版)
 # ==========================================
 def sync_smc_grids_to_db():
     """
     [資料層] 批量同步 SMC 網格至 Supabase。
-    採用「先 Upsert 更新，後 Delete 回收」的企業級模式。
-    確保 LINE 前端永遠讀不到幽靈資料，也絕不發生讀取空窗期。
+    🛡️ 策略聚焦：僅同步全市場前 50 大熱門權證對應現股（is_protected=True），
+    確保 LINE 前端查詢時體積完美合規（< 50KB），且資訊高度聚焦。
     """
     if not supabase or not smc_grid_map:
         return
 
-    # 1. 取得本次同步的「基準時間戳記」
     sync_start_time = get_now_tw()
     today_str = sync_start_time.strftime('%Y-%m-%d')
     sync_start_iso = sync_start_time.isoformat()
@@ -1185,12 +1184,14 @@ def sync_smc_grids_to_db():
     payload = []
 
     for sid, grid in smc_grid_map.items():
-        # 💡 [防護一] 僅提取目前真正在監控的 200 檔標的
-        if sid not in stock_info_map:
+        info = stock_info_map.get(sid, {})
+        
+        # 🎯 【核心篩選】：嚴格要求必須是 50 檔權證主力標的 (is_protected == True)
+        if not info.get('is_protected', False):
             continue
             
         if grid.get("mh_h") and grid.get("status") != "suspended":
-            name = stock_info_map.get(sid, {}).get("name", sid)
+            name = info.get("name", sid)
             payload.append({
                 "date": today_str,
                 "stock_id": str(sid),
@@ -1202,7 +1203,6 @@ def sync_smc_grids_to_db():
                 "mh_l": grid.get("mh_l"),
                 "is_vwap": grid.get("is_vwap", False),
                 "status": grid.get("status"),
-                # 💡 [核心] 強制綁定本次執行的確切時間
                 "updated_at": sync_start_iso 
             })
 
@@ -1211,21 +1211,19 @@ def sync_smc_grids_to_db():
 
     BATCH_SIZE = 100
     try:
-        # 2. 🚀 第一階段：寫入與更新最新資料 (零空窗期)
+        # 1. 寫入與更新 50 檔核心網格
         for i in range(0, len(payload), BATCH_SIZE):
             batch = payload[i:i + BATCH_SIZE]
             supabase.table("tianji_smc_grids").upsert(batch).execute()
             
-        # 3. 🧹 第二階段：垃圾回收 (Garbage Collection)
-        # 演算法：刪除「日期是今天」，但是「更新時間早於本次同步時間」的舊紀錄。
-        # 這樣就能把盤中被剔除出 200 檔的「幽靈股票」精準刪除！
+        # 2. 自動垃圾回收 (清除當日落選的幽靈標的)
         supabase.table("tianji_smc_grids") \
             .delete() \
             .eq("date", today_str) \
             .lt("updated_at", sync_start_iso) \
             .execute()
 
-        print(f"💾 [DB 寫入] 成功同步 {len(payload)} 檔 SMC 網格，並自動清理汰除之幽靈標的。")
+        print(f"💾 [DB 寫入] 成功同步 {len(payload)} 檔權證核心 SMC 網格至資料庫。")
     except Exception as e:
         import traceback
         print(f"❌ [DB 寫入失敗] SMC 網格同步異常: {e}")
