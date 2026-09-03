@@ -15,8 +15,9 @@ import requests
 _ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 load_dotenv(dotenv_path=_ENV_PATH)
 
-FUGLE_API_KEY = os.getenv("FUGLE_API_KEY", "")
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN", "")
+FUGLE_API_KEY = "MzJiNjhmNjAtMzRjMy00OGZiLTg3YWQtMTJmMjg3NGE0MDNjIGJlNGVmY2Q2LTE5NDQtNDUzZi1iNTcxLTI5NmIzM2QwOTIzZQ=="
+FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE"
+TELEGRAM_BOT_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
 TELEGRAM_CHAT_ID = "1087480334"
 TAIPEI_TIMEZONE = timezone(timedelta(hours=8))
 MARKET_OPEN = datetime_time(9, 0)
@@ -210,14 +211,13 @@ class FundamentalChipDataLayer:
         使用 FinMind 免費 API，替代掉壞掉的 TWSE t187ap51_L。
         """
         try:
-            finmind_token = os.getenv("FINMIND_TOKEN", "")
-            if not finmind_token:
+            if not FINMIND_TOKEN:
                 return {}
             
             # FinMind API: 董監事法人購買股數(buy_volume)
             # Dataset: TaiwanStockInsiderTrading
             url = "https://api.finmindtrade.com/api/v4/data"
-            headers = {"Authorization": f"Bearer {finmind_token}"}
+            headers = {"Authorization": f"Bearer {FINMIND_TOKEN}"}
             
             params = {
                 "dataset": "TaiwanStockInsiderTrading",
@@ -1624,7 +1624,7 @@ if __name__ == "__main__":
     print("🚀 權證現股即時逆向監控啟動")
     print("=" * 60)
     print(f"📊 Telegram 通知地址: {runner.chat_id}")
-    print(f"💰 FinMind Token: 已設置" if os.getenv("FINMIND_TOKEN") else "⚠️ FinMind Token: 未設置")
+    print(f"💰 FinMind Token: 已設置" if FINMIND_TOKEN else "⚠️ FinMind Token: 未設置")
     print(f"🔑 Fugle API: 已設置" if FUGLE_API_KEY else "⚠️ Fugle API: 未設置")
     print("=" * 60)
     print()

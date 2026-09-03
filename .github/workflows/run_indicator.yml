@@ -1,0 +1,49 @@
+name: Technical_Indicator_Action
+
+on:
+  # 💡 支援手動觸發 (方便你隨時在 GitHub 網頁端點擊 Run workflow 測試)
+  workflow_dispatch: 
+  
+  # 💡 蘇蘇的架構建議：技術指標通常在盤後計算。
+  # 若未來需要全自動化，可將下方兩行解除註解。
+  # (注意：GitHub Actions 使用 UTC 時間，UTC 06:30 = 台灣時間 14:30)
+  # schedule:
+  #   - cron: '30 6 * * 1-5' 
+
+jobs:
+  run-indicator-engine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📁 檢出專案代碼
+        uses: actions/checkout@v3
+
+      - name: 🐍 設定 Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 📦 安裝相依套件
+        run: |
+          python -m pip install --upgrade pip
+          # 🛡️ 效能優化：這裡只安裝「指標引擎」真正需要的套件，不裝多餘的包以加快啟動速度。
+          # (若你的 technical_indicator_engine.py 還有用到其他套件，請在此補上)
+          pip install supabase pandas requests python-dotenv python-dateutil FinMind>=1.5.4
+
+      - name: 📊 啟動技術指標運算引擎
+        env:
+          # 🛡️ 安全規範：透過 GitHub Secrets 注入憑證，絕不 Hardcode 於程式碼中
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+         
+          
+          # 💡 若你的指標引擎算完後，也需要透過 Telegram 發送報告，請將下方兩行解除註解：
+          # TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          # 1. 進入所屬子資料夾
+          cd stockcatcher
+          
+          # 2. 執行 Python 程式 (-u 確保 Print 日誌即時輸出至 Actions Console)
+          echo "🚀 開始執行盤後技術指標引擎..."
+          python -u technical_indicator_engine.py
