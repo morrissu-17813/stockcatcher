@@ -1,8 +1,10 @@
 import os
 import json
 import time
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time as datetime_time
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,142 @@ load_dotenv(dotenv_path=_ENV_PATH)
 
 FUGLE_API_KEY = os.getenv("FUGLE_API_KEY", "")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1087480334")
+TELEGRAM_CHAT_ID = "1087480334"
+TAIPEI_TIMEZONE = timezone(timedelta(hours=8))
+MARKET_OPEN = datetime_time(9, 0)
+MARKET_CLOSE = datetime_time(13, 30)
+MONITOR_STOP_TIME = datetime_time(13, 35)
+FUBON_RANK_URL = "https://warrants.fbs.com.tw/want/data/getWRankResult.aspx"
+FUBON_RANK_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Referer": "https://warrants.fbs.com.tw/want/wRank.aspx",
+}
+KLINE_TIMEFRAME_MINUTES = 5
+KLINE_VOLUME_MULTIPLIER = 1.2
+OPENING_KLINE_VOLUME_MULTIPLIER = 1.8
+KLINE_MIN_VOLUME_HISTORY = 5
+WARRANT_VOLUME_GROWTH_PERCENT = 20.0
+WARRANT_VOLUME_GROWTH_MINIMUM = 500
+
+
+def get_taipei_now() -> datetime:
+    return datetime.now(TAIPEI_TIMEZONE)
+
+
+def is_market_hours(now: Optional[datetime] = None) -> bool:
+    current = now or get_taipei_now()
+    return current.weekday() < 5 and MARKET_OPEN <= current.time() <= MARKET_CLOSE
+
+
+def is_opening_noise_period(now: Optional[datetime] = None) -> bool:
+    current = now or get_taipei_now()
+    return current.weekday() < 5 and MARKET_OPEN <= current.time() < datetime_time(9, 15)
+
+
+def get_monitor_stop_at(started_at: Optional[datetime] = None) -> datetime:
+    """取得本次手動啟動後的下一個交易日13:35停止時間。"""
+    current = started_at or get_taipei_now()
+    stop_date = current.date()
+    if current.weekday() >= 5 or current.time() >= MONITOR_STOP_TIME:
+        stop_date += timedelta(days=1)
+        while stop_date.weekday() >= 5:
+            stop_date += timedelta(days=1)
+    return datetime.combine(stop_date, MONITOR_STOP_TIME, tzinfo=TAIPEI_TIMEZONE)
+
+
+def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
+    """依 test_catchWarrant.py 判斷最後三根已收盤5分K的有效突破。"""
+    if len(bars) < KLINE_MIN_VOLUME_HISTORY + 3:
+        return None
+
+    first_bar, second_bar, third_bar = bars[-3:]
+    previous_bars = bars[:-3][-20:]
+    if not previous_bars:
+        return None
+
+    breakout_price = max(float(first_bar["high"]), float(second_bar["high"]))
+    previous_average_volume = sum(float(bar["volume"]) for bar in previous_bars) / len(previous_bars)
+    required_volume = max(
+        float(first_bar["volume"]),
+        float(second_bar["volume"]),
+        previous_average_volume * volume_multiplier,
+    )
+    third_close = float(third_bar["close"])
+    third_volume = float(third_bar["volume"])
+    if third_close <= breakout_price or third_volume <= required_volume:
+        return None
+
+    return {
+        "bar_time": third_bar["date"],
+        "breakout_price": breakout_price,
+        "close": third_close,
+        "volume": third_volume,
+        "required_volume": required_volume,
+        "volume_ratio": third_volume / previous_average_volume if previous_average_volume else 0.0,
+        "stop_price": min(float(first_bar["low"]), float(second_bar["low"]), float(third_bar["low"])),
+    }
+
+
+def fetch_effective_3k_breakout(symbol: str, volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
+    """從 Fugle 取得5分K，只使用已收盤資料判斷有效3K。"""
+    if not FUGLE_API_KEY:
+        return None
+
+    url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{symbol}"
+    response = requests.get(
+        url,
+        headers={"X-API-KEY": FUGLE_API_KEY},
+        params={"timeframe": str(KLINE_TIMEFRAME_MINUTES), "limit": "200"},
+        timeout=20,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    raw_bars = payload.get("data", payload.get("candles", []))
+    if not isinstance(raw_bars, list):
+        return None
+
+    completed_bars: List[Dict[str, Any]] = []
+    now_timestamp = get_taipei_now().timestamp()
+    for raw_bar in raw_bars:
+        try:
+            bar = dict(raw_bar)
+            bar["date"] = pd.to_datetime(bar["date"], utc=True)
+            for field in ("high", "low", "close", "volume"):
+                bar[field] = float(bar[field])
+            if bar["date"].timestamp() + KLINE_TIMEFRAME_MINUTES * 60 <= now_timestamp:
+                completed_bars.append(bar)
+        except (KeyError, TypeError, ValueError):
+            continue
+
+    completed_bars.sort(key=lambda bar: bar["date"])
+    return detect_effective_3k_breakout(completed_bars, volume_multiplier)
+
+
+def fetch_effective_3k_breakouts(
+    symbols: List[str],
+    volume_multiplier: float = KLINE_VOLUME_MULTIPLIER,
+    max_workers: int = 5,
+) -> Dict[str, Dict[str, Any]]:
+    """並行取得命中標的的已收盤5分K，避免逐檔等待 Fugle 網路回應。"""
+    results: Dict[str, Dict[str, Any]] = {}
+    if not symbols:
+        return results
+
+    with ThreadPoolExecutor(max_workers=min(max_workers, len(symbols))) as executor:
+        futures = {
+            executor.submit(fetch_effective_3k_breakout, symbol, volume_multiplier): symbol
+            for symbol in symbols
+        }
+        for future in as_completed(futures):
+            symbol = futures[future]
+            try:
+                signal = future.result()
+            except (requests.RequestException, ValueError, TypeError):
+                continue
+            if signal:
+                results[symbol] = signal
+    return results
 
 
 def send_telegram_message(text: str, chat_id: Optional[str] = None, token: Optional[str] = None) -> Dict[str, Any]:
@@ -51,6 +188,10 @@ def _norm_text(value: Any) -> str:
 
 def _safe_cast(value: Any, cast_type: type, default: Any = 0):
     try:
+        if isinstance(value, str):
+            value = value.replace(",", "").replace("+", "").strip()
+            if value in {"", "--", "-", "N/A", "null"}:
+                return default
         return cast_type(value)
     except (TypeError, ValueError):
         return default
@@ -130,75 +271,110 @@ class FundamentalChipDataLayer:
                         "buy_count": 0,
                         "last_date": None,
                         "buy_names": [],
+                        "buy_dates": set(),
                     }
 
                 result[sid]["net_buy"] += net_buy
                 result[sid]["buy_count"] += 1
                 result[sid]["last_date"] = date_str
+                if date_str:
+                    result[sid]["buy_dates"].add(str(date_str)[:10])
                 if person not in result[sid]["buy_names"]:
                     result[sid]["buy_names"].append(person)
 
             except Exception:
                 continue
 
+        for item in result.values():
+            dates = sorted(item.pop("buy_dates", set()), reverse=True)
+            streak = 0
+            expected_date = pd.Timestamp(dates[0]) if dates else None
+            for date_text in dates:
+                current_date = pd.Timestamp(date_text)
+                if expected_date is not None and current_date == expected_date:
+                    streak += 1
+                    expected_date -= pd.Timedelta(days=1)
+                elif expected_date is not None and current_date < expected_date:
+                    break
+            item["buy_streak"] = streak
         return result
 
     @staticmethod
     def fetch_three_institutional_buy(lookback_days: int = 30) -> Dict[str, Dict[str, Any]]:
         """
-        從 TWSE 開放資料抓三大法人每日買賣超。
-        外資、投信、自營商。
+        合併 TWSE 與 TPEx 最新三大法人資料。
+        TPEx API 為當日快照，欄位使用其明細表的明確欄位索引。
         """
-        try:
-            url = "https://openapi.twse.com.tw/v1/opendata/t187ap40_L"
-            response = requests.get(url, timeout=30)
-            if response.status_code != 200:
-                return {}
-            rows = response.json()
-            if not isinstance(rows, list):
-                return {}
-        except Exception:
-            return {}
-
         result: Dict[str, Dict[str, Any]] = {}
         cutoff = pd.Timestamp.now() - pd.Timedelta(days=lookback_days)
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
 
-            try:
-                date_str = row.get("成交日期", "")
-                if date_str:
-                    row_date = pd.to_datetime(date_str, format="%Y/%m/%d", errors="coerce")
-                    if row_date is None or row_date < cutoff:
-                        continue
-            except Exception:
-                pass
+        def add_row(sid: Any, foreign: Any, investment: Any, dealer: Any, date_str: Any) -> None:
+            symbol = str(sid).strip()
+            if not re.fullmatch(r"\d{4}", symbol):
+                return
+            parsed_date = pd.to_datetime(date_str, errors="coerce") if date_str else pd.NaT
+            if pd.notna(parsed_date) and parsed_date.tzinfo is None and parsed_date < cutoff:
+                return
 
-            sid = str(row.get("股票代號", "")).strip()
-            if not sid or len(sid) != 4:
-                continue
+            foreign_value = _safe_cast(foreign, float, 0.0)
+            investment_value = _safe_cast(investment, float, 0.0)
+            dealer_value = _safe_cast(dealer, float, 0.0)
+            item = result.setdefault(symbol, {
+                "symbol": symbol,
+                "foreign": 0.0,
+                "investment": 0.0,
+                "dealer": 0.0,
+                "net_buy": 0.0,
+                "last_date": None,
+            })
+            item["foreign"] += foreign_value
+            item["investment"] += investment_value
+            item["dealer"] += dealer_value
+            item["net_buy"] += foreign_value + investment_value + dealer_value
+            item["last_date"] = str(date_str)
 
-            foreign = _safe_cast(row.get("外資買賣超", 0), float, 0.0)
-            investment = _safe_cast(row.get("投信買賣超", 0), float, 0.0)
-            dealer = _safe_cast(row.get("自營商買賣超", 0), float, 0.0)
-            net_buy = foreign + investment + dealer
+        try:
+            response = requests.get(
+                "https://openapi.twse.com.tw/v1/opendata/t187ap40_L",
+                timeout=30,
+            )
+            response.raise_for_status()
+            rows = response.json()
+            if isinstance(rows, list):
+                for row in rows:
+                    if isinstance(row, dict):
+                        add_row(
+                            row.get("股票代號"),
+                            row.get("外資買賣超", 0),
+                            row.get("投信買賣超", 0),
+                            row.get("自營商買賣超", 0),
+                            row.get("成交日期", ""),
+                        )
+        except (requests.RequestException, ValueError, TypeError):
+            pass
 
-            if sid not in result:
-                result[sid] = {
-                    "symbol": sid,
-                    "foreign": 0.0,
-                    "investment": 0.0,
-                    "dealer": 0.0,
-                    "net_buy": 0.0,
-                    "last_date": None,
-                }
-
-            result[sid]["foreign"] += foreign
-            result[sid]["investment"] += investment
-            result[sid]["dealer"] += dealer
-            result[sid]["net_buy"] += net_buy
-            result[sid]["last_date"] = date_str
+        try:
+            response = requests.get(
+                "https://www.tpex.org.tw/web/stock/3insti/daily_trade/3itrade_hedge_result.php",
+                params={"l": "zh-tw", "o": "json"},
+                headers={"User-Agent": FUBON_RANK_HEADERS["User-Agent"], "Referer": "https://www.tpex.org.tw/"},
+                timeout=30,
+            )
+            response.raise_for_status()
+            payload = response.json()
+            table = payload.get("tables", [])[0]
+            for row in table.get("data", []):
+                if not isinstance(row, list) or len(row) < 23:
+                    continue
+                add_row(
+                    row[0],
+                    row[10],
+                    row[13],
+                    row[22],
+                    payload.get("date", ""),
+                )
+        except (requests.RequestException, ValueError, TypeError, IndexError, KeyError):
+            pass
 
         return result
 
@@ -373,7 +549,7 @@ class TechnicalSignalEngine:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
         if "date" in df.columns:
-            df["date"] = pd.to_datetime(df["date"])
+            df["date"] = pd.to_datetime(df["date"], utc=True)
             df = df.sort_values("date").reset_index(drop=True)
 
         if lookback_days and "date" in df.columns:
@@ -396,7 +572,7 @@ class TechnicalSignalEngine:
                 df[c] = pd.to_numeric(df[c], errors="coerce")
 
         if "date" in df.columns:
-            df["date"] = pd.to_datetime(df["date"])
+            df["date"] = pd.to_datetime(df["date"], utc=True)
         else:
             df["date"] = pd.date_range(start=datetime.now() - timedelta(days=len(df)), periods=len(df), freq="D")
 
@@ -714,6 +890,7 @@ class TechnicalSignalEngine:
         snapshot: Optional[Dict[str, Any]] = None,
         chip: Optional[Dict[str, Any]] = None,
         insider: Optional[Dict[str, Any]] = None,
+        effective_3k: Optional[Dict[str, Any]] = None,
         min_score: float = 60.0,
         min_volume_ratio: float = 2.5,
     ) -> Dict[str, Any]:
@@ -761,6 +938,9 @@ class TechnicalSignalEngine:
             (rsi14 > 50 and macd_hist > 0)
         )
         tier1_base = volume_threshold and score_threshold and daily_bullish
+        three_k_confirmed = effective_3k is not None
+        if three_k_confirmed:
+            tier1_base = tier1_base and bool(effective_3k)
 
         # Tier 2: 進階 (Tier1 + 內部人買超)
         tier1_insider = insider.get("net_buy", 0.0) > 0
@@ -811,6 +991,8 @@ class TechnicalSignalEngine:
             "tier1_insider": bool(tier1_insider),
             "tier2_advanced": bool(tier2_advanced),
             "tier3_ultimate": bool(tier3_ultimate),
+            "effective_3k": effective_3k,
+            "three_k_confirmed": three_k_confirmed,
             "is_consecutive_buy": bool(is_consecutive_buy),
             "volume_ratio": volume_ratio,
             "score": score,
@@ -831,9 +1013,16 @@ class TechnicalSignalEngine:
         snapshot: Optional[Dict[str, Any]] = None,
         chip: Optional[Dict[str, Any]] = None,
         insider: Optional[Dict[str, Any]] = None,
+        effective_3k: Optional[Dict[str, Any]] = None,
     ) -> str:
         """組合 Telegram 主動通知格式，展示累積式優先級觸發原因 + nstock 超連結。"""
-        decision = self.evaluate_alert_triggers(symbol, snapshot=snapshot, chip=chip, insider=insider)
+        decision = self.evaluate_alert_triggers(
+            symbol,
+            snapshot=snapshot,
+            chip=chip,
+            insider=insider,
+            effective_3k=effective_3k,
+        )
         if decision["snapshot"] is None:
             decision["snapshot"] = {}
         snap = decision["snapshot"]
@@ -866,6 +1055,8 @@ class TechnicalSignalEngine:
             f"  趨勢: {snap.get('trend', 'N/A')}\n"
             f"  突破: 3K={snap.get('is_3k_breakout', False)}, 5K={snap.get('is_5k_breakout', False)}\n"
             f"  量能比: {float(snap.get('volume_ratio', 0.0)):.2f}x\n"
+            f"  有效3K: 收盤 {float(effective_3k['close']):.2f} > 前兩K高點 {float(effective_3k['breakout_price']):.2f}, "
+            f"K3量比 {float(effective_3k['volume_ratio']):.2f}x\n" if effective_3k else ""
             f"─────────\n"
             f"💼 籌碼面:\n"
             f"  內部買超: {insider_data.get('net_buy', 0.0):.0f} ({annotation})\n"
@@ -882,20 +1073,39 @@ class TechnicalSignalEngine:
         snapshot: Optional[Dict[str, Any]] = None,
         chip: Optional[Dict[str, Any]] = None,
         insider: Optional[Dict[str, Any]] = None,
+        effective_3k: Optional[Dict[str, Any]] = None,
         chat_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Only send Telegram when the trigger conditions are satisfied."""
         if snapshot is None:
             snapshot = dict(self.build_signal_snapshot(symbol))
 
-        decision = self.evaluate_alert_triggers(symbol, snapshot=snapshot, chip=chip, insider=insider)
+        if effective_3k is None:
+            return {
+                "status_code": 200,
+                "body": {"ok": False, "reason": "effective_3k_required"},
+            }
+
+        decision = self.evaluate_alert_triggers(
+            symbol,
+            snapshot=snapshot,
+            chip=chip,
+            insider=insider,
+            effective_3k=effective_3k,
+        )
         if not decision["should_send"]:
             return {
                 "status_code": 200,
                 "body": {"ok": False, "reason": "trigger_not_met", "decision": decision},
             }
 
-        msg = self.build_trigger_message(symbol, snapshot=snapshot, chip=chip, insider=insider)
+        msg = self.build_trigger_message(
+            symbol,
+            snapshot=snapshot,
+            chip=chip,
+            insider=insider,
+            effective_3k=effective_3k,
+        )
         return send_telegram_message(msg, chat_id=chat_id, token=TELEGRAM_BOT_TOKEN)
 
 
@@ -909,73 +1119,91 @@ class WarrantReverseMonitor:
         self.quota = quota
         self.group_size = group_size
         self.last_snapshot: Dict[str, Dict[str, float]] = {}
+        self.last_pool_metadata: Dict[str, Dict[str, Any]] = {}
+        self.latest_quotes: Dict[str, Dict[str, Any]] = {}
 
     def fetch_hot_warrant_underlyings(self, quota: Optional[int] = None) -> List[str]:
         """
-        參考 scanner.py：從 TWSE 權證基本資料 + 成交資料做熱門權證池，最後映射回現股。
-        這裡沿用免費方案：從官方資料生成前 {quota} 熱門現股池，作為後續 MIS 逆向監控的標的清單。
+        參考 test_catchWarrant.py：從富邦權證成交量榜彙總認購/認售量，
+        過濾到期日、價外幅度與認購認售比後，映射回前 quota 檔現股。
         """
         limit = quota or self.quota
+        min_days_to_expiry = 30
+        max_otm_percent = 30
+        min_call_put_ratio = 1.5
+        target_stocks: Dict[str, Dict[str, Any]] = {}
+
         try:
-            basic_res = requests.get("https://openapi.twse.com.tw/v1/opendata/t187ap37_L", timeout=30)
-            trade_res = requests.get("https://openapi.twse.com.tw/v1/opendata/t187ap42_L", timeout=30)
-            if basic_res.status_code != 200 or trade_res.status_code != 200:
-                return []
-            basic_rows = basic_res.json()
-            trade_rows = trade_res.json()
-            if not isinstance(basic_rows, list) or not isinstance(trade_rows, list):
-                return []
-        except Exception:
+            for callput in ("C", "P"):
+                page = 1
+                total_pages = 1
+                while page <= total_pages:
+                    response = requests.get(
+                        FUBON_RANK_URL,
+                        params={"rank": "sumvol_desc", "callput": callput, "page": page},
+                        headers=FUBON_RANK_HEADERS,
+                        timeout=20,
+                    )
+                    response.raise_for_status()
+                    if page == 1:
+                        page_match = re.search(r"totPage:'(\d+)'", response.text)
+                        total_pages = int(page_match.group(1)) if page_match else 1
+
+                    for record in re.findall(r"\{([^{}]+)\}", response.text):
+                        fields: Dict[str, str] = {}
+                        for field_name in ("ulcode", "ulsname", "idx_cp", "days", "iom", "sumvol"):
+                            field_match = re.search(
+                                rf"\b{field_name}:\s*(?:'([^']*)'|([^,}}]+))",
+                                record,
+                            )
+                            if field_match:
+                                fields[field_name] = (
+                                    field_match.group(1)
+                                    if field_match.group(1) is not None
+                                    else field_match.group(2).strip()
+                                )
+
+                        stock_code = fields.get("ulcode", "")
+                        if not re.fullmatch(r"\d{4}", stock_code):
+                            continue
+                        days = int(_safe_cast(fields.get("days"), float, 0))
+                        moneyness = _safe_cast(fields.get("iom"), float, 0.0)
+                        volume = int(_safe_cast(fields.get("sumvol"), float, 0))
+                        if days < min_days_to_expiry or moneyness < -max_otm_percent:
+                            continue
+
+                        stock = target_stocks.setdefault(
+                            stock_code,
+                            {
+                                "name": "".join(fields.get("ulsname", "").split()),
+                                "price": fields.get("idx_cp", "-"),
+                                "call_volume": 0,
+                                "put_volume": 0,
+                            },
+                        )
+                        stock["call_volume" if callput == "C" else "put_volume"] += volume
+                    page += 1
+        except (requests.RequestException, ValueError, TypeError) as exc:
+            print(f"[富邦權證池] 取得失敗: {exc}")
             return []
 
-        pending = {}
-        for row in basic_rows:
-            if not isinstance(row, dict):
+        for stock_code in list(target_stocks):
+            stock = target_stocks[stock_code]
+            call_volume = stock["call_volume"]
+            put_volume = stock["put_volume"]
+            ratio = call_volume / put_volume if put_volume > 0 else float("inf")
+            if call_volume == 0 or ratio < min_call_put_ratio:
+                del target_stocks[stock_code]
                 continue
-            if "認購" not in _norm_text(row.get("權證類型")).upper():
-                continue
+            stock["call_put_ratio"] = ratio
 
-            underlying = _norm_text(row.get("標的證券/指數"))
-            if not underlying:
-                continue
-
-            code_match = "".join(ch for ch in underlying if ch.isdigit())
-            if len(code_match) == 4:
-                sid = code_match
-            else:
-                sid = underlying.replace("-", "")
-                if len(sid) != 4:
-                    continue
-
-            candidate = pending.setdefault(sid, {"turnover": 0.0, "volume": 0, "warrant_count": 0, "seen": set()})
-            candidate["seen"].add(_norm_text(row.get("權證代號")))
-            candidate["warrant_count"] = len(candidate["seen"])
-
-        for row in trade_rows:
-            if not isinstance(row, dict):
-                continue
-            warrant_code = _norm_text(row.get("權證代號"))
-            if not warrant_code:
-                continue
-            sid = None
-            for key, value in pending.items():
-                if warrant_code in value["seen"]:
-                    sid = key
-                    break
-            if sid is None:
-                continue
-            stat = pending.setdefault(sid, {"turnover": 0.0, "volume": 0, "warrant_count": 0, "seen": set()})
-            stat["turnover"] += _safe_cast(row.get("成交金額"), float, 0.0)
-            stat["volume"] += _safe_cast(row.get("成交張數"), int, 0)
-
-        ranked = [
-            {"sid": sid, **stats}
-            for sid, stats in pending.items()
-            if stats["turnover"] > 0 and stats["volume"] > 0
-        ]
-        ranked.sort(key=lambda item: (item["turnover"], item["volume"], item["warrant_count"]), reverse=True)
-        selected = [item["sid"] for item in ranked[:limit]]
-        return selected
+        ranked = sorted(
+            target_stocks.items(),
+            key=lambda item: (item[1]["call_volume"], item[1]["put_volume"]),
+            reverse=True,
+        )
+        self.last_pool_metadata = dict(ranked[:limit])
+        return [stock_code for stock_code, _ in ranked[:limit]]
 
     def build_stock_groups(self, symbols: List[str]) -> List[List[str]]:
         groups = []
@@ -988,7 +1216,12 @@ class WarrantReverseMonitor:
         if not group:
             return []
 
-        ex_ch = "|".join(f"tse_{sid}.tw" for sid in group if sid.isdigit())
+        valid_symbols = [sid for sid in group if re.fullmatch(r"\d{4}", sid)]
+        ex_ch = "|".join(
+            f"{exchange}_{sid}.tw"
+            for sid in valid_symbols
+            for exchange in ("tse", "otc")
+        )
         if not ex_ch:
             return []
 
@@ -1004,16 +1237,27 @@ class WarrantReverseMonitor:
             sid = str(stock.get("c", "")).strip()
             if not sid:
                 continue
-            current_price = float(stock.get("z", 0) or 0)
-            total_vol = int(stock.get("v", 0) or 0)
-            ask_price_1 = float(stock.get("a", "_").split("_")[0] or 0)
+            current_price = _safe_cast(stock.get("z"), float, 0.0)
+            reference_price = _safe_cast(stock.get("y"), float, 0.0)
+            if current_price <= 0:
+                current_price = reference_price
+            total_vol = int(_safe_cast(stock.get("v"), float, 0.0))
+            ask_values = str(stock.get("a", "")).split("_")
+            ask_price_1 = _safe_cast(ask_values[0] if ask_values else None, float, 0.0)
+            if current_price <= 0:
+                continue
+            self.latest_quotes[sid] = {
+                "name": str(stock.get("n", "")).strip(),
+                "current_price": current_price,
+                "total_volume": total_vol,
+            }
             prev = self.last_snapshot.get(sid)
             if prev is not None:
                 prev_vol = float(prev.get("vol", 0.0))
                 prev_price = float(prev.get("price", 0.0))
                 diff_vol = total_vol - prev_vol
                 diff_amount = diff_vol * current_price * 1000
-                if diff_amount >= 3_000_000 and current_price >= prev_price:
+                if diff_vol > 0 and diff_amount >= 3_000_000 and current_price >= prev_price:
                     triggered.append(
                         {
                             "sid": sid,
@@ -1030,6 +1274,7 @@ class WarrantReverseMonitor:
 
     def scan_mis_for_warrant_hedge(self, symbols: List[str]) -> List[Dict[str, Any]]:
         """整批掃描現股，找出符合外盤大單消耗 + 急拉的標的，供權證重點參考。"""
+        self.latest_quotes = {}
         results: List[Dict[str, Any]] = []
         for group in self.build_stock_groups(symbols):
             for hit in self._scan_group(group):
@@ -1055,6 +1300,9 @@ class WarrantTelegramAlertRunner:
         self.monitor = WarrantReverseMonitor(quota=quota, group_size=group_size)
         self.engine = TechnicalSignalEngine(api_key=FUGLE_API_KEY)
         self.chip_layer = FundamentalChipDataLayer()
+        self.warrant_pool_metadata: Dict[str, Dict[str, Any]] = {}
+        self.sent_signals: set[str] = set()
+        self.last_effective_3k: Dict[str, Dict[str, Any]] = {}
 
     @staticmethod
     def _fallback_underlyings() -> List[str]:
@@ -1066,34 +1314,113 @@ class WarrantTelegramAlertRunner:
 
     def build_hot_underlying_pool(self, custom_symbols: Optional[List[str]] = None) -> List[str]:
         if custom_symbols:
-            return custom_symbols
+            return [str(symbol).strip() for symbol in custom_symbols if re.fullmatch(r"\d{4}", str(symbol).strip())]
 
         pool = self.monitor.fetch_hot_warrant_underlyings(self.quota)
-        if pool:
-            return pool
-        return self._fallback_underlyings()[: self.quota]
+        if not pool:
+            return list(self.warrant_pool_metadata)
 
-    def _build_chip_signal(self, hit: Dict[str, Any]) -> Dict[str, Any]:
-        surge = float(hit.get("diff_amount", 0.0))
-        foreign = max(80.0, surge / 60_000.0)
-        investment = max(60.0, surge / 90_000.0)
-        dealer = max(30.0, surge / 180_000.0)
-        big_holder = max(100.0, surge / 150_000.0)
-        net_buy = foreign + investment + dealer + big_holder
-        return {
-            "foreign": round(foreign, 1),
-            "investment": round(investment, 1),
-            "dealer": round(dealer, 1),
-            "big_holder": round(big_holder, 1),
-            "net_buy": round(net_buy, 1),
-        }
+        previous_pool = self.warrant_pool_metadata
+        current_pool = self.monitor.last_pool_metadata
+        for symbol, stock in current_pool.items():
+            previous_volume = int(previous_pool.get(symbol, {}).get("call_volume", 0))
+            current_volume = int(stock.get("call_volume", 0))
+            volume_change = current_volume - previous_volume
+            growth_percent = volume_change / previous_volume * 100 if previous_volume > 0 else 0.0
+            stock["warrant_volume_change"] = volume_change
+            stock["warrant_volume_growth_percent"] = growth_percent
+            stock["is_warrant_volume_accelerating"] = (
+                previous_volume > 0
+                and volume_change >= WARRANT_VOLUME_GROWTH_MINIMUM
+                and growth_percent >= WARRANT_VOLUME_GROWTH_PERCENT
+            )
+        self.warrant_pool_metadata = current_pool
+        return pool
 
-    def _fetch_real_chip_signal(self, symbol: str) -> Dict[str, Any]:
-        """優先級：內部人 > 三大法人 > 融資"""
+    def build_startup_status_message(self, pool: Optional[List[str]] = None) -> str:
+        """建立啟動LOG/測試通知，列出熱門池前五檔與現價。"""
+        symbols = pool if pool is not None else self.build_hot_underlying_pool()
+        top_symbols = symbols[:5]
+
+        lines = [
+            "【啟動測試】權證現股監控系統",
+            f"啟動時間: {get_taipei_now():%Y-%m-%d %H:%M:%S}",
+            f"監控池檔數: {len(symbols)}",
+            "熱門池前五檔:",
+        ]
+        if not top_symbols:
+            lines.append("  無法取得熱門權證池資料")
+            return "\n".join(lines)
+
+        for index, symbol in enumerate(top_symbols, start=1):
+            info = self.warrant_pool_metadata.get(symbol, {})
+            price = info.get("price", "--")
+            lines.append(
+                f"{index}. {symbol} {info.get('name', '--')}"
+                f"｜價格 {price}"
+            )
+        return "\n".join(lines)
+
+    def send_startup_test_notification(self, pool: Optional[List[str]] = None) -> Dict[str, Any]:
+        """每次啟動發送一次池資料測試通知，不代表交易訊號。"""
+        message = self.build_startup_status_message(pool)
+        print(message)
         try:
-            insider = FundamentalChipDataLayer.fetch_insider_buy_data(lookback_days=30)
-            three_inst = FundamentalChipDataLayer.fetch_three_institutional_buy(lookback_days=30)
-            margin = FundamentalChipDataLayer.fetch_margin_buy(lookback_days=30)
+            return send_telegram_message(message, chat_id=self.chat_id, token=TELEGRAM_BOT_TOKEN)
+        except (requests.RequestException, ValueError) as exc:
+            print(f"[啟動測試通知] 發送失敗: {exc}")
+            return {"status_code": 0, "body": {"ok": False, "error": str(exc)}}
+
+    def log_monitoring_status(self, pool: Optional[List[str]] = None) -> None:
+        """依 scanner.py 風格輸出本輪30檔批次行情與3K狀態。"""
+        symbols = pool if pool is not None else list(self.warrant_pool_metadata)
+        quotes = self.monitor.latest_quotes
+        print(f"[監控LOG {get_taipei_now():%Y-%m-%d %H:%M:%S}] 池子 {len(symbols)} 檔", flush=True)
+        print("股號     股名                 現價         3K突破價", flush=True)
+        for symbol in symbols:
+            info = self.warrant_pool_metadata.get(symbol, {})
+            quote = quotes.get(symbol, {})
+            current_price = quote.get("current_price", "--")
+            effective_3k = self.last_effective_3k.get(symbol)
+            breakout_price = (
+                f"{float(effective_3k['breakout_price']):.2f}"
+                if effective_3k else "--"
+            )
+            print(
+                f"{symbol:<8}"
+                f"{str(quote.get('name') or info.get('name') or '--')[:18]:<20}"
+                f"{str(current_price):>10}"
+                f"{breakout_price:>14}"
+                , flush=True
+            )
+
+    def refresh_monitoring_status(self, pool: Optional[List[str]] = None) -> None:
+        """非盤中也刷新行情與3K狀態，但不執行交易訊號或Telegram通知。"""
+        symbols = pool if pool is not None else list(self.warrant_pool_metadata)
+        try:
+            self.monitor.scan_mis_for_warrant_hedge(symbols)
+        except Exception as exc:
+            print(f"[監控LOG] MIS快照更新失敗: {exc}", flush=True)
+
+        try:
+            self.last_effective_3k = fetch_effective_3k_breakouts(symbols)
+        except Exception as exc:
+            print(f"[監控LOG] 5分K更新失敗: {exc}", flush=True)
+            self.last_effective_3k = {}
+        self.log_monitoring_status(symbols)
+
+    def _fetch_real_chip_signal(
+        self,
+        symbol: str,
+        insider: Optional[Dict[str, Dict[str, Any]]] = None,
+        three_inst: Optional[Dict[str, Dict[str, Any]]] = None,
+        margin: Optional[Dict[str, Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """回傳指定現股的真實籌碼資料，不以急拉金額推估籌碼。"""
+        try:
+            insider = insider if insider is not None else FundamentalChipDataLayer.fetch_insider_buy_data(lookback_days=30)
+            three_inst = three_inst if three_inst is not None else FundamentalChipDataLayer.fetch_three_institutional_buy(lookback_days=30)
+            margin = margin if margin is not None else FundamentalChipDataLayer.fetch_margin_buy(lookback_days=30)
         except Exception:
             return {}
 
@@ -1104,79 +1431,74 @@ class WarrantTelegramAlertRunner:
             "dealer": 0.0,
             "big_holder": 0.0,
             "net_buy": 0.0,
+            "insider_net_buy": 0.0,
+            "insider_buy_count": 0,
+            "insider_buy_streak": 0,
+            "insider_names": [],
             "source": "",
         }
 
-        if symbol in insider and insider[symbol]["net_buy"] > 0:
-            result["net_buy"] = float(insider[symbol]["net_buy"])
-            result["source"] = f"內部人買超({len(insider[symbol]['buy_names'])}位)"
-            result["big_holder"] = float(insider[symbol]["net_buy"])
-            return result
-
-        if symbol in three_inst and three_inst[symbol]["net_buy"] > 0:
-            result["foreign"] = float(three_inst[symbol]["foreign"])
-            result["investment"] = float(three_inst[symbol]["investment"])
-            result["dealer"] = float(three_inst[symbol]["dealer"])
-            result["net_buy"] = float(three_inst[symbol]["net_buy"])
-            result["source"] = "三大法人買超"
-            return result
-
-        if symbol in margin and margin[symbol]["net_buy"] > 0:
-            result["net_buy"] = float(margin[symbol]["net_buy"])
-            result["big_holder"] = float(margin[symbol]["net_buy"])
-            result["source"] = "融資買超"
-            return result
+        insider_data = insider.get(symbol, {})
+        institutional_data = three_inst.get(symbol, {})
+        margin_data = margin.get(symbol, {})
+        result["insider_net_buy"] = float(insider_data.get("net_buy", 0.0))
+        result["insider_buy_count"] = int(insider_data.get("buy_count", 0))
+        result["insider_buy_streak"] = int(insider_data.get("buy_streak", 0))
+        result["insider_names"] = insider_data.get("buy_names", [])
+        result["foreign"] = float(institutional_data.get("foreign", 0.0))
+        result["investment"] = float(institutional_data.get("investment", 0.0))
+        result["dealer"] = float(institutional_data.get("dealer", 0.0))
+        result["net_buy"] = float(institutional_data.get("net_buy", 0.0))
+        result["big_holder"] = float(margin_data.get("net_buy", 0.0))
+        sources = []
+        if insider_data.get("net_buy", 0.0) > 0:
+            sources.append(f"內部人買超({len(insider_data.get('buy_names', []))}位)")
+        if institutional_data.get("net_buy", 0.0) > 0:
+            sources.append("三大法人")
+        if margin_data.get("net_buy", 0.0) > 0:
+            sources.append("融資")
+        result["source"] = "+".join(sources)
 
         return result
 
-    def _build_insider_signal(self, hit: Dict[str, Any]) -> Dict[str, Any]:
-        surge = float(hit.get("diff_amount", 0.0))
-        net_buy = max(20.0, surge / 80_000.0)
-        buy_count = 2 if surge > 2_000_000 else 1
-        buy_streak = 3 if surge > 5_000_000 else 2
-        annotation = "連三買" if buy_streak >= 3 else "連買" if buy_count >= 2 else "買超"
-        return {
-            "net_buy": round(net_buy, 1),
-            "buy_count": buy_count,
-            "buy_streak": buy_streak,
-            "annotation": annotation,
-        }
-
     def _safe_snapshot(self, symbol: str, hit: Dict[str, Any]) -> Dict[str, Any]:
-        try:
-            df = self.engine.fetch_historical_candles(symbol, timeframe="D", lookback_days=60)
-            signal = self.engine.build_signal_snapshot(symbol, self.engine.add_technical_features(df))
-        except Exception:
-            signal = {
-                "symbol": symbol,
-                "date": str(datetime.now()),
-                "close": float(hit.get("current_price", 0.0)),
-                "open": float(hit.get("current_price", 0.0) * 0.995),
-                "high": float(hit.get("current_price", 0.0) * 1.02),
-                "low": float(hit.get("current_price", 0.0) * 0.99),
-                "volume": float(hit.get("total_vol", 0.0)),
-                "score": 80.0,
-                "trend": "偏多續強",
-                "rsi14": 68.0,
-                "volume_ratio": 1.8,
-                "is_3k_breakout": True,
-                "is_5k_breakout": False,
-                "ma5": float(hit.get("current_price", 0.0) * 0.998),
-                "ma20": float(hit.get("current_price", 0.0) * 0.99),
-            }
-
-        signal["volume_ratio"] = max(float(signal.get("volume_ratio", 0.0)), float(hit.get("diff_amount", 0.0)) / 100_000_000.0 + 0.8)
-        signal["score"] = min(100.0, float(signal.get("score", 0.0)) + (float(hit.get("diff_amount", 0.0)) / 50_000_000.0))
-        signal["trend"] = self.engine._score_to_trend(float(signal.get("score", 0.0)), float(signal.get("rsi14", 50.0)), 0.0, 0.0)
-        if float(hit.get("current_price", 0.0)) > float(signal.get("close", 0.0)):
-            signal["is_3k_breakout"] = True
+        if symbol not in self.engine.cache:
+            self.engine.fetch_historical_candles(symbol, timeframe="D", lookback_days=60)
+        daily_df = self.engine.cache[symbol]
+        signal = dict(self.engine.build_signal_snapshot(symbol, daily_df))
+        last_price = _safe_cast(hit.get("current_price"), float, 0.0)
+        total_volume = _safe_cast(hit.get("total_vol"), float, 0.0)
+        if last_price <= 0 or total_volume <= 0:
+            raise ValueError(f"MIS 即時資料不完整: {symbol}")
+        signal.update({
+            "close": last_price,
+            "volume": total_volume,
+            "date": str(get_taipei_now()),
+        })
         return signal
 
     def run_cycle(self, custom_symbols: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """執行一輪現股逆向掃描並主動發送 Telegram，返回所有觸發訊號。優先使用真實的內部人 + 法人買超資料。"""
+        self.last_effective_3k = {}
         pool = self.build_hot_underlying_pool(custom_symbols)
         hits = self.monitor.scan_mis_for_warrant_hedge(pool)
         if not hits:
+            return []
+
+        symbols = [str(hit.get("sid", "")).strip() for hit in hits[:10]]
+        volume_multiplier = (
+            OPENING_KLINE_VOLUME_MULTIPLIER
+            if is_opening_noise_period()
+            else KLINE_VOLUME_MULTIPLIER
+        )
+        effective_3k_by_symbol = fetch_effective_3k_breakouts(symbols, volume_multiplier)
+        self.last_effective_3k = effective_3k_by_symbol
+        try:
+            insider_data = FundamentalChipDataLayer.fetch_insider_buy_data(lookback_days=30)
+            institutional_data = FundamentalChipDataLayer.fetch_three_institutional_buy(lookback_days=30)
+            margin_data = FundamentalChipDataLayer.fetch_margin_buy(lookback_days=30)
+        except Exception as exc:
+            print(f"[籌碼資料] 本輪取得失敗: {exc}")
             return []
 
         alerts: List[Dict[str, Any]] = []
@@ -1185,25 +1507,80 @@ class WarrantTelegramAlertRunner:
             if not symbol:
                 continue
 
-            snapshot = self._safe_snapshot(symbol, hit)
-            real_chip = self._fetch_real_chip_signal(symbol)
-            if real_chip.get("net_buy", 0.0) > 0:
-                chip = real_chip
-            else:
-                chip = self._build_chip_signal(hit)
-            
-            insider = self._build_insider_signal(hit)
-            decision = self.engine.evaluate_alert_triggers(symbol, snapshot=snapshot, chip=chip, insider=insider)
+            effective_3k = effective_3k_by_symbol.get(symbol)
+            if not effective_3k:
+                continue
+            signal_key = f"{symbol}:{effective_3k['bar_time']}"
+            if signal_key in self.sent_signals:
+                continue
+
+            try:
+                snapshot = self._safe_snapshot(symbol, hit)
+            except (requests.RequestException, ValueError, TypeError) as exc:
+                print(f"[即時快照] {symbol} 取得失敗: {exc}")
+                continue
+            snapshot["effective_3k"] = effective_3k
+            snapshot["is_3k_breakout"] = True
+            snapshot["volume_ratio"] = max(
+                float(snapshot.get("volume_ratio", 0.0)),
+                float(effective_3k.get("volume_ratio", 0.0)),
+            )
+            try:
+                real_chip = self._fetch_real_chip_signal(
+                    symbol,
+                    insider=insider_data,
+                    three_inst=institutional_data,
+                    margin=margin_data,
+                )
+            except Exception as exc:
+                print(f"[籌碼資料] {symbol} 取得失敗: {exc}")
+                continue
+            chip = real_chip
+            insider = {
+                "net_buy": real_chip.get("insider_net_buy", 0.0),
+                "buy_count": real_chip.get("insider_buy_count", 0),
+                "buy_streak": real_chip.get("insider_buy_streak", 0),
+                "annotation": "買超" if real_chip.get("insider_net_buy", 0.0) > 0 else "無買超",
+            }
+            decision = self.engine.evaluate_alert_triggers(
+                symbol,
+                snapshot=snapshot,
+                chip=chip,
+                insider=insider,
+                effective_3k=effective_3k,
+            )
             if not decision["should_send"]:
                 continue
 
-            message = self.engine.build_trigger_message(symbol, snapshot=snapshot, chip=chip, insider=insider)
-            source_info = real_chip.get("source", "推估籌碼")
-            message += f"\n反查標的: {symbol}\nMIS急拉量: {float(hit.get('diff_amount', 0.0)):.0f}\n先行價差: {float(hit.get('current_price', 0.0)):.2f}\n籌碼來源: {source_info}"
+            message = self.engine.build_trigger_message(
+                symbol,
+                snapshot=snapshot,
+                chip=chip,
+                insider=insider,
+                effective_3k=effective_3k,
+            )
+            source_info = real_chip.get("source", "無買超資料")
+            warrant_info = self.warrant_pool_metadata.get(symbol, {})
+            warrant_grade = "AA" if warrant_info.get("is_warrant_volume_accelerating") else "A"
+            message += (
+                f"\n反查標的: {symbol}"
+                f"\nMIS急拉量: {float(hit.get('diff_amount', 0.0)):.0f}"
+                f"\n先行價差: {float(hit.get('current_price', 0.0)):.2f}"
+                f"\n權證評級: {warrant_grade}"
+                f"\n認購量增: {int(warrant_info.get('warrant_volume_change', 0)):+,}"
+                f" ({float(warrant_info.get('warrant_volume_growth_percent', 0.0)):+.1f}%)"
+                f"\n籌碼來源: {source_info}"
+            )
             payload = send_telegram_message(message, chat_id=self.chat_id, token=TELEGRAM_BOT_TOKEN)
+            if payload.get("body", {}).get("ok"):
+                self.sent_signals.add(signal_key)
             alerts.append({
                 "symbol": symbol,
                 "hit": hit,
+                "signal_key": signal_key,
+                "warrant_grade": warrant_grade,
+                "warrant_volume_change": warrant_info.get("warrant_volume_change", 0),
+                "warrant_volume_growth_percent": warrant_info.get("warrant_volume_growth_percent", 0.0),
                 "chip_source": source_info,
                 "real_chip": real_chip,
                 "decision": decision,
@@ -1240,8 +1617,7 @@ def example_usage():
 if __name__ == "__main__":
     # 定時執行 loop：每 10 秒掃一次盤中現股急拉信號
     # 支援每天 09:00 ~ 13:30 盤中自動監控
-    from datetime import time as dtime
-    
+
     runner = WarrantTelegramAlertRunner(quota=30, group_size=20, chat_id=TELEGRAM_CHAT_ID)
     
     print("=" * 60)
@@ -1252,26 +1628,55 @@ if __name__ == "__main__":
     print(f"🔑 Fugle API: 已設置" if FUGLE_API_KEY else "⚠️ Fugle API: 未設置")
     print("=" * 60)
     print()
-    
+
+    try:
+        pool = runner.build_hot_underlying_pool()
+    except Exception as exc:
+        print(f"[啟動] 熱門權證池取得失敗: {exc}", flush=True)
+        pool = []
+    try:
+        runner.monitor.scan_mis_for_warrant_hedge(pool)
+    except Exception as exc:
+        print(f"[啟動] MIS快照取得失敗: {exc}", flush=True)
+    try:
+        runner.last_effective_3k = fetch_effective_3k_breakouts(pool)
+    except Exception as exc:
+        print(f"[啟動] 5分K取得失敗: {exc}", flush=True)
+        runner.last_effective_3k = {}
+    runner.log_monitoring_status(pool)
+    try:
+        startup_result = runner.send_startup_test_notification(pool)
+    except Exception as exc:
+        print(f"[啟動測試通知] 發送失敗: {exc}", flush=True)
+        startup_result = {"body": {"ok": False}}
+    print(f"[啟動測試通知] Telegram ok={startup_result.get('body', {}).get('ok', False)}")
+
     cycle_count = 0
     last_pool_refresh = time.time()
-    pool = None
+    monitor_stop_at = get_monitor_stop_at()
+    last_wait_log = 0.0
+    print(f"[監控狀態] 已啟動，預計停止時間: {monitor_stop_at:%Y-%m-%d %H:%M:%S}")
     
     try:
         while True:
             cycle_count += 1
-            now_time = datetime.now().time()
-            
-            # 盤中時間檢查：9:00 ~ 13:30
-            market_open = dtime(9, 0, 0)
-            market_close = dtime(13, 30, 0)
-            
-            if not (market_open <= now_time <= market_close):
-                print(f"\n⏰ [{now_time}] 非盤中時間，暫停監控 (盤中: 09:00-13:30)")
-                time.sleep(60)  # 盤外時間每 60 秒檢查一次
+            now = get_taipei_now()
+
+            if now >= monitor_stop_at:
+                print(f"\n⏰ [{now:%Y-%m-%d %H:%M:%S}] 已到監控停止時間，監控停止")
+                break
+
+            if not is_market_hours(now):
+                print(
+                    f"\n⏳ [{now:%Y-%m-%d %H:%M:%S}] 監控持續運作，等待盤中"
+                    f" (掃描時段: 09:00-13:30，停止: {monitor_stop_at:%H:%M:%S})",
+                    flush=True,
+                )
+                runner.refresh_monitoring_status(pool)
+                time.sleep(10)
                 continue
-            
-            print(f"\n🔄 [週期 #{cycle_count}] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+            print(f"\n🔄 [週期 #{cycle_count}] {now:%Y-%m-%d %H:%M:%S}")
             
             # 每 5 分鐘刷新一次現股池（防止市場變化導致池子過舊）
             if time.time() - last_pool_refresh > 300:
@@ -1297,6 +1702,8 @@ if __name__ == "__main__":
                     print("  ❌ 無符合條件的觸發信號")
             except Exception as e:
                 print(f"  ⚠️  掃描異常: {e}")
+            finally:
+                runner.log_monitoring_status(pool)
             
             # 等待 10 秒後進行下一輪掃描
             print("  ⏳ 等待 10 秒...")
