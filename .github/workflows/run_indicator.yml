@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           # 🛡️ 效能優化：這裡只安裝「指標引擎」真正需要的套件，不裝多餘的包以加快啟動速度。
           # (若你的 technical_indicator_engine.py 還有用到其他套件，請在此補上)
-          pip install supabase pandas requests python-dotenv python-dateutil FinMind>=1.5.4
+          pip install numpy pandas python-dotenv requests supabase FinMind>=1.5.4
 
       - name: 📊 啟動技術指標運算引擎
         env:
