@@ -130,6 +130,8 @@ const errorMessage = ref('');
 const selectedCluster = ref(null);
 
 const openDetailDrawer = (clusterInfo) => {
+  // 💡 蘇蘇的除錯大法：印出點擊泡泡時，傳進來的原始資料到底長怎樣
+  console.log('🔍 [Debug] 點擊泡泡收到的原始資料:', clusterInfo);
   selectedCluster.value = clusterInfo;
 };
 const closeDetailDrawer = () => {
