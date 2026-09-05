@@ -13,6 +13,7 @@
 import { ref, onMounted, onUnmounted, watch, shallowRef } from 'vue';
 import * as echarts from 'echarts';
 import { useElementSize } from '@vueuse/core';
+
 const emit = defineEmits(['node-click']);
 const props = defineProps({
   clusterData: {
@@ -26,27 +27,27 @@ const chartRef = ref(null);
 const chartInstance = shallowRef(null);
 const { width, height } = useElementSize(chartRef);
 
-// 💡 邏輯一：馬卡龍色系動態色彩演算法 (符合人類物理直覺的溫度映射)
+// 💡 邏輯一：馬卡龍色系動態色彩演算法
 const getColorByHeat = (score) => {
-  if (score >= 8) return '#FF9AA2'; // 🍓 馬卡龍草莓紅：極度狂熱、資金高度集中推擠
-  if (score >= 5) return '#FFDFBA'; // 🍊 馬卡龍蜜桃橘：熱度升溫、動能明顯轉強
-  if (score >= 3) return '#FFD1DC'; // 🌸 粉嫩櫻花粉：溫和發酵、資金初步進駐
-  return '#AEC6CF';                 // ☁️ 霧面天空藍：冷靜、常溫狀態
+  if (score >= 8) return '#FF9AA2'; 
+  if (score >= 5) return '#FFDFBA'; 
+  if (score >= 3) return '#FFD1DC'; 
+  return '#AEC6CF';                 
 };
 
-// 💡 邏輯二：資料轉換層 (無外框、柔和陰影)
+// 💡 邏輯二：資料轉換層 (無外框、柔和陰影、短名稱綁定)
 const formatDataToNodes = (data) => {
   return data.map(c => ({
-    name: c.cluster_name,
+    // 🚨 視覺降噪核心：優先使用 shortname，若無則退回 cluster_name
+    name: c.shortname || c.cluster_name || c.concept_name,
     value: c.heat_score,
-    symbolSize: 60 + (c.heat_score * 5), // 氣泡大小由熱度決定
+    symbolSize: 60 + (c.heat_score * 5),
     itemStyle: {
       color: getColorByHeat(c.heat_score),
-      // 拔除 borderColor 與 borderWidth，讓邊緣變柔和
       shadowBlur: c.heat_score >= 5 ? 15 : 0, 
       shadowColor: getColorByHeat(c.heat_score)
     },
-    raw: c // 保留原始資料，供 Tooltip 與未來點擊顯示明細使用
+    raw: c // 保留原始資料，供 Tooltip 與外層 Drawer 使用
   }));
 };
 
@@ -60,16 +61,35 @@ const initChart = () => {
     tooltip: {
       trigger: 'item',
       backgroundColor: 'rgba(15, 23, 42, 0.95)',
-      borderColor: '#334155',
+      borderColor: '#38BDF8', // 配合科技感的藍色邊框
+      borderWidth: 1,
+      padding: 16,
       textStyle: { color: '#f8fafc' },
+      // 🚨 深度資訊提示：Rich Tooltip 渲染
       formatter: (params) => {
         const d = params.data.raw;
+        const shortName = d.shortname || d.cluster_name;
+        const fullName = d.concept_name || d.cluster_name;
+        const descText = d.description || '系統持續運算收集中...';
+
         return `
-          <div style="font-weight:bold; font-size:16px; margin-bottom:8px; border-bottom:1px solid #334155; padding-bottom:4px;">${d.cluster_name}</div>
-          <div>🔥 熱度：<span style="color:#fb7185; font-weight:bold;">${d.heat_score}</span></div>
-          <div>📊 量比：<span style="color:#fb923c; font-weight:bold;">${d.vol_ratio}x</span></div>
-          <div style="margin-top:8px; font-size:12px; color:#94a3b8; max-width:200px; white-space:normal;">
-            領漲標的：${d.representative_stocks}
+          <div style="max-width: 280px; white-space: normal; line-height: 1.6; font-family: sans-serif;">
+            <div style="font-size: 16px; font-weight: bold; color: #38BDF8; margin-bottom: 2px;">
+              ${shortName}
+            </div>
+            <div style="font-size: 12px; color: #94A3B8; margin-bottom: 10px;">
+              ${fullName}
+            </div>
+            <div style="display: flex; gap: 16px; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+              <span>🔥 熱度: <b style="color: #fb7185;">${d.heat_score}</b></span>
+              <span>📊 量比: <b style="color: #fb923c;">${d.vol_ratio}x</b></span>
+            </div>
+            <div style="font-size: 12px; color: #E2E8F0; margin-bottom: 8px;">
+              📌 發動標的: ${d.representative_stocks}
+            </div>
+            <div style="font-size: 12px; color: #94A3B8; text-align: justify;">
+              ${descText}
+            </div>
           </div>
         `;
       }
@@ -78,18 +98,21 @@ const initChart = () => {
       type: 'graph',
       layout: 'force',
       force: {
-        repulsion: 500, // 推擠排斥力
-        gravity: 0.1    // 向心引力
+        repulsion: 500,
+        gravity: 0.1  
       },
-      roam: true, // 允許滑鼠滾輪縮放與拖曳
+      roam: true, 
       label: {
         show: true,
         formatter: '{b}',
-        fontSize: 16,
+        fontSize: 14, // 稍微縮小字級適應短名
         fontWeight: 'bold',
-        color: '#ffffff', // 保持純白字體
-        textBorderColor: 'rgba(15, 23, 42, 0.8)', // 描邊確保白字在高明度泡泡上清晰
-        textBorderWidth: 2
+        color: '#ffffff', 
+        textBorderColor: 'rgba(15, 23, 42, 0.8)', 
+        textBorderWidth: 2,
+        // 🚨 視覺降噪保護：限制寬度並在過長時顯示省略號
+        overflow: 'truncate',
+        width: 80
       },
       data: formatDataToNodes(props.clusterData) 
     }]
@@ -97,18 +120,14 @@ const initChart = () => {
 
   chartInstance.value.setOption(option);
 
-  // 🚨 新增關鍵邏輯：綁定 ECharts 點擊事件
+  // 綁定 ECharts 點擊事件
   chartInstance.value.on('click', (params) => {
-    // 確保點擊的是節點(泡泡)，而不是背景
     if (params.dataType === 'node' && params.data && params.data.raw) {
-      // 將該泡泡夾帶的完整資料(包含 stocks_detail) 發送給外層 App.vue
       emit('node-click', params.data.raw);
     }
   });
-
 };
 
-// 監聽資料變化，動態更新圖表 (ECharts 會自動平滑動畫)
 watch(() => props.clusterData, (newData) => {
   if (chartInstance.value) {
     chartInstance.value.setOption({
@@ -116,8 +135,7 @@ watch(() => props.clusterData, (newData) => {
     });
   }
 }, { deep: true });
-//TTT
-// 視窗 RWD 縮放監聽
+
 watch([width, height], () => {
   if (chartInstance.value) chartInstance.value.resize();
 });

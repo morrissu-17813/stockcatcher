@@ -5,11 +5,9 @@
     <!-- 頁面標題區塊 -->
     <header class="mb-8 border-b border-slate-800 pb-6 shrink-0">
       <div class="flex items-center space-x-4">
-        <!-- 💡 調整 1：縮小主標題字級為 text-2xl md:text-3xl -->
         <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-wider">
           TIDE 資金共振天機圖
         </h1>
-        <!-- 💡 調整 2：縮小標籤字體為 text-[11px]，並等比例縮小 padding 與燈號大小 -->
         <span 
           class="px-2.5 py-0.5 text-[11px] font-bold rounded-full border flex items-center"
           :class="statusClasses"
@@ -35,7 +33,7 @@
         <button @click="fetchTideData" class="mt-6 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg">重新嘗試</button>
       </div>
 
-      <!-- 狀態：成功 (監聽 node-click 事件) -->
+      <!-- 狀態：成功 -->
       <TideBubbleChart 
         v-else 
         :cluster-data="tideData" 
@@ -47,31 +45,48 @@
     <!-- 🌟 個股明細側邊抽屜 (Drawer UI) -->
     <!-- ========================================== -->
     
-    <!-- 背景遮罩 (點擊可關閉抽屜) -->
     <div 
       v-if="selectedCluster" 
       class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 transition-opacity"
       @click="closeDetailDrawer"
     ></div>
 
-    <!-- 抽屜本體 (由右側滑入) -->
     <aside 
-      class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-slate-900 border-l border-slate-800 shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col"
+      class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-slate-900 border-l border-slate-800 shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col"
       :class="selectedCluster ? 'translate-x-0' : 'translate-x-full'"
     >
       <template v-if="selectedCluster">
-        <!-- 抽屜標題 -->
-        <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-          <div>
-            <h2 class="text-2xl font-black text-slate-100 mb-1">{{ selectedCluster.cluster_name }}</h2>
-            <div class="flex space-x-3 text-sm">
-              <span class="text-rose-400">🔥 熱度: {{ selectedCluster.heat_score }}</span>
-              <span class="text-amber-400">📊 量比: {{ selectedCluster.vol_ratio }}x</span>
-            </div>
-          </div>
-          <button @click="closeDetailDrawer" class="text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800">
+        <!-- 🚨 抽屜標題與深度資訊 -->
+        <div class="p-6 border-b border-slate-800 bg-slate-900/50 relative">
+          <!-- 關閉按鈕 -->
+          <button @click="closeDetailDrawer" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
+          
+          <div class="pr-8">
+            <!-- 短名稱主標題 -->
+            <h2 class="text-2xl font-black text-blue-400 mb-1">
+              {{ selectedCluster.shortname || selectedCluster.cluster_name }}
+            </h2>
+            <!-- 全名稱副標題 -->
+            <div v-if="selectedCluster.concept_name" class="text-xs text-slate-400 mb-4 font-mono">
+              {{ selectedCluster.concept_name }}
+            </div>
+            
+            <!-- 產業深度描述 -->
+            <p v-if="selectedCluster.description" class="text-sm text-slate-300 mb-5 leading-relaxed text-justify bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
+              {{ selectedCluster.description }}
+            </p>
+
+            <div class="flex space-x-4 text-sm bg-slate-950/40 p-2.5 rounded-lg inline-flex border border-slate-800">
+              <span class="text-rose-400 font-bold flex items-center">
+                <span class="mr-1">🔥</span>熱度: {{ selectedCluster.heat_score }}
+              </span>
+              <span class="text-amber-400 font-bold flex items-center">
+                <span class="mr-1">📊</span>量比: {{ selectedCluster.vol_ratio }}x
+              </span>
+            </div>
+          </div>
         </div>
 
         <!-- 抽屜內容 (個股明細清單) -->
@@ -79,11 +94,11 @@
           <div 
             v-for="stock in selectedCluster.stocks_detail" 
             :key="stock.sid"
-            class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 hover:border-slate-600 transition-colors flex justify-between items-center"
+            class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 hover:border-slate-600 transition-colors flex justify-between items-center group"
           >
             <!-- 股票代號與名稱 -->
             <div class="flex flex-col">
-              <span class="text-xs text-slate-400 font-mono">{{ stock.sid }}</span>
+              <span class="text-xs text-slate-400 font-mono group-hover:text-blue-400 transition-colors">{{ stock.sid }}</span>
               <span class="text-lg font-bold text-slate-200">{{ stock.name }}</span>
             </div>
             
@@ -95,7 +110,7 @@
               >
                 {{ stock.pct > 0 ? '+' : '' }}{{ stock.pct }}%
               </span>
-              <span class="text-xs text-slate-400 mt-1">量比 {{ stock.vol_ratio }}x</span>
+              <span class="text-xs text-slate-400 mt-1 bg-slate-900/50 px-2 py-0.5 rounded">量比 {{ stock.vol_ratio }}x</span>
             </div>
           </div>
         </div>
@@ -109,13 +124,11 @@
 import { ref, computed, onMounted } from 'vue';
 import TideBubbleChart from './components/TideBubbleChart.vue';
 
-// 資料與狀態
 const tideData = ref([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const selectedCluster = ref(null);
 
-// 開關抽屜的方法
 const openDetailDrawer = (clusterInfo) => {
   selectedCluster.value = clusterInfo;
 };
@@ -123,7 +136,6 @@ const closeDetailDrawer = () => {
   selectedCluster.value = null;
 };
 
-// 狀態樣式動態計算
 const statusClasses = computed(() => {
   if (isLoading.value) return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
   if (errorMessage.value) return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
@@ -135,14 +147,12 @@ const statusIndicatorClasses = computed(() => {
   return 'bg-emerald-400 animate-pulse';
 });
 
-// 💡 調整 3：精簡文案，拔除「連線」二字
 const statusText = computed(() => {
   if (isLoading.value) return '資料同步中...';
   if (errorMessage.value) return '連線中斷';
   return '盤中即時'; 
 });
 
-// 擷取 API 邏輯
 const fetchTideData = async () => {
   isLoading.value = true;
   errorMessage.value = '';
