@@ -29,11 +29,10 @@
               "ai-server-odm",
               "asic-ip-design",
               "cowos-advanced-packaging",
-              "cxl-technology",
               "hbm",
               "silicon-photonics"
             ],
-            "topicCount": 6
+            "topicCount": 5
           }
         },
         {
@@ -66,10 +65,10 @@
         },
         {
           "symbol": "6423",
-          "name": "億而得-創",
+          "name": "億而得",
           "detail": {
             "code": "6423",
-            "name": "億而得-創",
+            "name": "億而得",
             "topics": [
               "asic-ip-design"
             ],
@@ -336,7 +335,7 @@
       "name": "IC 設計｜類比與功率管理 IC",
       "shortname": "類比與功率 IC",
       "description": "聚焦於電子系統中負責電力管理、訊號感測與嵌入式控制的核心類比與功率晶片設計公司。涵蓋微控制器 (MCU)、感測訊號鏈 IC 與電源管理 IC (PMIC)，應用橫跨 AI 伺服器電源、工業自動化與消費電子，是電子系統的基礎能源管理層。",
-      "stock_count": 19,
+      "stock_count": 17,
       "stocks": [
         {
           "symbol": "2436",
@@ -373,11 +372,12 @@
             "name": "原相",
             "topics": [
               "analog-power-ic",
+              "ar-vr-xr-optics",
               "edge-ai",
               "optical-sensors",
               "robotics_physical_ai"
             ],
-            "topicCount": 4
+            "topicCount": 5
           }
         },
         {
@@ -463,20 +463,6 @@
               "wafer-foundry"
             ],
             "topicCount": 6
-          }
-        },
-        {
-          "symbol": "5425",
-          "name": "台半",
-          "detail": {
-            "code": "5425",
-            "name": "台半",
-            "topics": [
-              "analog-power-ic",
-              "power-discrete-tw",
-              "sic-gan-power"
-            ],
-            "topicCount": 3
           }
         },
         {
@@ -575,20 +561,6 @@
               "analog-power-ic"
             ],
             "topicCount": 1
-          }
-        },
-        {
-          "symbol": "8261",
-          "name": "富鼎",
-          "detail": {
-            "code": "8261",
-            "name": "富鼎",
-            "topics": [
-              "analog-power-ic",
-              "power-discrete-tw",
-              "sic-gan-power"
-            ],
-            "topicCount": 3
           }
         }
       ]
@@ -932,10 +904,11 @@
             "code": "1560",
             "name": "中砂",
             "topics": [
+              "hbm",
               "semi-process-materials",
               "silicon-wafer"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -1341,10 +1314,11 @@
             "code": "1560",
             "name": "中砂",
             "topics": [
+              "hbm",
               "semi-process-materials",
               "silicon-wafer"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -1451,9 +1425,10 @@
             "code": "4768",
             "name": "晶呈科技",
             "topics": [
+              "glass-core-substrate",
               "semi-process-materials"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -1549,9 +1524,10 @@
             "code": "1815",
             "name": "富喬",
             "topics": [
-              "fiberglass-cloth"
+              "fiberglass-cloth",
+              "glass-core-substrate"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -1587,9 +1563,10 @@
             "code": "4989",
             "name": "榮科",
             "topics": [
-              "fiberglass-cloth"
+              "fiberglass-cloth",
+              "ic-substrate"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -1649,7 +1626,7 @@
       "name": "基板材料｜IC 載板",
       "shortname": "IC 載板",
       "description": "IC 載板是晶片與 PCB 主板之間的關鍵訊號橋接層，決定 AI 晶片的訊號完整性與散熱表現。涵蓋高階 ABF 積層板、銅箔基板材料（CCL）、電解銅箔與特殊陶瓷基板，是 AI 封裝供應鏈中技術門檻最高、與 AI 算力需求正相關的材料題材。",
-      "stock_count": 9,
+      "stock_count": 10,
       "stocks": [
         {
           "symbol": "2383",
@@ -1719,6 +1696,19 @@
               "pcb-manufacturing"
             ],
             "topicCount": 4
+          }
+        },
+        {
+          "symbol": "4989",
+          "name": "榮科",
+          "detail": {
+            "code": "4989",
+            "name": "榮科",
+            "topics": [
+              "fiberglass-cloth",
+              "ic-substrate"
+            ],
+            "topicCount": 2
           }
         },
         {
@@ -2380,11 +2370,10 @@
               "ai-server-odm",
               "asic-ip-design",
               "cowos-advanced-packaging",
-              "cxl-technology",
               "hbm",
               "silicon-photonics"
             ],
-            "topicCount": 6
+            "topicCount": 5
           }
         },
         {
@@ -2788,8 +2777,22 @@
       "name": "記憶體｜HBM 高頻寬記憶體",
       "shortname": "HBM",
       "description": "HBM 是 AI 伺服器的核心元件，透過 3D 堆疊技術大幅提升記憶體頻寬。隨著 HBM4 世代在 2026 年量產，台灣供應鏈憑藉與台積電、美光及 SK 海力士的合作，在先進封裝、測試設備與關鍵 IP 領域扮演重要角色。",
-      "stock_count": 15,
+      "stock_count": 16,
       "stocks": [
+        {
+          "symbol": "1560",
+          "name": "中砂",
+          "detail": {
+            "code": "1560",
+            "name": "中砂",
+            "topics": [
+              "hbm",
+              "semi-process-materials",
+              "silicon-wafer"
+            ],
+            "topicCount": 3
+          }
+        },
         {
           "symbol": "2330",
           "name": "台積電",
@@ -2830,11 +2833,10 @@
               "ai-server-odm",
               "asic-ip-design",
               "cowos-advanced-packaging",
-              "cxl-technology",
               "hbm",
               "silicon-photonics"
             ],
-            "topicCount": 6
+            "topicCount": 5
           }
         },
         {
@@ -3662,7 +3664,7 @@
       "name": "AI 伺服器｜整機組裝",
       "shortname": "AI 伺服器組裝",
       "description": "負責將運算模組、散熱系統、電源與機殼整合為完整的 AI 伺服器機櫃（Rack）。隨 NVIDIA Blackwell 架構導入，代工廠從單機組裝升級至複雜的整機櫃 L11 整合，是 AI 產業鏈中產值最高、最具系統複雜度的環節。",
-      "stock_count": 11,
+      "stock_count": 12,
       "stocks": [
         {
           "symbol": "2317",
@@ -3788,11 +3790,10 @@
               "ai-server-odm",
               "asic-ip-design",
               "cowos-advanced-packaging",
-              "cxl-technology",
               "hbm",
               "silicon-photonics"
             ],
-            "topicCount": 6
+            "topicCount": 5
           }
         },
         {
@@ -3809,6 +3810,18 @@
               "hbm"
             ],
             "topicCount": 5
+          }
+        },
+        {
+          "symbol": "3706",
+          "name": "神達",
+          "detail": {
+            "code": "3706",
+            "name": "神達",
+            "topics": [
+              "ai-server-odm"
+            ],
+            "topicCount": 1
           }
         },
         {
@@ -3833,7 +3846,7 @@
       "name": "AI 伺服器｜機殼與滑軌",
       "shortname": "機殼與滑軌",
       "description": "AI 伺服器因功耗激增需搭載更重的液冷系統與高 U 數設計，帶動機殼結構升級及高承重精密滑軌的需求，其單價 (ASP) 較傳統伺服器大幅提升。",
-      "stock_count": 13,
+      "stock_count": 12,
       "stocks": [
         {
           "symbol": "2059",
@@ -3842,10 +3855,9 @@
             "code": "2059",
             "name": "川湖",
             "topics": [
-              "ai-server-chassis-rails",
-              "precision-metal-casing"
+              "ai-server-chassis-rails"
             ],
-            "topicCount": 2
+            "topicCount": 1
           }
         },
         {
@@ -3856,10 +3868,9 @@
             "name": "晟銘電",
             "topics": [
               "ai-server-chassis-rails",
-              "liquid_cooling_advanced",
-              "precision-metal-casing"
+              "liquid_cooling_advanced"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -3885,18 +3896,6 @@
               "liquid_cooling_advanced"
             ],
             "topicCount": 2
-          }
-        },
-        {
-          "symbol": "3593",
-          "name": "力銘",
-          "detail": {
-            "code": "3593",
-            "name": "力銘",
-            "topics": [
-              "ai-server-chassis-rails"
-            ],
-            "topicCount": 1
           }
         },
         {
@@ -3955,10 +3954,9 @@
             "code": "6117",
             "name": "迎廣",
             "topics": [
-              "ai-server-chassis-rails",
-              "precision-metal-casing"
+              "ai-server-chassis-rails"
             ],
-            "topicCount": 2
+            "topicCount": 1
           }
         },
         {
@@ -3969,9 +3967,10 @@
             "name": "廣運",
             "topics": [
               "ai-server-chassis-rails",
-              "liquid_cooling_advanced"
+              "liquid_cooling_advanced",
+              "robotics_physical_ai"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -3993,10 +3992,9 @@
             "code": "8210",
             "name": "勤誠",
             "topics": [
-              "ai-server-chassis-rails",
-              "precision-metal-casing"
+              "ai-server-chassis-rails"
             ],
-            "topicCount": 2
+            "topicCount": 1
           }
         }
       ]
@@ -4223,10 +4221,9 @@
             "name": "晟銘電",
             "topics": [
               "ai-server-chassis-rails",
-              "liquid_cooling_advanced",
-              "precision-metal-casing"
+              "liquid_cooling_advanced"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -4305,9 +4302,10 @@
             "name": "廣運",
             "topics": [
               "ai-server-chassis-rails",
-              "liquid_cooling_advanced"
+              "liquid_cooling_advanced",
+              "robotics_physical_ai"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -4380,10 +4378,9 @@
             "topics": [
               "bbu",
               "cpu-agentic-ai",
-              "ems-smt",
               "psu"
             ],
-            "topicCount": 4
+            "topicCount": 3
           }
         },
         {
@@ -4437,10 +4434,11 @@
             "code": "5309",
             "name": "系統電",
             "topics": [
+              "automotive-electronics",
               "battery-cell-module",
               "bbu"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -4609,9 +4607,10 @@
             "code": "1608",
             "name": "華榮",
             "topics": [
-              "electrical_equipment"
+              "electrical_equipment",
+              "offshore-wind"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -4736,7 +4735,7 @@
       "topic_id": "high-speed-optics",
       "name": "光通訊｜高速光收發模組",
       "shortname": "高速光模組",
-      "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。",
+      "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。",
       "stock_count": 19,
       "stocks": [
         {
@@ -4774,10 +4773,9 @@
             "name": "聯亞",
             "topics": [
               "high-speed-optics",
-              "optical-sensors",
               "silicon-photonics"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -5066,10 +5064,9 @@
             "name": "聯亞",
             "topics": [
               "high-speed-optics",
-              "optical-sensors",
               "silicon-photonics"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -5121,11 +5118,10 @@
               "ai-server-odm",
               "asic-ip-design",
               "cowos-advanced-packaging",
-              "cxl-technology",
               "hbm",
               "silicon-photonics"
             ],
-            "topicCount": 6
+            "topicCount": 5
           }
         },
         {
@@ -5274,7 +5270,7 @@
       "name": "航太國防｜低軌衛星通訊系統",
       "shortname": "低軌衛星",
       "description": "低軌衛星（LEO）以低延遲、高頻寬與全球覆蓋為核心特性，透過大量衛星組網提供通訊、數據傳輸與未來太空運算服務，屬於新世代通訊與數位基礎設施的關鍵應用題材。",
-      "stock_count": 26,
+      "stock_count": 23,
       "stocks": [
         {
           "symbol": "2313",
@@ -5297,10 +5293,9 @@
             "code": "2314",
             "name": "台揚",
             "topics": [
-              "ems-smt",
               "leo-satellite"
             ],
-            "topicCount": 2
+            "topicCount": 1
           }
         },
         {
@@ -5386,18 +5381,6 @@
           }
         },
         {
-          "symbol": "2485",
-          "name": "兆赫",
-          "detail": {
-            "code": "2485",
-            "name": "兆赫",
-            "topics": [
-              "leo-satellite"
-            ],
-            "topicCount": 1
-          }
-        },
-        {
           "symbol": "3045",
           "name": "台灣大",
           "detail": {
@@ -5473,20 +5456,6 @@
               "telecom-media"
             ],
             "topicCount": 2
-          }
-        },
-        {
-          "symbol": "4906",
-          "name": "正文",
-          "detail": {
-            "code": "4906",
-            "name": "正文",
-            "topics": [
-              "leo-satellite",
-              "networking-equipment",
-              "telecom-media"
-            ],
-            "topicCount": 3
           }
         },
         {
@@ -5571,19 +5540,6 @@
           }
         },
         {
-          "symbol": "6282",
-          "name": "康舒",
-          "detail": {
-            "code": "6282",
-            "name": "康舒",
-            "topics": [
-              "leo-satellite",
-              "psu"
-            ],
-            "topicCount": 2
-          }
-        },
-        {
           "symbol": "6285",
           "name": "啟碁",
           "detail": {
@@ -5633,7 +5589,7 @@
       "name": "AI 伺服器｜高速交換器與無線網路",
       "shortname": "交換器與網通",
       "description": "聚焦於 AI 資料中心 800G/1.6T 高速交換器、WiFi 7 無線通訊設備、5G/6G 寬頻接取設備及低軌衛星地面站。作為數位基礎設施的「神經系統」，網通設備是支撐 AI 算力傳輸、萬物互聯與低延遲通訊的核心硬體。",
-      "stock_count": 11,
+      "stock_count": 12,
       "stocks": [
         {
           "symbol": "2332",
@@ -5718,17 +5674,28 @@
           }
         },
         {
+          "symbol": "3704",
+          "name": "合勤控",
+          "detail": {
+            "code": "3704",
+            "name": "合勤控",
+            "topics": [
+              "networking-equipment"
+            ],
+            "topicCount": 1
+          }
+        },
+        {
           "symbol": "4906",
           "name": "正文",
           "detail": {
             "code": "4906",
             "name": "正文",
             "topics": [
-              "leo-satellite",
               "networking-equipment",
               "telecom-media"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -5793,7 +5760,7 @@
       "name": "記憶體｜CXL 記憶體池化",
       "shortname": "CXL 技術",
       "description": "旨在解決 AI 運算中「記憶體牆 (Memory Wall)」瓶頸的次世代開放互連協定。基於 PCIe 6.0 介面，CXL 3.0/3.1 實現了 CPU、GPU 與記憶體資源的動態池化 (Memory Pooling) 與共享，大幅提升資料中心運算效率並降低能耗。",
-      "stock_count": 9,
+      "stock_count": 8,
       "stocks": [
         {
           "symbol": "2345",
@@ -5822,23 +5789,6 @@
               "pc-nb-tablet"
             ],
             "topicCount": 4
-          }
-        },
-        {
-          "symbol": "3443",
-          "name": "創意",
-          "detail": {
-            "code": "3443",
-            "name": "創意",
-            "topics": [
-              "ai-server-odm",
-              "asic-ip-design",
-              "cowos-advanced-packaging",
-              "cxl-technology",
-              "hbm",
-              "silicon-photonics"
-            ],
-            "topicCount": 6
           }
         },
         {
@@ -5930,8 +5880,8 @@
       "topic_id": "glass-core-substrate",
       "name": "基板材料｜玻璃基板",
       "shortname": "玻璃基板",
-      "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。",
-      "stock_count": 12,
+      "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。",
+      "stock_count": 13,
       "stocks": [
         {
           "symbol": "1802",
@@ -5939,6 +5889,19 @@
           "detail": {
             "code": "1802",
             "name": "台玻",
+            "topics": [
+              "fiberglass-cloth",
+              "glass-core-substrate"
+            ],
+            "topicCount": 2
+          }
+        },
+        {
+          "symbol": "1815",
+          "name": "富喬",
+          "detail": {
+            "code": "1815",
+            "name": "富喬",
             "topics": [
               "fiberglass-cloth",
               "glass-core-substrate"
@@ -6048,6 +6011,19 @@
           }
         },
         {
+          "symbol": "4768",
+          "name": "晶呈科技",
+          "detail": {
+            "code": "4768",
+            "name": "晶呈科技",
+            "topics": [
+              "glass-core-substrate",
+              "semi-process-materials"
+            ],
+            "topicCount": 2
+          }
+        },
+        {
           "symbol": "5234",
           "name": "達興材料",
           "detail": {
@@ -6059,18 +6035,6 @@
               "semi-process-materials"
             ],
             "topicCount": 3
-          }
-        },
-        {
-          "symbol": "6405",
-          "name": "悅城",
-          "detail": {
-            "code": "6405",
-            "name": "悅城",
-            "topics": [
-              "glass-core-substrate"
-            ],
-            "topicCount": 1
           }
         },
         {
@@ -6825,11 +6789,10 @@
             "code": "3665",
             "name": "貿聯-KY",
             "topics": [
-              "battery-cell-module",
               "connector",
               "connector-highspeed"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -7035,11 +6998,10 @@
             "code": "3665",
             "name": "貿聯-KY",
             "topics": [
-              "battery-cell-module",
               "connector",
               "connector-highspeed"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -7149,7 +7111,7 @@
       "name": "電子零組件｜車用連接器",
       "shortname": "車用連接器",
       "description": "電動車高壓/大電流連接器、FAKRA/HSD 訊號線束與 EV 充電接頭，三電系統與智慧座艙的核心互連元件。",
-      "stock_count": 9,
+      "stock_count": 8,
       "stocks": [
         {
           "symbol": "2476",
@@ -7205,18 +7167,6 @@
           "detail": {
             "code": "3552",
             "name": "同致",
-            "topics": [
-              "connector-automotive"
-            ],
-            "topicCount": 1
-          }
-        },
-        {
-          "symbol": "4943",
-          "name": "康控-KY",
-          "detail": {
-            "code": "4943",
-            "name": "康控-KY",
             "topics": [
               "connector-automotive"
             ],
@@ -7659,10 +7609,11 @@
             "code": "3019",
             "name": "亞光",
             "topics": [
+              "ar-vr-xr-optics",
               "optical-lens-camera",
               "robotics_physical_ai"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -7750,7 +7701,7 @@
       "name": "光學顯示｜面板",
       "shortname": "面板產業",
       "description": "面板產業正從傳統 LCD 轉型至 OLED 與 Micro LED，台廠積極跨入車用顯示與扇出型面板級封裝 (FOPLP) 等高值化領域。",
-      "stock_count": 13,
+      "stock_count": 14,
       "stocks": [
         {
           "symbol": "2409",
@@ -7787,11 +7738,25 @@
             "code": "3714",
             "name": "富采",
             "topics": [
+              "ar-vr-xr-optics",
               "display-panel",
               "microled-display",
               "optical-sensors"
             ],
-            "topicCount": 3
+            "topicCount": 4
+          }
+        },
+        {
+          "symbol": "3718",
+          "name": "中光電投控",
+          "detail": {
+            "code": "3718",
+            "name": "中光電投控",
+            "topics": [
+              "defense_industry",
+              "display-panel"
+            ],
+            "topicCount": 2
           }
         },
         {
@@ -7821,24 +7786,23 @@
           }
         },
         {
-          "symbol": "5371",
-          "name": "中光電",
-          "detail": {
-            "code": "5371",
-            "name": "中光電",
-            "topics": [
-              "defense_industry",
-              "display-panel"
-            ],
-            "topicCount": 2
-          }
-        },
-        {
           "symbol": "6116",
           "name": "彩晶",
           "detail": {
             "code": "6116",
             "name": "彩晶",
+            "topics": [
+              "display-panel"
+            ],
+            "topicCount": 1
+          }
+        },
+        {
+          "symbol": "6143",
+          "name": "振曜",
+          "detail": {
+            "code": "6143",
+            "name": "振曜",
             "topics": [
               "display-panel"
             ],
@@ -7941,10 +7905,9 @@
             "topics": [
               "bbu",
               "cpu-agentic-ai",
-              "ems-smt",
               "psu"
             ],
-            "topicCount": 4
+            "topicCount": 3
           }
         },
         {
@@ -8142,10 +8105,9 @@
             "code": "6282",
             "name": "康舒",
             "topics": [
-              "leo-satellite",
               "psu"
             ],
-            "topicCount": 2
+            "topicCount": 1
           }
         },
         {
@@ -8167,21 +8129,8 @@
       "name": "電子零組件｜精密機構件",
       "shortname": "精密機構件",
       "description": "涵蓋智慧型手機、筆記型電腦、AI 伺服器及電動車等終端裝置的高精度金屬機殼與機構組件，涉及 CNC 加工、金屬射出 (MIM) 及壓鑄等精密製程。",
-      "stock_count": 11,
+      "stock_count": 7,
       "stocks": [
-        {
-          "symbol": "2059",
-          "name": "川湖",
-          "detail": {
-            "code": "2059",
-            "name": "川湖",
-            "topics": [
-              "ai-server-chassis-rails",
-              "precision-metal-casing"
-            ],
-            "topicCount": 2
-          }
-        },
         {
           "symbol": "2354",
           "name": "鴻準",
@@ -8222,20 +8171,6 @@
           }
         },
         {
-          "symbol": "3013",
-          "name": "晟銘電",
-          "detail": {
-            "code": "3013",
-            "name": "晟銘電",
-            "topics": [
-              "ai-server-chassis-rails",
-              "liquid_cooling_advanced",
-              "precision-metal-casing"
-            ],
-            "topicCount": 3
-          }
-        },
-        {
           "symbol": "3376",
           "name": "新日興",
           "detail": {
@@ -8257,19 +8192,6 @@
               "precision-metal-casing"
             ],
             "topicCount": 1
-          }
-        },
-        {
-          "symbol": "6117",
-          "name": "迎廣",
-          "detail": {
-            "code": "6117",
-            "name": "迎廣",
-            "topics": [
-              "ai-server-chassis-rails",
-              "precision-metal-casing"
-            ],
-            "topicCount": 2
           }
         },
         {
@@ -8295,19 +8217,6 @@
             ],
             "topicCount": 1
           }
-        },
-        {
-          "symbol": "8210",
-          "name": "勤誠",
-          "detail": {
-            "code": "8210",
-            "name": "勤誠",
-            "topics": [
-              "ai-server-chassis-rails",
-              "precision-metal-casing"
-            ],
-            "topicCount": 2
-          }
         }
       ]
     },
@@ -8316,7 +8225,7 @@
       "name": "光學顯示｜光感測與元件",
       "shortname": "光學感測",
       "description": "涵蓋影像感測 (CIS)、環境光與近接感測 (ALS/PS)、飛行時間 (ToF) 以及紅外線感測等技術，是智慧型手機、車用電子、工業自動化與矽光子通訊的核心。隨著 AI 邊緣運算與 3D 感測需求興起，光學元件正從單純的影像捕捉演進為環境感知與精準量測的關鍵節點。",
-      "stock_count": 16,
+      "stock_count": 15,
       "stocks": [
         {
           "symbol": "2340",
@@ -8338,10 +8247,9 @@
             "code": "2393",
             "name": "億光",
             "topics": [
-              "microled-display",
               "optical-sensors"
             ],
-            "topicCount": 2
+            "topicCount": 1
           }
         },
         {
@@ -8385,20 +8293,6 @@
           }
         },
         {
-          "symbol": "3081",
-          "name": "聯亞",
-          "detail": {
-            "code": "3081",
-            "name": "聯亞",
-            "topics": [
-              "high-speed-optics",
-              "optical-sensors",
-              "silicon-photonics"
-            ],
-            "topicCount": 3
-          }
-        },
-        {
           "symbol": "3227",
           "name": "原相",
           "detail": {
@@ -8406,11 +8300,12 @@
             "name": "原相",
             "topics": [
               "analog-power-ic",
+              "ar-vr-xr-optics",
               "edge-ai",
               "optical-sensors",
               "robotics_physical_ai"
             ],
-            "topicCount": 4
+            "topicCount": 5
           }
         },
         {
@@ -8433,11 +8328,12 @@
             "code": "3714",
             "name": "富采",
             "topics": [
+              "ar-vr-xr-optics",
               "display-panel",
               "microled-display",
               "optical-sensors"
             ],
-            "topicCount": 3
+            "topicCount": 4
           }
         },
         {
@@ -8539,36 +8435,8 @@
       "name": "AI 伺服器｜SMT/EMS 電子代工",
       "shortname": "EMS 電子代工",
       "description": "台灣 SMT/EMS 廠商專精於精密 PCB 打件、記憶體模組組裝至 AI 伺服器系統整合，受惠於地緣政治接單轉移、DDR5 升規帶動 ASP 提升，以及車用與低軌衛星等高附加價值終端的產品組合升級。",
-      "stock_count": 8,
+      "stock_count": 6,
       "stocks": [
-        {
-          "symbol": "2301",
-          "name": "光寶科",
-          "detail": {
-            "code": "2301",
-            "name": "光寶科",
-            "topics": [
-              "bbu",
-              "cpu-agentic-ai",
-              "ems-smt",
-              "psu"
-            ],
-            "topicCount": 4
-          }
-        },
-        {
-          "symbol": "2314",
-          "name": "台揚",
-          "detail": {
-            "code": "2314",
-            "name": "台揚",
-            "topics": [
-              "ems-smt",
-              "leo-satellite"
-            ],
-            "topicCount": 2
-          }
-        },
         {
           "symbol": "2329",
           "name": "華泰",
@@ -8766,11 +8634,10 @@
             "code": "5425",
             "name": "台半",
             "topics": [
-              "analog-power-ic",
               "power-discrete-tw",
               "sic-gan-power"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -8809,11 +8676,10 @@
             "code": "8261",
             "name": "富鼎",
             "topics": [
-              "analog-power-ic",
               "power-discrete-tw",
               "sic-gan-power"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         }
       ]
@@ -9014,11 +8880,10 @@
             "code": "5425",
             "name": "台半",
             "topics": [
-              "analog-power-ic",
               "power-discrete-tw",
               "sic-gan-power"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -9080,11 +8945,10 @@
             "code": "8261",
             "name": "富鼎",
             "topics": [
-              "analog-power-ic",
               "power-discrete-tw",
               "sic-gan-power"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         }
       ]
@@ -9413,7 +9277,7 @@
       "name": "綠能環保｜電芯製造與電池模組",
       "shortname": "電芯與模組",
       "description": "聚焦於電芯製造與電池模組封裝。台廠在中游模組具備全球頂尖競爭力，從消費性、電動車到儲能應用，並隨著鴻海電芯廠投產與台泥電芯事業，逐步完整台灣電池自製化版圖。",
-      "stock_count": 14,
+      "stock_count": 13,
       "stocks": [
         {
           "symbol": "1101",
@@ -9487,20 +9351,6 @@
           }
         },
         {
-          "symbol": "3665",
-          "name": "貿聯-KY",
-          "detail": {
-            "code": "3665",
-            "name": "貿聯-KY",
-            "topics": [
-              "battery-cell-module",
-              "connector",
-              "connector-highspeed"
-            ],
-            "topicCount": 3
-          }
-        },
-        {
           "symbol": "4931",
           "name": "新盛力",
           "detail": {
@@ -9520,10 +9370,11 @@
             "code": "5309",
             "name": "系統電",
             "topics": [
+              "automotive-electronics",
               "battery-cell-module",
               "bbu"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -9879,18 +9730,6 @@
           }
         },
         {
-          "symbol": "1589",
-          "name": "永冠-KY",
-          "detail": {
-            "code": "1589",
-            "name": "永冠-KY",
-            "topics": [
-              "offshore-wind"
-            ],
-            "topicCount": 1
-          }
-        },
-        {
           "symbol": "1605",
           "name": "華新",
           "detail": {
@@ -9902,6 +9741,19 @@
               "steel-special"
             ],
             "topicCount": 3
+          }
+        },
+        {
+          "symbol": "1608",
+          "name": "華榮",
+          "detail": {
+            "code": "1608",
+            "name": "華榮",
+            "topics": [
+              "electrical_equipment",
+              "offshore-wind"
+            ],
+            "topicCount": 2
           }
         },
         {
@@ -10042,8 +9894,8 @@
       "topic_id": "robotics_physical_ai",
       "name": "智慧自動化｜實體 AI 機器人",
       "shortname": "AI 機器人",
-      "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。",
-      "stock_count": 15,
+      "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。",
+      "stock_count": 18,
       "stocks": [
         {
           "symbol": "2049",
@@ -10069,18 +9921,6 @@
               "robotics_physical_ai"
             ],
             "topicCount": 2
-          }
-        },
-        {
-          "symbol": "2365",
-          "name": "昆盈",
-          "detail": {
-            "code": "2365",
-            "name": "昆盈",
-            "topics": [
-              "robotics_physical_ai"
-            ],
-            "topicCount": 1
           }
         },
         {
@@ -10116,10 +9956,11 @@
             "code": "3019",
             "name": "亞光",
             "topics": [
+              "ar-vr-xr-optics",
               "optical-lens-camera",
               "robotics_physical_ai"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -10143,11 +9984,12 @@
             "name": "原相",
             "topics": [
               "analog-power-ic",
+              "ar-vr-xr-optics",
               "edge-ai",
               "optical-sensors",
               "robotics_physical_ai"
             ],
-            "topicCount": 4
+            "topicCount": 5
           }
         },
         {
@@ -10202,6 +10044,33 @@
           }
         },
         {
+          "symbol": "5484",
+          "name": "慧友",
+          "detail": {
+            "code": "5484",
+            "name": "慧友",
+            "topics": [
+              "edge-ai",
+              "robotics_physical_ai"
+            ],
+            "topicCount": 2
+          }
+        },
+        {
+          "symbol": "6125",
+          "name": "廣運",
+          "detail": {
+            "code": "6125",
+            "name": "廣運",
+            "topics": [
+              "ai-server-chassis-rails",
+              "liquid_cooling_advanced",
+              "robotics_physical_ai"
+            ],
+            "topicCount": 3
+          }
+        },
+        {
           "symbol": "6166",
           "name": "凌華",
           "detail": {
@@ -10228,6 +10097,33 @@
           }
         },
         {
+          "symbol": "6579",
+          "name": "研揚",
+          "detail": {
+            "code": "6579",
+            "name": "研揚",
+            "topics": [
+              "edge-ai",
+              "robotics_physical_ai"
+            ],
+            "topicCount": 2
+          }
+        },
+        {
+          "symbol": "8234",
+          "name": "新漢",
+          "detail": {
+            "code": "8234",
+            "name": "新漢",
+            "topics": [
+              "edge-ai",
+              "industrial-automation",
+              "robotics_physical_ai"
+            ],
+            "topicCount": 3
+          }
+        },
+        {
           "symbol": "8374",
           "name": "羅昇",
           "detail": {
@@ -10247,7 +10143,7 @@
       "name": "消費終端｜PC、筆電與平板",
       "shortname": "PC 與平板",
       "description": "涵蓋全球筆記型電腦、桌上型電腦及平板電腦的設計、代工與品牌銷售。台灣廠商在全球 PC 代工市場擁有超過 80% 的市佔率，是全球資訊產業的核心支柱，目前正積極由傳統代工轉向 AI PC 與 AI 伺服器的高價值領域。",
-      "stock_count": 13,
+      "stock_count": 14,
       "stocks": [
         {
           "symbol": "2324",
@@ -10394,6 +10290,18 @@
               "pc-nb-tablet"
             ],
             "topicCount": 3
+          }
+        },
+        {
+          "symbol": "3673",
+          "name": "TPK-KY",
+          "detail": {
+            "code": "3673",
+            "name": "TPK-KY",
+            "topics": [
+              "pc-nb-tablet"
+            ],
+            "topicCount": 1
           }
         },
         {
@@ -10711,10 +10619,10 @@
         },
         {
           "symbol": "4953",
-          "name": "緯軟",
+          "name": "緯致",
           "detail": {
             "code": "4953",
-            "name": "緯軟",
+            "name": "緯致",
             "topics": [
               "it-si"
             ],
@@ -10867,10 +10775,10 @@
         },
         {
           "symbol": "5904",
-          "name": "寶雅",
+          "name": "寶雅*",
           "detail": {
             "code": "5904",
-            "name": "寶雅",
+            "name": "寶雅*",
             "topics": [
               "e-commerce"
             ],
@@ -10927,10 +10835,10 @@
         },
         {
           "symbol": "8472",
-          "name": "夠麻吉",
+          "name": "納維康",
           "detail": {
             "code": "8472",
-            "name": "夠麻吉",
+            "name": "納維康",
             "topics": [
               "e-commerce"
             ],
@@ -11353,9 +11261,10 @@
             "name": "新漢",
             "topics": [
               "edge-ai",
-              "industrial-automation"
+              "industrial-automation",
+              "robotics_physical_ai"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         },
         {
@@ -11574,11 +11483,12 @@
             "name": "原相",
             "topics": [
               "analog-power-ic",
+              "ar-vr-xr-optics",
               "edge-ai",
               "optical-sensors",
               "robotics_physical_ai"
             ],
-            "topicCount": 4
+            "topicCount": 5
           }
         },
         {
@@ -11600,9 +11510,10 @@
             "code": "5484",
             "name": "慧友",
             "topics": [
-              "edge-ai"
+              "edge-ai",
+              "robotics_physical_ai"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -11639,9 +11550,10 @@
             "code": "6579",
             "name": "研揚",
             "topics": [
-              "edge-ai"
+              "edge-ai",
+              "robotics_physical_ai"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -11652,9 +11564,10 @@
             "name": "新漢",
             "topics": [
               "edge-ai",
-              "industrial-automation"
+              "industrial-automation",
+              "robotics_physical_ai"
             ],
-            "topicCount": 2
+            "topicCount": 3
           }
         }
       ]
@@ -11664,7 +11577,7 @@
       "name": "消費終端｜AR/VR/XR 光學",
       "shortname": "AR/VR/XR 光學",
       "description": "涵蓋 AR/VR/XR 裝置所需的 Pancake 折疊鏡頭、光波導元件（DOE/LOE）、MetaLens 超穎透鏡及驅動感測 IC，是 Apple Vision Pro、Meta Quest 與下一世代 AI 眼鏡的核心光學供應鏈。台灣廠商在 Pancake 鏡頭、波導鍍膜與晶圓級光學領域具備全球競爭地位。",
-      "stock_count": 8,
+      "stock_count": 11,
       "stocks": [
         {
           "symbol": "2498",
@@ -11676,6 +11589,36 @@
               "ar-vr-xr-optics"
             ],
             "topicCount": 1
+          }
+        },
+        {
+          "symbol": "3019",
+          "name": "亞光",
+          "detail": {
+            "code": "3019",
+            "name": "亞光",
+            "topics": [
+              "ar-vr-xr-optics",
+              "optical-lens-camera",
+              "robotics_physical_ai"
+            ],
+            "topicCount": 3
+          }
+        },
+        {
+          "symbol": "3227",
+          "name": "原相",
+          "detail": {
+            "code": "3227",
+            "name": "原相",
+            "topics": [
+              "analog-power-ic",
+              "ar-vr-xr-optics",
+              "edge-ai",
+              "optical-sensors",
+              "robotics_physical_ai"
+            ],
+            "topicCount": 5
           }
         },
         {
@@ -11727,6 +11670,21 @@
               "fpc"
             ],
             "topicCount": 2
+          }
+        },
+        {
+          "symbol": "3714",
+          "name": "富采",
+          "detail": {
+            "code": "3714",
+            "name": "富采",
+            "topics": [
+              "ar-vr-xr-optics",
+              "display-panel",
+              "microled-display",
+              "optical-sensors"
+            ],
+            "topicCount": 4
           }
         },
         {
@@ -11914,9 +11872,10 @@
             "code": "6690",
             "name": "安碁資訊",
             "topics": [
-              "cybersecurity"
+              "cybersecurity",
+              "defense_industry"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         },
         {
@@ -11970,10 +11929,10 @@
         },
         {
           "symbol": "7823",
-          "name": "奧義智慧",
+          "name": "奧義賽博-KY創",
           "detail": {
             "code": "7823",
-            "name": "奧義智慧",
+            "name": "奧義賽博-KY創",
             "topics": [
               "cybersecurity"
             ],
@@ -11998,7 +11957,7 @@
       "topic_id": "banking-finance",
       "name": "金融保險｜銀行金融",
       "shortname": "銀行金融",
-      "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。",
+      "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。",
       "stock_count": 25,
       "stocks": [
         {
@@ -12813,7 +12772,7 @@
       "name": "航太國防｜國防軍工",
       "shortname": "國防軍工",
       "description": "以國防自主與強化不對稱戰力為核心，涵蓋作戰平台、支援系統與戰術通訊。是實現國家安全與供應鏈韌性的關鍵產業。",
-      "stock_count": 20,
+      "stock_count": 21,
       "stocks": [
         {
           "symbol": "1342",
@@ -12967,6 +12926,19 @@
           }
         },
         {
+          "symbol": "3718",
+          "name": "中光電投控",
+          "detail": {
+            "code": "3718",
+            "name": "中光電投控",
+            "topics": [
+              "defense_industry",
+              "display-panel"
+            ],
+            "topicCount": 2
+          }
+        },
+        {
           "symbol": "4541",
           "name": "晟田",
           "detail": {
@@ -13005,14 +12977,14 @@
           }
         },
         {
-          "symbol": "5371",
-          "name": "中光電",
+          "symbol": "6690",
+          "name": "安碁資訊",
           "detail": {
-            "code": "5371",
-            "name": "中光電",
+            "code": "6690",
+            "name": "安碁資訊",
             "topics": [
-              "defense_industry",
-              "display-panel"
+              "cybersecurity",
+              "defense_industry"
             ],
             "topicCount": 2
           }
@@ -13072,7 +13044,7 @@
       "name": "綠能環保｜電子廢料與製程回收",
       "shortname": "電子廢料回收",
       "description": "涵蓋電子產業製程廢液回收、半導體電解金屬提取、事業廢棄物處理及貴金屬循環精煉，是淨零轉型與資源化關鍵產業。",
-      "stock_count": 8,
+      "stock_count": 10,
       "stocks": [
         {
           "symbol": "1785",
@@ -13111,6 +13083,18 @@
               "water-environment"
             ],
             "topicCount": 2
+          }
+        },
+        {
+          "symbol": "6947",
+          "name": "台鎔科技",
+          "detail": {
+            "code": "6947",
+            "name": "台鎔科技",
+            "topics": [
+              "circular-economy-ewaste"
+            ],
+            "topicCount": 1
           }
         },
         {
@@ -13168,6 +13152,18 @@
           "detail": {
             "code": "8440",
             "name": "綠電",
+            "topics": [
+              "circular-economy-ewaste"
+            ],
+            "topicCount": 1
+          }
+        },
+        {
+          "symbol": "9955",
+          "name": "佳龍",
+          "detail": {
+            "code": "9955",
+            "name": "佳龍",
             "topics": [
               "circular-economy-ewaste"
             ],
@@ -13434,7 +13430,7 @@
       "name": "醫療器材｜醫療耗材與植入物",
       "shortname": "醫療耗材",
       "description": "手術引流耗材、透析耗材與骨科植入物，台灣廠商在一次性耗材 ODM 出口、血液透析供應鏈與骨科植入物各具利基競爭力。",
-      "stock_count": 10,
+      "stock_count": 11,
       "stocks": [
         {
           "symbol": "1781",
@@ -13454,6 +13450,18 @@
           "detail": {
             "code": "4104",
             "name": "佳醫",
+            "topics": [
+              "medical-consumables"
+            ],
+            "topicCount": 1
+          }
+        },
+        {
+          "symbol": "4107",
+          "name": "邦特",
+          "detail": {
+            "code": "4107",
+            "name": "邦特",
             "topics": [
               "medical-consumables"
             ],
@@ -13660,22 +13668,9 @@
       "topic_id": "microled-display",
       "name": "消費終端｜MicroLED 顯示",
       "shortname": "MicroLED",
-      "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。",
-      "stock_count": 8,
+      "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。",
+      "stock_count": 7,
       "stocks": [
-        {
-          "symbol": "2393",
-          "name": "億光",
-          "detail": {
-            "code": "2393",
-            "name": "億光",
-            "topics": [
-              "microled-display",
-              "optical-sensors"
-            ],
-            "topicCount": 2
-          }
-        },
         {
           "symbol": "2409",
           "name": "友達",
@@ -13725,11 +13720,12 @@
             "code": "3714",
             "name": "富采",
             "topics": [
+              "ar-vr-xr-optics",
               "display-panel",
               "microled-display",
               "optical-sensors"
             ],
-            "topicCount": 3
+            "topicCount": 4
           }
         },
         {
@@ -13788,10 +13784,9 @@
             "topics": [
               "bbu",
               "cpu-agentic-ai",
-              "ems-smt",
               "psu"
             ],
-            "topicCount": 4
+            "topicCount": 3
           }
         },
         {
@@ -14110,11 +14105,10 @@
             "code": "4906",
             "name": "正文",
             "topics": [
-              "leo-satellite",
               "networking-equipment",
               "telecom-media"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -14318,7 +14312,7 @@
       "name": "智慧自動化｜車用電子與智駕",
       "shortname": "車用電子",
       "description": "涵蓋 TPMS 胎壓感測、毫米波雷達、HUD 抬頭顯示、商用車電控、智能門控至 EV 整車設計與電動巴士的台灣車用電子完整供應鏈。",
-      "stock_count": 7,
+      "stock_count": 9,
       "stocks": [
         {
           "symbol": "1533",
@@ -14346,10 +14340,10 @@
         },
         {
           "symbol": "2237",
-          "name": "華德動能",
+          "name": "華德動能-創",
           "detail": {
             "code": "2237",
-            "name": "華德動能",
+            "name": "華德動能-創",
             "topics": [
               "automotive-electronics"
             ],
@@ -14403,6 +14397,32 @@
               "automotive-electronics",
               "defense_industry",
               "glass-core-substrate"
+            ],
+            "topicCount": 3
+          }
+        },
+        {
+          "symbol": "4554",
+          "name": "橙的",
+          "detail": {
+            "code": "4554",
+            "name": "橙的",
+            "topics": [
+              "automotive-electronics"
+            ],
+            "topicCount": 1
+          }
+        },
+        {
+          "symbol": "5309",
+          "name": "系統電",
+          "detail": {
+            "code": "5309",
+            "name": "系統電",
+            "topics": [
+              "automotive-electronics",
+              "battery-cell-module",
+              "bbu"
             ],
             "topicCount": 3
           }
@@ -15642,6 +15662,19 @@
         "topics": [],
         "topicCount": 0,
         "isETF": true
+      }
+    },
+    "000670": {
+      "symbol": "000670",
+      "name": "永豐",
+      "topics": [],
+      "detail": {
+        "code": "000670.KS",
+        "name": "永豐",
+        "topics": [
+          "kr-materials-metals"
+        ],
+        "topicCount": 1
       }
     },
     "00670L": {
@@ -19830,6 +19863,12 @@
       "name": "中砂",
       "topics": [
         {
+          "topic_id": "hbm",
+          "name": "記憶體｜HBM 高頻寬記憶體",
+          "shortname": "HBM",
+          "description": "HBM 是 AI 伺服器的核心元件，透過 3D 堆疊技術大幅提升記憶體頻寬。隨著 HBM4 世代在 2026 年量產，台灣供應鏈憑藉與台積電、美光及 SK 海力士的合作，在先進封裝、測試設備與關鍵 IP 領域扮演重要角色。"
+        },
+        {
           "topic_id": "semi-process-materials",
           "name": "半導體製造｜前段製程材料",
           "shortname": "前段製程材料",
@@ -19846,10 +19885,11 @@
         "code": "1560",
         "name": "中砂",
         "topics": [
+          "hbm",
           "semi-process-materials",
           "silicon-wafer"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "1563": {
@@ -20012,21 +20052,12 @@
     "1589": {
       "symbol": "1589",
       "name": "永冠-KY",
-      "topics": [
-        {
-          "topic_id": "offshore-wind",
-          "name": "綠能環保｜離岸風電",
-          "shortname": "離岸風電",
-          "description": "台灣能源轉型核心政策。2026 年進入區塊開發 3-3 期新階段，全面取消「強制國產化」要求，改以 ESG 評分與在地經濟效益為選商標準。目標 2030 年裝置量 13.1GW，產業重心由重型製造轉向長線維運、海纜國產化及綠電交易市場。"
-        }
-      ],
+      "topics": [],
       "detail": {
         "code": "1589",
         "name": "永冠-KY",
-        "topics": [
-          "offshore-wind"
-        ],
-        "topicCount": 1
+        "topics": [],
+        "topicCount": 0
       }
     },
     "1590": {
@@ -20200,15 +20231,22 @@
           "name": "傳產工業｜電器電纜與重電",
           "shortname": "電器電纜",
           "description": "涵蓋從原材料、設備製造到系統整合的完整電力產業鏈，受惠於全球電網升級、再生能源轉型與數據中心擴建等趨勢。"
+        },
+        {
+          "topic_id": "offshore-wind",
+          "name": "綠能環保｜離岸風電",
+          "shortname": "離岸風電",
+          "description": "台灣能源轉型核心政策。2026 年進入區塊開發 3-3 期新階段，全面取消「強制國產化」要求，改以 ESG 評分與在地經濟效益為選商標準。目標 2030 年裝置量 13.1GW，產業重心由重型製造轉向長線維運、海纜國產化及綠電交易市場。"
         }
       ],
       "detail": {
         "code": "1608",
         "name": "華榮",
         "topics": [
-          "electrical_equipment"
+          "electrical_equipment",
+          "offshore-wind"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "1609": {
@@ -21042,7 +21080,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         }
       ],
       "detail": {
@@ -21139,15 +21177,22 @@
           "name": "基板材料｜玻纖布",
           "shortname": "玻纖布",
           "description": "從玻璃原料到終端 AI 伺服器應用的完整產業鏈解析。"
+        },
+        {
+          "topic_id": "glass-core-substrate",
+          "name": "基板材料｜玻璃基板",
+          "shortname": "玻璃基板",
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         }
       ],
       "detail": {
         "code": "1815",
         "name": "富喬",
         "topics": [
-          "fiberglass-cloth"
+          "fiberglass-cloth",
+          "glass-core-substrate"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "1817": {
@@ -21251,17 +21296,6 @@
           "jp-fab-facilities"
         ],
         "topicCount": 1
-      }
-    },
-    "1945": {
-      "symbol": "1945",
-      "name": "Tokyo Energy & Systems",
-      "topics": [],
-      "detail": {
-        "code": "1945.JP",
-        "name": "Tokyo Energy & Systems",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "1961": {
@@ -21750,7 +21784,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -21772,22 +21806,15 @@
           "name": "AI 伺服器｜機殼與滑軌",
           "shortname": "機殼與滑軌",
           "description": "AI 伺服器因功耗激增需搭載更重的液冷系統與高 U 數設計，帶動機殼結構升級及高承重精密滑軌的需求，其單價 (ASP) 較傳統伺服器大幅提升。"
-        },
-        {
-          "topic_id": "precision-metal-casing",
-          "name": "電子零組件｜精密機構件",
-          "shortname": "精密機構件",
-          "description": "涵蓋智慧型手機、筆記型電腦、AI 伺服器及電動車等終端裝置的高精度金屬機殼與機構組件，涉及 CNC 加工、金屬射出 (MIM) 及壓鑄等精密製程。"
         }
       ],
       "detail": {
         "code": "2059",
         "name": "川湖",
         "topics": [
-          "ai-server-chassis-rails",
-          "precision-metal-casing"
+          "ai-server-chassis-rails"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "2061": {
@@ -22294,7 +22321,7 @@
     },
     "2237": {
       "symbol": "2237",
-      "name": "華德動能",
+      "name": "華德動能-創",
       "topics": [
         {
           "topic_id": "automotive-electronics",
@@ -22305,7 +22332,7 @@
       ],
       "detail": {
         "code": "2237",
-        "name": "華德動能",
+        "name": "華德動能-創",
         "topics": [
           "automotive-electronics"
         ],
@@ -22481,12 +22508,6 @@
           "description": "Agentic AI 工作負載需要大量 CPU 處理工具呼叫、任務排程與多代理協調，推動伺服器 CPU:GPU 比從 1:4–8 趨向 1:1，帶動台灣晶圓代工、ABF 載板、主板與組裝廠全鏈受益。"
         },
         {
-          "topic_id": "ems-smt",
-          "name": "AI 伺服器｜SMT/EMS 電子代工",
-          "shortname": "EMS 電子代工",
-          "description": "台灣 SMT/EMS 廠商專精於精密 PCB 打件、記憶體模組組裝至 AI 伺服器系統整合，受惠於地緣政治接單轉移、DDR5 升規帶動 ASP 提升，以及車用與低軌衛星等高附加價值終端的產品組合升級。"
-        },
-        {
           "topic_id": "psu",
           "name": "電子零組件｜電源供應器",
           "shortname": "電源供應器",
@@ -22499,10 +22520,9 @@
         "topics": [
           "bbu",
           "cpu-agentic-ai",
-          "ems-smt",
           "psu"
         ],
-        "topicCount": 4
+        "topicCount": 3
       }
     },
     "2302": {
@@ -22673,12 +22693,6 @@
       "name": "台揚",
       "topics": [
         {
-          "topic_id": "ems-smt",
-          "name": "AI 伺服器｜SMT/EMS 電子代工",
-          "shortname": "EMS 電子代工",
-          "description": "台灣 SMT/EMS 廠商專精於精密 PCB 打件、記憶體模組組裝至 AI 伺服器系統整合，受惠於地緣政治接單轉移、DDR5 升規帶動 ASP 提升，以及車用與低軌衛星等高附加價值終端的產品組合升級。"
-        },
-        {
           "topic_id": "leo-satellite",
           "name": "航太國防｜低軌衛星通訊系統",
           "shortname": "低軌衛星",
@@ -22689,10 +22703,9 @@
         "code": "2314",
         "name": "台揚",
         "topics": [
-          "ems-smt",
           "leo-satellite"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "2316": {
@@ -22904,7 +22917,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         },
         {
           "topic_id": "hbm",
@@ -23091,7 +23104,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "networking-equipment",
@@ -23363,7 +23376,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -23439,21 +23452,12 @@
     "2365": {
       "symbol": "2365",
       "name": "昆盈",
-      "topics": [
-        {
-          "topic_id": "robotics_physical_ai",
-          "name": "智慧自動化｜實體 AI 機器人",
-          "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
-        }
-      ],
+      "topics": [],
       "detail": {
         "code": "2365",
         "name": "昆盈",
-        "topics": [
-          "robotics_physical_ai"
-        ],
-        "topicCount": 1
+        "topics": [],
+        "topicCount": 0
       }
     },
     "2367": {
@@ -23576,7 +23580,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -23895,12 +23899,6 @@
       "name": "億光",
       "topics": [
         {
-          "topic_id": "microled-display",
-          "name": "消費終端｜MicroLED 顯示",
-          "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
-        },
-        {
           "topic_id": "optical-sensors",
           "name": "光學顯示｜光感測與元件",
           "shortname": "光學感測",
@@ -23911,10 +23909,9 @@
         "code": "2393",
         "name": "億光",
         "topics": [
-          "microled-display",
           "optical-sensors"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "2395": {
@@ -23937,7 +23934,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -24107,7 +24104,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         }
       ],
       "detail": {
@@ -24297,7 +24294,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         },
         {
           "topic_id": "optical-sensors",
@@ -24681,7 +24678,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "optical-sensors",
@@ -24856,7 +24853,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         }
       ],
       "detail": {
@@ -25113,21 +25110,12 @@
     "2485": {
       "symbol": "2485",
       "name": "兆赫",
-      "topics": [
-        {
-          "topic_id": "leo-satellite",
-          "name": "航太國防｜低軌衛星通訊系統",
-          "shortname": "低軌衛星",
-          "description": "低軌衛星（LEO）以低延遲、高頻寬與全球覆蓋為核心特性，透過大量衛星組網提供通訊、數據傳輸與未來太空運算服務，屬於新世代通訊與數位基礎設施的關鍵應用題材。"
-        }
-      ],
+      "topics": [],
       "detail": {
         "code": "2485",
         "name": "兆赫",
-        "topics": [
-          "leo-satellite"
-        ],
-        "topicCount": 1
+        "topics": [],
+        "topicCount": 0
       }
     },
     "2486": {
@@ -26396,11 +26384,11 @@
     },
     "2740": {
       "symbol": "2740",
-      "name": "天蔥",
+      "name": "華軒",
       "topics": [],
       "detail": {
         "code": "2740",
-        "name": "天蔥",
+        "name": "華軒",
         "topics": [],
         "topicCount": 0
       }
@@ -26567,7 +26555,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26600,7 +26588,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26620,7 +26608,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26651,7 +26639,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26671,7 +26659,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26735,7 +26723,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26755,7 +26743,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26789,17 +26777,6 @@
         "topicCount": 0
       }
     },
-    "2867": {
-      "symbol": "2867",
-      "name": "三商壽",
-      "topics": [],
-      "detail": {
-        "code": "2867",
-        "name": "三商壽",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "2880": {
       "symbol": "2880",
       "name": "華南金",
@@ -26808,7 +26785,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26828,7 +26805,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26848,7 +26825,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26868,7 +26845,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26888,7 +26865,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26908,7 +26885,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26928,7 +26905,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26948,7 +26925,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26968,7 +26945,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -26988,7 +26965,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -27008,7 +26985,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -27028,7 +27005,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -27517,12 +27494,6 @@
           "name": "散熱冷卻｜液冷散熱系統",
           "shortname": "液冷散熱",
           "description": "Cold Plate、CDU 與浸沒式冷卻，針對 1000W+ Blackwell/Rubin 世代的高密度液冷基礎設施。"
-        },
-        {
-          "topic_id": "precision-metal-casing",
-          "name": "電子零組件｜精密機構件",
-          "shortname": "精密機構件",
-          "description": "涵蓋智慧型手機、筆記型電腦、AI 伺服器及電動車等終端裝置的高精度金屬機殼與機構組件，涉及 CNC 加工、金屬射出 (MIM) 及壓鑄等精密製程。"
         }
       ],
       "detail": {
@@ -27530,10 +27501,9 @@
         "name": "晟銘電",
         "topics": [
           "ai-server-chassis-rails",
-          "liquid_cooling_advanced",
-          "precision-metal-casing"
+          "liquid_cooling_advanced"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "3014": {
@@ -27667,6 +27637,12 @@
       "name": "亞光",
       "topics": [
         {
+          "topic_id": "ar-vr-xr-optics",
+          "name": "消費終端｜AR/VR/XR 光學",
+          "shortname": "AR/VR/XR 光學",
+          "description": "涵蓋 AR/VR/XR 裝置所需的 Pancake 折疊鏡頭、光波導元件（DOE/LOE）、MetaLens 超穎透鏡及驅動感測 IC，是 Apple Vision Pro、Meta Quest 與下一世代 AI 眼鏡的核心光學供應鏈。台灣廠商在 Pancake 鏡頭、波導鍍膜與晶圓級光學領域具備全球競爭地位。"
+        },
+        {
           "topic_id": "optical-lens-camera",
           "name": "光學顯示｜光學鏡頭與相機模組",
           "shortname": "光學鏡頭",
@@ -27676,17 +27652,18 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
         "code": "3019",
         "name": "亞光",
         "topics": [
+          "ar-vr-xr-optics",
           "optical-lens-camera",
           "robotics_physical_ai"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "3021": {
@@ -28014,7 +27991,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         },
         {
           "topic_id": "ic-substrate",
@@ -28319,7 +28296,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -28464,13 +28441,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
-        },
-        {
-          "topic_id": "optical-sensors",
-          "name": "光學顯示｜光感測與元件",
-          "shortname": "光學感測",
-          "description": "涵蓋影像感測 (CIS)、環境光與近接感測 (ALS/PS)、飛行時間 (ToF) 以及紅外線感測等技術，是智慧型手機、車用電子、工業自動化與矽光子通訊的核心。隨著 AI 邊緣運算與 3D 感測需求興起，光學元件正從單純的影像捕捉演進為環境感知與精準量測的關鍵節點。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -28484,10 +28455,9 @@
         "name": "聯亞",
         "topics": [
           "high-speed-optics",
-          "optical-sensors",
           "silicon-photonics"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "3083": {
@@ -28514,11 +28484,11 @@
     },
     "3086": {
       "symbol": "3086",
-      "name": "華義",
+      "name": "華義*",
       "topics": [],
       "detail": {
         "code": "3086",
-        "name": "華義",
+        "name": "華義*",
         "topics": [],
         "topicCount": 0
       }
@@ -28839,7 +28809,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         }
       ],
       "detail": {
@@ -28914,7 +28884,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -29299,6 +29269,12 @@
           "description": "聚焦於電子系統中負責電力管理、訊號感測與嵌入式控制的核心類比與功率晶片設計公司。涵蓋微控制器 (MCU)、感測訊號鏈 IC 與電源管理 IC (PMIC)，應用橫跨 AI 伺服器電源、工業自動化與消費電子，是電子系統的基礎能源管理層。"
         },
         {
+          "topic_id": "ar-vr-xr-optics",
+          "name": "消費終端｜AR/VR/XR 光學",
+          "shortname": "AR/VR/XR 光學",
+          "description": "涵蓋 AR/VR/XR 裝置所需的 Pancake 折疊鏡頭、光波導元件（DOE/LOE）、MetaLens 超穎透鏡及驅動感測 IC，是 Apple Vision Pro、Meta Quest 與下一世代 AI 眼鏡的核心光學供應鏈。台灣廠商在 Pancake 鏡頭、波導鍍膜與晶圓級光學領域具備全球競爭地位。"
+        },
+        {
           "topic_id": "edge-ai",
           "name": "智慧自動化｜Edge AI 與 AIoT",
           "shortname": "Edge AI",
@@ -29314,7 +29290,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -29322,11 +29298,12 @@
         "name": "原相",
         "topics": [
           "analog-power-ic",
+          "ar-vr-xr-optics",
           "edge-ai",
           "optical-sensors",
           "robotics_physical_ai"
         ],
-        "topicCount": 4
+        "topicCount": 5
       }
     },
     "3228": {
@@ -29424,7 +29401,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -29543,7 +29520,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -30177,7 +30154,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -30284,7 +30261,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "networking-equipment",
@@ -30450,17 +30427,6 @@
         "topicCount": 0
       }
     },
-    "3426": {
-      "symbol": "3426",
-      "name": "台興",
-      "topics": [],
-      "detail": {
-        "code": "3426",
-        "name": "台興",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "3430": {
       "symbol": "3430",
       "name": "奇鈦科",
@@ -30581,12 +30547,6 @@
           "description": "以台積電 CoWoS 為核心的 AI 先進封裝供應鏈，涵蓋晶圓級先進封裝代工、OSAT 夥伴、高階 ABF 載板與製程關鍵耗材。是 AI 算力基礎設施最直接的受益鏈，訂單能見度與台積電 CoWoS 產能擴張高度連動。"
         },
         {
-          "topic_id": "cxl-technology",
-          "name": "記憶體｜CXL 記憶體池化",
-          "shortname": "CXL 技術",
-          "description": "旨在解決 AI 運算中「記憶體牆 (Memory Wall)」瓶頸的次世代開放互連協定。基於 PCIe 6.0 介面，CXL 3.0/3.1 實現了 CPU、GPU 與記憶體資源的動態池化 (Memory Pooling) 與共享，大幅提升資料中心運算效率並降低能耗。"
-        },
-        {
           "topic_id": "hbm",
           "name": "記憶體｜HBM 高頻寬記憶體",
           "shortname": "HBM",
@@ -30606,11 +30566,10 @@
           "ai-server-odm",
           "asic-ip-design",
           "cowos-advanced-packaging",
-          "cxl-technology",
           "hbm",
           "silicon-photonics"
         ],
-        "topicCount": 6
+        "topicCount": 5
       }
     },
     "3444": {
@@ -30665,7 +30624,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -30682,17 +30641,6 @@
           "silicon-photonics"
         ],
         "topicCount": 2
-      }
-    },
-    "3454": {
-      "symbol": "3454",
-      "name": "晶睿",
-      "topics": [],
-      "detail": {
-        "code": "3454",
-        "name": "晶睿",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "3455": {
@@ -30798,7 +30746,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         },
         {
           "topic_id": "leo-satellite",
@@ -30810,7 +30758,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         }
       ],
       "detail": {
@@ -31765,21 +31713,12 @@
     "3593": {
       "symbol": "3593",
       "name": "力銘",
-      "topics": [
-        {
-          "topic_id": "ai-server-chassis-rails",
-          "name": "AI 伺服器｜機殼與滑軌",
-          "shortname": "機殼與滑軌",
-          "description": "AI 伺服器因功耗激增需搭載更重的液冷系統與高 U 數設計，帶動機殼結構升級及高承重精密滑軌的需求，其單價 (ASP) 較傳統伺服器大幅提升。"
-        }
-      ],
+      "topics": [],
       "detail": {
         "code": "3593",
         "name": "力銘",
-        "topics": [
-          "ai-server-chassis-rails"
-        ],
-        "topicCount": 1
+        "topics": [],
+        "topicCount": 0
       }
     },
     "3594": {
@@ -31928,7 +31867,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         }
       ],
       "detail": {
@@ -31938,17 +31877,6 @@
           "glass-core-substrate"
         ],
         "topicCount": 1
-      }
-    },
-    "3616": {
-      "symbol": "3616",
-      "name": "泓辰",
-      "topics": [],
-      "detail": {
-        "code": "3616",
-        "name": "泓辰",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "3617": {
@@ -32279,12 +32207,6 @@
       "name": "貿聯-KY",
       "topics": [
         {
-          "topic_id": "battery-cell-module",
-          "name": "綠能環保｜電芯製造與電池模組",
-          "shortname": "電芯與模組",
-          "description": "聚焦於電芯製造與電池模組封裝。台廠在中游模組具備全球頂尖競爭力，從消費性、電動車到儲能應用，並隨著鴻海電芯廠投產與台泥電芯事業，逐步完整台灣電池自製化版圖。"
-        },
-        {
           "topic_id": "connector",
           "name": "電子零組件｜連接器（工業／消費）",
           "shortname": "連接器",
@@ -32301,11 +32223,10 @@
         "code": "3665",
         "name": "貿聯-KY",
         "topics": [
-          "battery-cell-module",
           "connector",
           "connector-highspeed"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "3666": {
@@ -32357,12 +32278,21 @@
     "3673": {
       "symbol": "3673",
       "name": "TPK-KY",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "pc-nb-tablet",
+          "name": "消費終端｜PC、筆電與平板",
+          "shortname": "PC 與平板",
+          "description": "涵蓋全球筆記型電腦、桌上型電腦及平板電腦的設計、代工與品牌銷售。台灣廠商在全球 PC 代工市場擁有超過 80% 的市佔率，是全球資訊產業的核心支柱，目前正積極由傳統代工轉向 AI PC 與 AI 伺服器的高價值領域。"
+        }
+      ],
       "detail": {
         "code": "3673",
         "name": "TPK-KY",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "pc-nb-tablet"
+        ],
+        "topicCount": 1
       }
     },
     "3675": {
@@ -32434,7 +32364,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         },
         {
           "topic_id": "wafer-fab-equipment",
@@ -32633,12 +32563,21 @@
     "3704": {
       "symbol": "3704",
       "name": "合勤控",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "networking-equipment",
+          "name": "AI 伺服器｜高速交換器與無線網路",
+          "shortname": "交換器與網通",
+          "description": "聚焦於 AI 資料中心 800G/1.6T 高速交換器、WiFi 7 無線通訊設備、5G/6G 寬頻接取設備及低軌衛星地面站。作為數位基礎設施的「神經系統」，網通設備是支撐 AI 算力傳輸、萬物互聯與低延遲通訊的核心硬體。"
+        }
+      ],
       "detail": {
         "code": "3704",
         "name": "合勤控",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "networking-equipment"
+        ],
+        "topicCount": 1
       }
     },
     "3705": {
@@ -32655,12 +32594,21 @@
     "3706": {
       "symbol": "3706",
       "name": "神達",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "ai-server-odm",
+          "name": "AI 伺服器｜整機組裝",
+          "shortname": "AI 伺服器組裝",
+          "description": "負責將運算模組、散熱系統、電源與機殼整合為完整的 AI 伺服器機櫃（Rack）。隨 NVIDIA Blackwell 架構導入，代工廠從單機組裝升級至複雜的整機櫃 L11 整合，是 AI 產業鏈中產值最高、最具系統複雜度的環節。"
+        }
+      ],
       "detail": {
         "code": "3706",
         "name": "神達",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "ai-server-odm"
+        ],
+        "topicCount": 1
       }
     },
     "3707": {
@@ -32819,6 +32767,12 @@
       "name": "富采",
       "topics": [
         {
+          "topic_id": "ar-vr-xr-optics",
+          "name": "消費終端｜AR/VR/XR 光學",
+          "shortname": "AR/VR/XR 光學",
+          "description": "涵蓋 AR/VR/XR 裝置所需的 Pancake 折疊鏡頭、光波導元件（DOE/LOE）、MetaLens 超穎透鏡及驅動感測 IC，是 Apple Vision Pro、Meta Quest 與下一世代 AI 眼鏡的核心光學供應鏈。台灣廠商在 Pancake 鏡頭、波導鍍膜與晶圓級光學領域具備全球競爭地位。"
+        },
+        {
           "topic_id": "display-panel",
           "name": "光學顯示｜面板",
           "shortname": "面板產業",
@@ -32828,7 +32782,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         },
         {
           "topic_id": "optical-sensors",
@@ -32841,11 +32795,12 @@
         "code": "3714",
         "name": "富采",
         "topics": [
+          "ar-vr-xr-optics",
           "display-panel",
           "microled-display",
           "optical-sensors"
         ],
-        "topicCount": 3
+        "topicCount": 4
       }
     },
     "3715": {
@@ -32890,6 +32845,33 @@
         "topicCount": 0
       }
     },
+    "3718": {
+      "symbol": "3718",
+      "name": "中光電投控",
+      "topics": [
+        {
+          "topic_id": "defense_industry",
+          "name": "航太國防｜國防軍工",
+          "shortname": "國防軍工",
+          "description": "以國防自主與強化不對稱戰力為核心，涵蓋作戰平台、支援系統與戰術通訊。是實現國家安全與供應鏈韌性的關鍵產業。"
+        },
+        {
+          "topic_id": "display-panel",
+          "name": "光學顯示｜面板",
+          "shortname": "面板產業",
+          "description": "面板產業正從傳統 LCD 轉型至 OLED 與 Micro LED，台廠積極跨入車用顯示與扇出型面板級封裝 (FOPLP) 等高值化領域。"
+        }
+      ],
+      "detail": {
+        "code": "3718",
+        "name": "中光電投控",
+        "topics": [
+          "defense_industry",
+          "display-panel"
+        ],
+        "topicCount": 2
+      }
+    },
     "3853": {
       "symbol": "3853",
       "name": "Asteria",
@@ -32916,6 +32898,19 @@
         "topicCount": 1
       }
     },
+    "004000": {
+      "symbol": "004000",
+      "name": "樂天精密化學",
+      "topics": [],
+      "detail": {
+        "code": "004000.KS",
+        "name": "樂天精密化學",
+        "topics": [
+          "kr-petrochemical"
+        ],
+        "topicCount": 1
+      }
+    },
     "4004": {
       "symbol": "4004",
       "name": "Resonac",
@@ -32929,6 +32924,19 @@
           "jp-sic-gan-substrate"
         ],
         "topicCount": 3
+      }
+    },
+    "004020": {
+      "symbol": "004020",
+      "name": "現代製鐵",
+      "topics": [],
+      "detail": {
+        "code": "004020.KS",
+        "name": "現代製鐵",
+        "topics": [
+          "kr-materials-metals"
+        ],
+        "topicCount": 1
       }
     },
     "4042": {
@@ -33290,17 +33298,6 @@
         "topicCount": 1
       }
     },
-    "4130": {
-      "symbol": "4130",
-      "name": "健亞",
-      "topics": [],
-      "detail": {
-        "code": "4130",
-        "name": "健亞",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "4131": {
       "symbol": "4131",
       "name": "浩泰",
@@ -33308,17 +33305,6 @@
       "detail": {
         "code": "4131",
         "name": "浩泰",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
-    "4132": {
-      "symbol": "4132",
-      "name": "國鼎",
-      "topics": [],
-      "detail": {
-        "code": "4132",
-        "name": "國鼎",
         "topics": [],
         "topicCount": 0
       }
@@ -33396,17 +33382,6 @@
       "detail": {
         "code": "4148",
         "name": "全宇生技-KY",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
-    "4150": {
-      "symbol": "4150",
-      "name": "優你康",
-      "topics": [],
-      "detail": {
-        "code": "4150",
-        "name": "優你康",
         "topics": [],
         "topicCount": 0
       }
@@ -33774,11 +33749,11 @@
     },
     "4195": {
       "symbol": "4195",
-      "name": "基米",
+      "name": "基米-創",
       "topics": [],
       "detail": {
         "code": "4195",
-        "name": "基米",
+        "name": "基米-創",
         "topics": [],
         "topicCount": 0
       }
@@ -34263,11 +34238,11 @@
     },
     "4530": {
       "symbol": "4530",
-      "name": "宏易",
+      "name": "天意能創",
       "topics": [],
       "detail": {
         "code": "4530",
-        "name": "宏易",
+        "name": "天意能創",
         "topics": [],
         "topicCount": 0
       }
@@ -34437,17 +34412,6 @@
         "topicCount": 0
       }
     },
-    "4546": {
-      "symbol": "4546",
-      "name": "長亨",
-      "topics": [],
-      "detail": {
-        "code": "4546",
-        "name": "長亨",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "4549": {
       "symbol": "4549",
       "name": "榮研化學",
@@ -34517,12 +34481,21 @@
     "4554": {
       "symbol": "4554",
       "name": "橙的",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "automotive-electronics",
+          "name": "智慧自動化｜車用電子與智駕",
+          "shortname": "車用電子",
+          "description": "涵蓋 TPMS 胎壓感測、毫米波雷達、HUD 抬頭顯示、商用車電控、智能門控至 EV 整車設計與電動巴士的台灣車用電子完整供應鏈。"
+        }
+      ],
       "detail": {
         "code": "4554",
         "name": "橙的",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "automotive-electronics"
+        ],
+        "topicCount": 1
       }
     },
     "4555": {
@@ -34716,7 +34689,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -34775,7 +34748,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -34823,11 +34796,11 @@
     },
     "4582": {
       "symbol": "4582",
-      "name": "聚恆",
+      "name": "聚恆-創",
       "topics": [],
       "detail": {
         "code": "4582",
-        "name": "聚恆",
+        "name": "聚恆-創",
         "topics": [],
         "topicCount": 0
       }
@@ -34846,7 +34819,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -34884,7 +34857,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -34932,11 +34905,11 @@
     },
     "4590": {
       "symbol": "4590",
-      "name": "富田",
+      "name": "富田-創",
       "topics": [],
       "detail": {
         "code": "4590",
-        "name": "富田",
+        "name": "富田-創",
         "topics": [],
         "topicCount": 0
       }
@@ -35323,11 +35296,11 @@
     },
     "4747": {
       "symbol": "4747",
-      "name": "強生製藥",
+      "name": "強生*",
       "topics": [],
       "detail": {
         "code": "4747",
-        "name": "強生製藥",
+        "name": "強生*",
         "topics": [],
         "topicCount": 0
       }
@@ -35486,6 +35459,12 @@
       "name": "晶呈科技",
       "topics": [
         {
+          "topic_id": "glass-core-substrate",
+          "name": "基板材料｜玻璃基板",
+          "shortname": "玻璃基板",
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
+        },
+        {
           "topic_id": "semi-process-materials",
           "name": "半導體製造｜前段製程材料",
           "shortname": "前段製程材料",
@@ -35496,9 +35475,10 @@
         "code": "4768",
         "name": "晶呈科技",
         "topics": [
+          "glass-core-substrate",
           "semi-process-materials"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "4770": {
@@ -35541,17 +35521,6 @@
           "semi-process-materials"
         ],
         "topicCount": 1
-      }
-    },
-    "4773": {
-      "symbol": "4773",
-      "name": "高福",
-      "topics": [],
-      "detail": {
-        "code": "4773",
-        "name": "高福",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "4804": {
@@ -35655,12 +35624,6 @@
       "name": "正文",
       "topics": [
         {
-          "topic_id": "leo-satellite",
-          "name": "航太國防｜低軌衛星通訊系統",
-          "shortname": "低軌衛星",
-          "description": "低軌衛星（LEO）以低延遲、高頻寬與全球覆蓋為核心特性，透過大量衛星組網提供通訊、數據傳輸與未來太空運算服務，屬於新世代通訊與數位基礎設施的關鍵應用題材。"
-        },
-        {
           "topic_id": "networking-equipment",
           "name": "AI 伺服器｜高速交換器與無線網路",
           "shortname": "交換器與網通",
@@ -35677,11 +35640,10 @@
         "code": "4906",
         "name": "正文",
         "topics": [
-          "leo-satellite",
           "networking-equipment",
           "telecom-media"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "4907": {
@@ -35703,7 +35665,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -36014,21 +35976,12 @@
     "4943": {
       "symbol": "4943",
       "name": "康控-KY",
-      "topics": [
-        {
-          "topic_id": "connector-automotive",
-          "name": "電子零組件｜車用連接器",
-          "shortname": "車用連接器",
-          "description": "電動車高壓/大電流連接器、FAKRA/HSD 訊號線束與 EV 充電接頭，三電系統與智慧座艙的核心互連元件。"
-        }
-      ],
+      "topics": [],
       "detail": {
         "code": "4943",
         "name": "康控-KY",
-        "topics": [
-          "connector-automotive"
-        ],
-        "topicCount": 1
+        "topics": [],
+        "topicCount": 0
       }
     },
     "4946": {
@@ -36088,7 +36041,7 @@
     },
     "4953": {
       "symbol": "4953",
-      "name": "緯軟",
+      "name": "緯致",
       "topics": [
         {
           "topic_id": "it-si",
@@ -36099,7 +36052,7 @@
       ],
       "detail": {
         "code": "4953",
-        "name": "緯軟",
+        "name": "緯致",
         "topics": [
           "it-si"
         ],
@@ -36280,7 +36233,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -36375,7 +36328,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -36402,7 +36355,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -36434,17 +36387,6 @@
         "topicCount": 1
       }
     },
-    "4987": {
-      "symbol": "4987",
-      "name": "科誠",
-      "topics": [],
-      "detail": {
-        "code": "4987",
-        "name": "科誠",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "4989": {
       "symbol": "4989",
       "name": "榮科",
@@ -36454,15 +36396,22 @@
           "name": "基板材料｜玻纖布",
           "shortname": "玻纖布",
           "description": "從玻璃原料到終端 AI 伺服器應用的完整產業鏈解析。"
+        },
+        {
+          "topic_id": "ic-substrate",
+          "name": "基板材料｜IC 載板",
+          "shortname": "IC 載板",
+          "description": "IC 載板是晶片與 PCB 主板之間的關鍵訊號橋接層，決定 AI 晶片的訊號完整性與散熱表現。涵蓋高階 ABF 積層板、銅箔基板材料（CCL）、電解銅箔與特殊陶瓷基板，是 AI 封裝供應鏈中技術門檻最高、與 AI 算力需求正相關的材料題材。"
         }
       ],
       "detail": {
         "code": "4989",
         "name": "榮科",
         "topics": [
-          "fiberglass-cloth"
+          "fiberglass-cloth",
+          "ic-substrate"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "4991": {
@@ -36473,7 +36422,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -36940,7 +36889,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         },
         {
           "topic_id": "semi-process-materials",
@@ -37455,6 +37404,12 @@
       "name": "系統電",
       "topics": [
         {
+          "topic_id": "automotive-electronics",
+          "name": "智慧自動化｜車用電子與智駕",
+          "shortname": "車用電子",
+          "description": "涵蓋 TPMS 胎壓感測、毫米波雷達、HUD 抬頭顯示、商用車電控、智能門控至 EV 整車設計與電動巴士的台灣車用電子完整供應鏈。"
+        },
+        {
           "topic_id": "battery-cell-module",
           "name": "綠能環保｜電芯製造與電池模組",
           "shortname": "電芯與模組",
@@ -37471,10 +37426,11 @@
         "code": "5309",
         "name": "系統電",
         "topics": [
+          "automotive-electronics",
           "battery-cell-module",
           "bbu"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "5310": {
@@ -37570,17 +37526,6 @@
           "mlcc-capacitor"
         ],
         "topicCount": 1
-      }
-    },
-    "5333": {
-      "symbol": "5333",
-      "name": "NGK",
-      "topics": [],
-      "detail": {
-        "code": "5333.JP",
-        "name": "NGK",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "5340": {
@@ -37755,33 +37700,6 @@
         "topicCount": 0
       }
     },
-    "5371": {
-      "symbol": "5371",
-      "name": "中光電",
-      "topics": [
-        {
-          "topic_id": "defense_industry",
-          "name": "航太國防｜國防軍工",
-          "shortname": "國防軍工",
-          "description": "以國防自主與強化不對稱戰力為核心，涵蓋作戰平台、支援系統與戰術通訊。是實現國家安全與供應鏈韌性的關鍵產業。"
-        },
-        {
-          "topic_id": "display-panel",
-          "name": "光學顯示｜面板",
-          "shortname": "面板產業",
-          "description": "面板產業正從傳統 LCD 轉型至 OLED 與 Micro LED，台廠積極跨入車用顯示與扇出型面板級封裝 (FOPLP) 等高值化領域。"
-        }
-      ],
-      "detail": {
-        "code": "5371",
-        "name": "中光電",
-        "topics": [
-          "defense_industry",
-          "display-panel"
-        ],
-        "topicCount": 2
-      }
-    },
     "005380": {
       "symbol": "005380",
       "name": "現代汽車",
@@ -37922,12 +37840,6 @@
       "name": "台半",
       "topics": [
         {
-          "topic_id": "analog-power-ic",
-          "name": "IC 設計｜類比與功率管理 IC",
-          "shortname": "類比與功率 IC",
-          "description": "聚焦於電子系統中負責電力管理、訊號感測與嵌入式控制的核心類比與功率晶片設計公司。涵蓋微控制器 (MCU)、感測訊號鏈 IC 與電源管理 IC (PMIC)，應用橫跨 AI 伺服器電源、工業自動化與消費電子，是電子系統的基礎能源管理層。"
-        },
-        {
           "topic_id": "power-discrete-tw",
           "name": "電子零組件｜矽基功率離散元件",
           "shortname": "功率離散元件",
@@ -37944,11 +37856,10 @@
         "code": "5425",
         "name": "台半",
         "topics": [
-          "analog-power-ic",
           "power-discrete-tw",
           "sic-gan-power"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "5426": {
@@ -38298,15 +38209,22 @@
           "name": "智慧自動化｜Edge AI 與 AIoT",
           "shortname": "Edge AI",
           "description": "AI 推論從雲端下沉至終端裝置，涵蓋邊緣 AI 晶片、工業電腦、IoT 閘道器及智慧相機等硬體鏈，填補雲端大算力之外的分散式即時 AI 缺口。"
+        },
+        {
+          "topic_id": "robotics_physical_ai",
+          "name": "智慧自動化｜實體 AI 機器人",
+          "shortname": "AI 機器人",
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
         "code": "5484",
         "name": "慧友",
         "topics": [
-          "edge-ai"
+          "edge-ai",
+          "robotics_physical_ai"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "5487": {
@@ -38351,6 +38269,19 @@
         "name": "同亨",
         "topics": [],
         "topicCount": 0
+      }
+    },
+    "005490": {
+      "symbol": "005490",
+      "name": "POSCO控股",
+      "topics": [],
+      "detail": {
+        "code": "005490.KS",
+        "name": "POSCO控股",
+        "topics": [
+          "kr-materials-metals"
+        ],
+        "topicCount": 1
       }
     },
     "5493": {
@@ -38928,7 +38859,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -38948,7 +38879,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -38979,7 +38910,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -38987,6 +38918,19 @@
         "name": "合庫金",
         "topics": [
           "banking-finance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "005880": {
+      "symbol": "005880",
+      "name": "大韓海運",
+      "topics": [],
+      "detail": {
+        "code": "005880.KS",
+        "name": "大韓海運",
+        "topics": [
+          "kr-shipping"
         ],
         "topicCount": 1
       }
@@ -39024,7 +38968,7 @@
     },
     "5904": {
       "symbol": "5904",
-      "name": "寶雅",
+      "name": "寶雅*",
       "topics": [
         {
           "topic_id": "e-commerce",
@@ -39035,7 +38979,7 @@
       ],
       "detail": {
         "code": "5904",
-        "name": "寶雅",
+        "name": "寶雅*",
         "topics": [
           "e-commerce"
         ],
@@ -39097,7 +39041,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -39296,11 +39240,11 @@
     },
     "6111": {
       "symbol": "6111",
-      "name": "光聚",
+      "name": "光聚晶電",
       "topics": [],
       "detail": {
         "code": "6111",
-        "name": "光聚",
+        "name": "光聚晶電",
         "topics": [],
         "topicCount": 0
       }
@@ -39403,22 +39347,15 @@
           "name": "AI 伺服器｜機殼與滑軌",
           "shortname": "機殼與滑軌",
           "description": "AI 伺服器因功耗激增需搭載更重的液冷系統與高 U 數設計，帶動機殼結構升級及高承重精密滑軌的需求，其單價 (ASP) 較傳統伺服器大幅提升。"
-        },
-        {
-          "topic_id": "precision-metal-casing",
-          "name": "電子零組件｜精密機構件",
-          "shortname": "精密機構件",
-          "description": "涵蓋智慧型手機、筆記型電腦、AI 伺服器及電動車等終端裝置的高精度金屬機殼與機構組件，涉及 CNC 加工、金屬射出 (MIM) 及壓鑄等精密製程。"
         }
       ],
       "detail": {
         "code": "6117",
         "name": "迎廣",
         "topics": [
-          "ai-server-chassis-rails",
-          "precision-metal-casing"
+          "ai-server-chassis-rails"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "6118": {
@@ -39543,6 +39480,12 @@
           "name": "散熱冷卻｜液冷散熱系統",
           "shortname": "液冷散熱",
           "description": "Cold Plate、CDU 與浸沒式冷卻，針對 1000W+ Blackwell/Rubin 世代的高密度液冷基礎設施。"
+        },
+        {
+          "topic_id": "robotics_physical_ai",
+          "name": "智慧自動化｜實體 AI 機器人",
+          "shortname": "AI 機器人",
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -39550,9 +39493,10 @@
         "name": "廣運",
         "topics": [
           "ai-server-chassis-rails",
-          "liquid_cooling_advanced"
+          "liquid_cooling_advanced",
+          "robotics_physical_ai"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "6126": {
@@ -39762,12 +39706,21 @@
     "6143": {
       "symbol": "6143",
       "name": "振曜",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "display-panel",
+          "name": "光學顯示｜面板",
+          "shortname": "面板產業",
+          "description": "面板產業正從傳統 LCD 轉型至 OLED 與 Micro LED，台廠積極跨入車用顯示與扇出型面板級封裝 (FOPLP) 等高值化領域。"
+        }
+      ],
       "detail": {
         "code": "6143",
         "name": "振曜",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "display-panel"
+        ],
+        "topicCount": 1
       }
     },
     "6144": {
@@ -40030,7 +39983,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -40845,7 +40798,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -40896,7 +40849,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         }
       ],
       "detail": {
@@ -41241,11 +41194,11 @@
     },
     "6241": {
       "symbol": "6241",
-      "name": "易通展",
+      "name": "鑫永洋",
       "topics": [],
       "detail": {
         "code": "6241",
-        "name": "易通展",
+        "name": "鑫永洋",
         "topics": [],
         "topicCount": 0
       }
@@ -41368,7 +41321,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -41457,13 +41410,22 @@
     },
     "6266": {
       "symbol": "6266",
-      "name": "達茲模",
-      "topics": [],
+      "name": "泰詠",
+      "topics": [
+        {
+          "topic_id": "ems-smt",
+          "name": "AI 伺服器｜SMT/EMS 電子代工",
+          "shortname": "EMS 電子代工",
+          "description": "台灣 SMT/EMS 廠商專精於精密 PCB 打件、記憶體模組組裝至 AI 伺服器系統整合，受惠於地緣政治接單轉移、DDR5 升規帶動 ASP 提升，以及車用與低軌衛星等高附加價值終端的產品組合升級。"
+        }
+      ],
       "detail": {
-        "code": "6266.JP",
-        "name": "達茲模",
-        "topics": [],
-        "topicCount": 0
+        "code": "6266",
+        "name": "泰詠",
+        "topics": [
+          "ems-smt"
+        ],
+        "topicCount": 1
       }
     },
     "6268": {
@@ -41730,12 +41692,6 @@
       "name": "康舒",
       "topics": [
         {
-          "topic_id": "leo-satellite",
-          "name": "航太國防｜低軌衛星通訊系統",
-          "shortname": "低軌衛星",
-          "description": "低軌衛星（LEO）以低延遲、高頻寬與全球覆蓋為核心特性，透過大量衛星組網提供通訊、數據傳輸與未來太空運算服務，屬於新世代通訊與數位基礎設施的關鍵應用題材。"
-        },
-        {
           "topic_id": "psu",
           "name": "電子零組件｜電源供應器",
           "shortname": "電源供應器",
@@ -41746,10 +41702,9 @@
         "code": "6282",
         "name": "康舒",
         "topics": [
-          "leo-satellite",
           "psu"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "6283": {
@@ -41953,17 +41908,6 @@
         "topicCount": 1
       }
     },
-    "6336": {
-      "symbol": "6336",
-      "name": "石井表記",
-      "topics": [],
-      "detail": {
-        "code": "6336.JP",
-        "name": "石井表記",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "6361": {
       "symbol": "6361",
       "name": "荏原製作所",
@@ -42061,21 +42005,12 @@
     "6405": {
       "symbol": "6405",
       "name": "悅城",
-      "topics": [
-        {
-          "topic_id": "glass-core-substrate",
-          "name": "基板材料｜玻璃基板",
-          "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
-        }
-      ],
+      "topics": [],
       "detail": {
         "code": "6405",
         "name": "悅城",
-        "topics": [
-          "glass-core-substrate"
-        ],
-        "topicCount": 1
+        "topics": [],
+        "topicCount": 0
       }
     },
     "6407": {
@@ -42233,7 +42168,7 @@
     },
     "6423": {
       "symbol": "6423",
-      "name": "億而得-創",
+      "name": "億而得",
       "topics": [
         {
           "topic_id": "asic-ip-design",
@@ -42244,7 +42179,7 @@
       ],
       "detail": {
         "code": "6423",
-        "name": "億而得-創",
+        "name": "億而得",
         "topics": [
           "asic-ip-design"
         ],
@@ -42401,7 +42336,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "leo-satellite",
@@ -42501,7 +42436,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         },
         {
           "topic_id": "silicon-photonics",
@@ -43750,15 +43685,22 @@
           "name": "智慧自動化｜Edge AI 與 AIoT",
           "shortname": "Edge AI",
           "description": "AI 推論從雲端下沉至終端裝置，涵蓋邊緣 AI 晶片、工業電腦、IoT 閘道器及智慧相機等硬體鏈，填補雲端大算力之外的分散式即時 AI 缺口。"
+        },
+        {
+          "topic_id": "robotics_physical_ai",
+          "name": "智慧自動化｜實體 AI 機器人",
+          "shortname": "AI 機器人",
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
         "code": "6579",
         "name": "研揚",
         "topics": [
-          "edge-ai"
+          "edge-ai",
+          "robotics_physical_ai"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "6580": {
@@ -43848,7 +43790,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -43935,7 +43877,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -44228,11 +44170,11 @@
     },
     "6622": {
       "symbol": "6622",
-      "name": "大電",
+      "name": "Daihen",
       "topics": [],
       "detail": {
         "code": "6622.JP",
-        "name": "大電",
+        "name": "Daihen",
         "topics": [
           "jp-dc-power-infra"
         ],
@@ -44440,6 +44382,19 @@
         "topicCount": 0
       }
     },
+    "006650": {
+      "symbol": "006650",
+      "name": "大韓油化",
+      "topics": [],
+      "detail": {
+        "code": "006650.KS",
+        "name": "大韓油化",
+        "topics": [
+          "kr-petrochemical"
+        ],
+        "topicCount": 1
+      }
+    },
     "6651": {
       "symbol": "6651",
       "name": "日東工業",
@@ -44451,17 +44406,6 @@
           "jp-dc-power-infra"
         ],
         "topicCount": 1
-      }
-    },
-    "6652": {
-      "symbol": "6652",
-      "name": "雅祥生醫",
-      "topics": [],
-      "detail": {
-        "code": "6652",
-        "name": "雅祥生醫",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "6653": {
@@ -44882,15 +44826,22 @@
           "name": "軟體資安｜資安防護",
           "shortname": "資安防護",
           "description": "AI 驅動的網路攻擊激增、政府零信任政策強制推行與企業資安事件數創新高，三重催化劑共同推動台灣資安市場邁向 2027 年產值 NT$749 億。此題材涵蓋從資安硬體設備、身分認證平台，到 AI 威脅偵測、SOC 代管服務的完整防護生態。"
+        },
+        {
+          "topic_id": "defense_industry",
+          "name": "航太國防｜國防軍工",
+          "shortname": "國防軍工",
+          "description": "以國防自主與強化不對稱戰力為核心，涵蓋作戰平台、支援系統與戰術通訊。是實現國家安全與供應鏈韌性的關鍵產業。"
         }
       ],
       "detail": {
         "code": "6690",
         "name": "安碁資訊",
         "topics": [
-          "cybersecurity"
+          "cybersecurity",
+          "defense_industry"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "6691": {
@@ -44966,11 +44917,11 @@
     },
     "6696": {
       "symbol": "6696",
-      "name": "仁新",
+      "name": "仁新*",
       "topics": [],
       "detail": {
         "code": "6696",
-        "name": "仁新",
+        "name": "仁新*",
         "topics": [],
         "topicCount": 0
       }
@@ -45148,7 +45099,7 @@
           "topic_id": "high-speed-optics",
           "name": "光通訊｜高速光收發模組",
           "shortname": "高速光模組",
-          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速插拔式光收發模組的剛性升級需求，包含 LPO (線性驅動) 與 TRO 等低功耗解決方案。"
+          "description": "聚焦 AI 資料中心與大型雲端服務商 (CSP) 對 800G 與 1.6T 高速光收發模組的剛性升級需求，涵蓋可插拔模組、LPO (線性驅動) 低功耗方案，以及把光引擎移入交換器封裝的 CPO (共同封裝光學) 路線。"
         }
       ],
       "detail": {
@@ -46122,17 +46073,6 @@
         "topicCount": 1
       }
     },
-    "6806": {
-      "symbol": "6806",
-      "name": "森崴能源",
-      "topics": [],
-      "detail": {
-        "code": "6806",
-        "name": "森崴能源",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "6807": {
       "symbol": "6807",
       "name": "峰源-KY",
@@ -46615,7 +46555,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         }
       ],
       "detail": {
@@ -46989,17 +46929,6 @@
         "topicCount": 1
       }
     },
-    "6883": {
-      "symbol": "6883",
-      "name": "微電能源",
-      "topics": [],
-      "detail": {
-        "code": "6883",
-        "name": "微電能源",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "6884": {
       "symbol": "6884",
       "name": "海柏特",
@@ -47214,11 +47143,11 @@
     },
     "6908": {
       "symbol": "6908",
-      "name": "宏碁遊戲",
+      "name": "宏碁遊戲-創",
       "topics": [],
       "detail": {
         "code": "6908",
-        "name": "宏碁遊戲",
+        "name": "宏碁遊戲-創",
         "topics": [],
         "topicCount": 0
       }
@@ -47649,12 +47578,21 @@
     "6947": {
       "symbol": "6947",
       "name": "台鎔科技",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "circular-economy-ewaste",
+          "name": "綠能環保｜電子廢料與製程回收",
+          "shortname": "電子廢料回收",
+          "description": "涵蓋電子產業製程廢液回收、半導體電解金屬提取、事業廢棄物處理及貴金屬循環精煉，是淨零轉型與資源化關鍵產業。"
+        }
+      ],
       "detail": {
         "code": "6947",
         "name": "台鎔科技",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "circular-economy-ewaste"
+        ],
+        "topicCount": 1
       }
     },
     "6949": {
@@ -47664,6 +47602,17 @@
       "detail": {
         "code": "6949",
         "name": "沛爾生醫-創",
+        "topics": [],
+        "topicCount": 0
+      }
+    },
+    "6950": {
+      "symbol": "6950",
+      "name": "科科科技-KY",
+      "topics": [],
+      "detail": {
+        "code": "6950",
+        "name": "科科科技-KY",
         "topics": [],
         "topicCount": 0
       }
@@ -48544,6 +48493,17 @@
         "topicCount": 0
       }
     },
+    "7686": {
+      "symbol": "7686",
+      "name": "捷立康",
+      "topics": [],
+      "detail": {
+        "code": "7686",
+        "name": "捷立康",
+        "topics": [],
+        "topicCount": 0
+      }
+    },
     "7689": {
       "symbol": "7689",
       "name": "大鵬科CLMX",
@@ -48553,6 +48513,19 @@
         "name": "大鵬科CLMX",
         "topics": [],
         "topicCount": 0
+      }
+    },
+    "007690": {
+      "symbol": "007690",
+      "name": "國都化學",
+      "topics": [],
+      "detail": {
+        "code": "007690.KS",
+        "name": "國都化學",
+        "topics": [
+          "kr-petrochemical"
+        ],
+        "topicCount": 1
       }
     },
     "7701": {
@@ -49452,11 +49425,11 @@
     },
     "7780": {
       "symbol": "7780",
-      "name": "大研生醫",
+      "name": "大研生醫*",
       "topics": [],
       "detail": {
         "code": "7780",
-        "name": "大研生醫",
+        "name": "大研生醫*",
         "topics": [],
         "topicCount": 0
       }
@@ -49670,11 +49643,11 @@
     },
     "7803": {
       "symbol": "7803",
-      "name": "雲象科技",
+      "name": "雲象科技-創",
       "topics": [],
       "detail": {
         "code": "7803",
-        "name": "雲象科技",
+        "name": "雲象科技-創",
         "topics": [],
         "topicCount": 0
       }
@@ -49859,7 +49832,7 @@
     },
     "7823": {
       "symbol": "7823",
-      "name": "奧義智慧",
+      "name": "奧義賽博-KY創",
       "topics": [
         {
           "topic_id": "cybersecurity",
@@ -49870,7 +49843,7 @@
       ],
       "detail": {
         "code": "7823",
-        "name": "奧義智慧",
+        "name": "奧義賽博-KY創",
         "topics": [
           "cybersecurity"
         ],
@@ -49914,11 +49887,11 @@
     },
     "7827": {
       "symbol": "7827",
-      "name": "漢康-KY",
+      "name": "漢康-KY創",
       "topics": [],
       "detail": {
         "code": "7827",
-        "name": "漢康-KY",
+        "name": "漢康-KY創",
         "topics": [],
         "topicCount": 0
       }
@@ -49974,17 +49947,6 @@
       "detail": {
         "code": "7833",
         "name": "綠岩能源",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
-    "7834": {
-      "symbol": "7834",
-      "name": "來毅數位",
-      "topics": [],
-      "detail": {
-        "code": "7834",
-        "name": "來毅數位",
         "topics": [],
         "topicCount": 0
       }
@@ -50709,6 +50671,17 @@
         "topicCount": 0
       }
     },
+    "7914": {
+      "symbol": "7914",
+      "name": "碩明綠能",
+      "topics": [],
+      "detail": {
+        "code": "7914",
+        "name": "碩明綠能",
+        "topics": [],
+        "topicCount": 0
+      }
+    },
     "7915": {
       "symbol": "7915",
       "name": "廌家",
@@ -50874,6 +50847,17 @@
         "topicCount": 0
       }
     },
+    "7932": {
+      "symbol": "7932",
+      "name": "昱鐳應材",
+      "topics": [],
+      "detail": {
+        "code": "7932",
+        "name": "昱鐳應材",
+        "topics": [],
+        "topicCount": 0
+      }
+    },
     "7933": {
       "symbol": "7933",
       "name": "威旭",
@@ -50936,6 +50920,28 @@
       "detail": {
         "code": "7943",
         "name": "鴻璟科技",
+        "topics": [],
+        "topicCount": 0
+      }
+    },
+    "7944": {
+      "symbol": "7944",
+      "name": "睿禾金碳",
+      "topics": [],
+      "detail": {
+        "code": "7944",
+        "name": "睿禾金碳",
+        "topics": [],
+        "topicCount": 0
+      }
+    },
+    "7945": {
+      "symbol": "7945",
+      "name": "廣盛科技",
+      "topics": [],
+      "detail": {
+        "code": "7945",
+        "name": "廣盛科技",
         "topics": [],
         "topicCount": 0
       }
@@ -51016,7 +51022,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         }
       ],
       "detail": {
@@ -51257,7 +51263,7 @@
           "topic_id": "glass-core-substrate",
           "name": "基板材料｜玻璃基板",
           "shortname": "玻璃基板",
-          "description": "繼 CoWoS 之後先進封裝關鍵戰場，旨在解決 AI 晶片高功耗下的散熱與傳輸瓶頸，預計 2026 年進入量產元年。"
+          "description": "繼 CoWoS 之後的先進封裝關鍵戰場，以玻璃取代有機樹脂核心，解決 AI 晶片大尺寸化下的翹曲、散熱與供電瓶頸。2026 年為設備與材料的驗證關鍵期，玻璃核心基板本體的大規模量產普遍推估在 2028 至 2030 年之後。"
         },
         {
           "topic_id": "ic-substrate",
@@ -51377,7 +51383,7 @@
           "topic_id": "microled-display",
           "name": "消費終端｜MicroLED 顯示",
           "shortname": "MicroLED",
-          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊 (CPO) 新應用。台灣廠商在磊晶（富采）、巨量轉移技術（錼創）及顯示模組整合（友達）三大關鍵環節均具備全球領先地位，2026 年進入穿戴顯示量產元年與 CPO 光通訊商業化驗證期。"
+          "description": "涵蓋 MicroLED 從 GaN 磊晶晶片、巨量轉移設備到顯示模組整合的完整供應鏈，並延伸至 AI 資料中心短距光通訊（CPO）新應用。台灣在磊晶光源、巨量轉移與模組整合三個環節都有本土業者，並已把三者串成可送樣驗證的集團鏈。2025 年 9 月全球首款 MicroLED 智慧手錶上市後，穿戴進入商用階段；AI 眼鏡近眼顯示與 CPO 光互連則同步進入送樣與系統級導入測試，量產放量普遍指向 2027 年之後。"
         }
       ],
       "detail": {
@@ -52141,22 +52147,15 @@
           "name": "AI 伺服器｜機殼與滑軌",
           "shortname": "機殼與滑軌",
           "description": "AI 伺服器因功耗激增需搭載更重的液冷系統與高 U 數設計，帶動機殼結構升級及高承重精密滑軌的需求，其單價 (ASP) 較傳統伺服器大幅提升。"
-        },
-        {
-          "topic_id": "precision-metal-casing",
-          "name": "電子零組件｜精密機構件",
-          "shortname": "精密機構件",
-          "description": "涵蓋智慧型手機、筆記型電腦、AI 伺服器及電動車等終端裝置的高精度金屬機殼與機構組件，涉及 CNC 加工、金屬射出 (MIM) 及壓鑄等精密製程。"
         }
       ],
       "detail": {
         "code": "8210",
         "name": "勤誠",
         "topics": [
-          "ai-server-chassis-rails",
-          "precision-metal-casing"
+          "ai-server-chassis-rails"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "8213": {
@@ -52259,6 +52258,12 @@
           "name": "智慧自動化｜工業自動化與智慧製造",
           "shortname": "工業自動化",
           "description": "涵蓋 PLC/伺服控制、IPC 工業電腦、AMR/AGV 移動機器人與智慧工廠整合，為「實體 AI 機器人」以外的工控主軸，台灣在 IPC 與工業通訊兩大板塊均具全球競爭力。"
+        },
+        {
+          "topic_id": "robotics_physical_ai",
+          "name": "智慧自動化｜實體 AI 機器人",
+          "shortname": "AI 機器人",
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -52266,9 +52271,10 @@
         "name": "新漢",
         "topics": [
           "edge-ai",
-          "industrial-automation"
+          "industrial-automation",
+          "robotics_physical_ai"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "8240": {
@@ -52334,12 +52340,6 @@
       "name": "富鼎",
       "topics": [
         {
-          "topic_id": "analog-power-ic",
-          "name": "IC 設計｜類比與功率管理 IC",
-          "shortname": "類比與功率 IC",
-          "description": "聚焦於電子系統中負責電力管理、訊號感測與嵌入式控制的核心類比與功率晶片設計公司。涵蓋微控制器 (MCU)、感測訊號鏈 IC 與電源管理 IC (PMIC)，應用橫跨 AI 伺服器電源、工業自動化與消費電子，是電子系統的基礎能源管理層。"
-        },
-        {
           "topic_id": "power-discrete-tw",
           "name": "電子零組件｜矽基功率離散元件",
           "shortname": "功率離散元件",
@@ -52356,11 +52356,10 @@
         "code": "8261",
         "name": "富鼎",
         "topics": [
-          "analog-power-ic",
           "power-discrete-tw",
           "sic-gan-power"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "8271": {
@@ -52654,7 +52653,7 @@
           "topic_id": "robotics_physical_ai",
           "name": "智慧自動化｜實體 AI 機器人",
           "shortname": "AI 機器人",
-          "description": "2025 年被視為「機器人元年」，隨著 NVIDIA 推動「實體 AI (Physical AI)」概念與特斯拉 Optimus 人形機器人量產趨勢，機器人正從傳統工業手臂演進為具備 AI 視覺、邊緣運算與自主學習能力的智慧實體。"
+          "description": "AI 從資料中心走進實體世界：NVIDIA 以 Jetson Thor／IGX Thor 與 Isaac、Omniverse、Cosmos 建立起「虛擬訓練 → 機器人決策 → 工廠現場部署」的完整工作流程，並在 2026 台北國際自動化工業大展點名 16 家台廠共同展出。台廠角色也從伺服器與代工，擴展到機器人本體、關節傳動、邊緣運算與 AI 視覺。落地節奏分兩層：協作手臂、AMR 與工廠巡檢已進入實際產線，人形機器人則多數仍在打樣與送樣，業者普遍指向 2027 年才進入試量產與放量。"
         }
       ],
       "detail": {
@@ -53137,7 +53136,7 @@
     },
     "8472": {
       "symbol": "8472",
-      "name": "夠麻吉",
+      "name": "納維康",
       "topics": [
         {
           "topic_id": "e-commerce",
@@ -53148,7 +53147,7 @@
       ],
       "detail": {
         "code": "8472",
-        "name": "夠麻吉",
+        "name": "納維康",
         "topics": [
           "e-commerce"
         ],
@@ -53492,11 +53491,11 @@
     },
     "8937": {
       "symbol": "8937",
-      "name": "合騏",
+      "name": "合騏*",
       "topics": [],
       "detail": {
         "code": "8937",
-        "name": "合騏",
+        "name": "合騏*",
         "topics": [],
         "topicCount": 0
       }
@@ -53924,6 +53923,19 @@
         "isETF": true
       }
     },
+    "009830": {
+      "symbol": "009830",
+      "name": "韓華Solutions",
+      "topics": [],
+      "detail": {
+        "code": "009830.KS",
+        "name": "韓華Solutions",
+        "topics": [
+          "kr-petrochemical"
+        ],
+        "topicCount": 1
+      }
+    },
     "9902": {
       "symbol": "9902",
       "name": "台火",
@@ -54281,7 +54293,7 @@
           "topic_id": "banking-finance",
           "name": "金融保險｜銀行金融",
           "shortname": "銀行金融",
-          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。2025年經歷重大金金併整併，進入規模化競爭新時代。"
+          "description": "涵蓋金控、銀行、壽險、證券及租賃等多元領域，是支撐實體經濟與個人財富管理的國家核心基石。近年金金併與壽險整併陸續完成，2026 年進入合併綜效驗證與規模化競爭的新階段。"
         }
       ],
       "detail": {
@@ -54384,12 +54396,21 @@
     "9955": {
       "symbol": "9955",
       "name": "佳龍",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "circular-economy-ewaste",
+          "name": "綠能環保｜電子廢料與製程回收",
+          "shortname": "電子廢料回收",
+          "description": "涵蓋電子產業製程廢液回收、半導體電解金屬提取、事業廢棄物處理及貴金屬循環精煉，是淨零轉型與資源化關鍵產業。"
+        }
+      ],
       "detail": {
         "code": "9955",
         "name": "佳龍",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "circular-economy-ewaste"
+        ],
+        "topicCount": 1
       }
     },
     "9957": {
@@ -54458,6 +54479,19 @@
         "topicCount": 1
       }
     },
+    "010130": {
+      "symbol": "010130",
+      "name": "高麗鋅",
+      "topics": [],
+      "detail": {
+        "code": "010130.KS",
+        "name": "高麗鋅",
+        "topics": [
+          "kr-materials-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "010140": {
       "symbol": "010140",
       "name": "三星重工業",
@@ -54484,6 +54518,32 @@
         "topicCount": 1
       }
     },
+    "011170": {
+      "symbol": "011170",
+      "name": "樂天化學",
+      "topics": [],
+      "detail": {
+        "code": "011170.KS",
+        "name": "樂天化學",
+        "topics": [
+          "kr-petrochemical"
+        ],
+        "topicCount": 1
+      }
+    },
+    "011200": {
+      "symbol": "011200",
+      "name": "HMM",
+      "topics": [],
+      "detail": {
+        "code": "011200.KS",
+        "name": "HMM",
+        "topics": [
+          "kr-shipping"
+        ],
+        "topicCount": 1
+      }
+    },
     "011210": {
       "symbol": "011210",
       "name": "現代WIA",
@@ -54493,6 +54553,19 @@
         "name": "現代WIA",
         "topics": [
           "kr-auto"
+        ],
+        "topicCount": 1
+      }
+    },
+    "011780": {
+      "symbol": "011780",
+      "name": "錦湖石油化學",
+      "topics": [],
+      "detail": {
+        "code": "011780.KS",
+        "name": "錦湖石油化學",
+        "topics": [
+          "kr-petrochemical"
         ],
         "topicCount": 1
       }
@@ -54588,6 +54661,19 @@
         "topicCount": 1
       }
     },
+    "028670": {
+      "symbol": "028670",
+      "name": "泛洋海運",
+      "topics": [],
+      "detail": {
+        "code": "028670.KS",
+        "name": "泛洋海運",
+        "topics": [
+          "kr-shipping"
+        ],
+        "topicCount": 1
+      }
+    },
     "034020": {
       "symbol": "034020",
       "name": "斗山Enerbility",
@@ -54666,6 +54752,19 @@
         "topicCount": 1
       }
     },
+    "044450": {
+      "symbol": "044450",
+      "name": "KSS海運",
+      "topics": [],
+      "detail": {
+        "code": "044450.KS",
+        "name": "KSS海運",
+        "topics": [
+          "kr-shipping"
+        ],
+        "topicCount": 1
+      }
+    },
     "047040": {
       "symbol": "047040",
       "name": "大宇建設",
@@ -54705,6 +54804,19 @@
         "topicCount": 1
       }
     },
+    "051910": {
+      "symbol": "051910",
+      "name": "LG化學",
+      "topics": [],
+      "detail": {
+        "code": "051910.KS",
+        "name": "LG化學",
+        "topics": [
+          "kr-petrochemical"
+        ],
+        "topicCount": 1
+      }
+    },
     "052690": {
       "symbol": "052690",
       "name": "韓電技術",
@@ -54727,6 +54839,19 @@
         "name": "Leeno Industrial",
         "topics": [
           "kr-semi-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "058610": {
+      "symbol": "058610",
+      "name": "SPG",
+      "topics": [],
+      "detail": {
+        "code": "058610.KQ",
+        "name": "SPG",
+        "topics": [
+          "kr-robotics"
         ],
         "topicCount": 1
       }
@@ -54822,6 +54947,19 @@
         "topicCount": 1
       }
     },
+    "086280": {
+      "symbol": "086280",
+      "name": "現代Glovis",
+      "topics": [],
+      "detail": {
+        "code": "086280.KS",
+        "name": "現代Glovis",
+        "topics": [
+          "kr-shipping"
+        ],
+        "topicCount": 1
+      }
+    },
     "089030": {
       "symbol": "089030",
       "name": "Techwing",
@@ -54831,6 +54969,19 @@
         "name": "Techwing",
         "topics": [
           "kr-semi-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "090360": {
+      "symbol": "090360",
+      "name": "Robostar",
+      "topics": [],
+      "detail": {
+        "code": "090360.KQ",
+        "name": "Robostar",
+        "topics": [
+          "kr-robotics"
         ],
         "topicCount": 1
       }
@@ -54883,6 +55034,19 @@
         "name": "SK創新",
         "topics": [
           "kr-battery-cell"
+        ],
+        "topicCount": 1
+      }
+    },
+    "101170": {
+      "symbol": "101170",
+      "name": "Woorim PTS",
+      "topics": [],
+      "detail": {
+        "code": "101170.KQ",
+        "name": "Woorim PTS",
+        "topics": [
+          "kr-robotics"
         ],
         "topicCount": 1
       }
@@ -54952,6 +55116,32 @@
         "topicCount": 1
       }
     },
+    "108490": {
+      "symbol": "108490",
+      "name": "Robotis",
+      "topics": [],
+      "detail": {
+        "code": "108490.KQ",
+        "name": "Robotis",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "117730": {
+      "symbol": "117730",
+      "name": "T-Robotics",
+      "topics": [],
+      "detail": {
+        "code": "117730.KQ",
+        "name": "T-Robotics",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
     "128940": {
       "symbol": "128940",
       "name": "韓美藥品",
@@ -54961,6 +55151,19 @@
         "name": "韓美藥品",
         "topics": [
           "kr-biotech-cdmo"
+        ],
+        "topicCount": 1
+      }
+    },
+    "140670": {
+      "symbol": "140670",
+      "name": "RS Automation",
+      "topics": [],
+      "detail": {
+        "code": "140670.KQ",
+        "name": "RS Automation",
+        "topics": [
+          "kr-robotics"
         ],
         "topicCount": 1
       }
@@ -55147,6 +55350,19 @@
         "topicCount": 1
       }
     },
+    "277810": {
+      "symbol": "277810",
+      "name": "Rainbow Robotics",
+      "topics": [],
+      "detail": {
+        "code": "277810.KQ",
+        "name": "Rainbow Robotics",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
     "287840": {
       "symbol": "287840",
       "name": "IntoCell",
@@ -55186,6 +55402,19 @@
         "topicCount": 1
       }
     },
+    "319400": {
+      "symbol": "319400",
+      "name": "Hyundai Movex",
+      "topics": [],
+      "detail": {
+        "code": "319400.KQ",
+        "name": "Hyundai Movex",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
     "326030": {
       "symbol": "326030",
       "name": "SK Biopharm",
@@ -55195,6 +55424,19 @@
         "name": "SK Biopharm",
         "topics": [
           "kr-biotech-cdmo"
+        ],
+        "topicCount": 1
+      }
+    },
+    "348340": {
+      "symbol": "348340",
+      "name": "Neuromeka",
+      "topics": [],
+      "detail": {
+        "code": "348340.KQ",
+        "name": "Neuromeka",
+        "topics": [
+          "kr-robotics"
         ],
         "topicCount": 1
       }
@@ -55277,6 +55519,19 @@
         "topicCount": 1
       }
     },
+    "389500": {
+      "symbol": "389500",
+      "name": "SBB Tech",
+      "topics": [],
+      "detail": {
+        "code": "389500.KQ",
+        "name": "SBB Tech",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
     "393890": {
       "symbol": "393890",
       "name": "WCP",
@@ -55316,6 +55571,32 @@
         "topicCount": 1
       }
     },
+    "437730": {
+      "symbol": "437730",
+      "name": "Samhyun",
+      "topics": [],
+      "detail": {
+        "code": "437730.KQ",
+        "name": "Samhyun",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "454910": {
+      "symbol": "454910",
+      "name": "斗山機器人",
+      "topics": [],
+      "detail": {
+        "code": "454910.KS",
+        "name": "斗山機器人",
+        "topics": [
+          "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
     "457550": {
       "symbol": "457550",
       "name": "宇進ENTEC",
@@ -55325,6 +55606,19 @@
         "name": "宇進ENTEC",
         "topics": [
           "kr-nuclear-power"
+        ],
+        "topicCount": 1
+      }
+    },
+    "466100": {
+      "symbol": "466100",
+      "name": "Clobot",
+      "topics": [],
+      "detail": {
+        "code": "466100.KQ",
+        "name": "Clobot",
+        "topics": [
+          "kr-robotics"
         ],
         "topicCount": 1
       }
@@ -55473,17 +55767,6 @@
         "topicCount": 1
       }
     },
-    "AAR": {
-      "symbol": "AAR",
-      "name": "15297",
-      "topics": [],
-      "detail": {
-        "code": "AAR",
-        "name": "15297",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "ABBV": {
       "symbol": "ABBV",
       "name": "艾伯維",
@@ -55508,17 +55791,6 @@
           "us-medical-devices"
         ],
         "topicCount": 1
-      }
-    },
-    "ACHR": {
-      "symbol": "ACHR",
-      "name": "Archer Aviation",
-      "topics": [],
-      "detail": {
-        "code": "ACHR",
-        "name": "Archer Aviation",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "ACI": {
@@ -55927,9 +56199,10 @@
         "code": "APLD",
         "name": "Applied Digital",
         "topics": [
-          "us-ai-server-cloud"
+          "us-ai-server-cloud",
+          "us-datacenter-reit"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "APP": {
@@ -56558,9 +56831,10 @@
         "code": "CLS",
         "name": "Celestica",
         "topics": [
-          "us-ai-server-cloud"
+          "us-ai-server-cloud",
+          "us-pcb-ems"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "CLSK": {
@@ -56690,9 +56964,10 @@
         "code": "CORZ",
         "name": "Core Scientific",
         "topics": [
-          "us-crypto-bitcoin"
+          "us-crypto-bitcoin",
+          "us-datacenter-reit"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "COST": {
@@ -56829,6 +57104,19 @@
         "topicCount": 1
       }
     },
+    "CVLT": {
+      "symbol": "CVLT",
+      "name": "Commvault",
+      "topics": [],
+      "detail": {
+        "code": "CVLT",
+        "name": "Commvault",
+        "topics": [
+          "us-cybersecurity"
+        ],
+        "topicCount": 1
+      }
+    },
     "CVX": {
       "symbol": "CVX",
       "name": "Chevron",
@@ -56866,17 +57154,6 @@
           "us-airlines"
         ],
         "topicCount": 1
-      }
-    },
-    "DBX": {
-      "symbol": "DBX",
-      "name": "Dropbox",
-      "topics": [],
-      "detail": {
-        "code": "DBX",
-        "name": "Dropbox",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "DD": {
@@ -57154,17 +57431,6 @@
           "us-datacenter-reit"
         ],
         "topicCount": 1
-      }
-    },
-    "EQR": {
-      "symbol": "EQR",
-      "name": "Equity Residential",
-      "topics": [],
-      "detail": {
-        "code": "EQR",
-        "name": "Equity Residential",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "ESI": {
@@ -57754,17 +58020,6 @@
           "us-crypto-bitcoin"
         ],
         "topicCount": 1
-      }
-    },
-    "HOUS": {
-      "symbol": "HOUS",
-      "name": "Anywhere Real Estate",
-      "topics": [],
-      "detail": {
-        "code": "HOUS",
-        "name": "Anywhere Real Estate",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "HPE": {
@@ -58785,9 +59040,10 @@
         "code": "NBIS",
         "name": "Nebius Group",
         "topics": [
-          "us-ai-server-cloud"
+          "us-ai-server-cloud",
+          "us-datacenter-reit"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "NEE": {
@@ -58923,17 +59179,6 @@
         "topicCount": 1
       }
     },
-    "NTSK": {
-      "symbol": "NTSK",
-      "name": "NTSK",
-      "topics": [],
-      "detail": {
-        "code": "NTSK",
-        "name": "NTSK",
-        "topics": [],
-        "topicCount": 0
-      }
-    },
     "NU": {
       "symbol": "NU",
       "name": "Nu Holdings",
@@ -58945,17 +59190,6 @@
           "us-fintech-payments"
         ],
         "topicCount": 1
-      }
-    },
-    "NUE": {
-      "symbol": "NUE",
-      "name": "Nucor",
-      "topics": [],
-      "detail": {
-        "code": "NUE",
-        "name": "Nucor",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "NVDA": {
@@ -59334,6 +59568,19 @@
         "topicCount": 2
       }
     },
+    "PLXS": {
+      "symbol": "PLXS",
+      "name": "Plexus",
+      "topics": [],
+      "detail": {
+        "code": "PLXS",
+        "name": "Plexus",
+        "topics": [
+          "us-pcb-ems"
+        ],
+        "topicCount": 1
+      }
+    },
     "PODD": {
       "symbol": "PODD",
       "name": "Insulet Corporation",
@@ -59423,17 +59670,6 @@
           "us-oil-gas"
         ],
         "topicCount": 1
-      }
-    },
-    "PTC": {
-      "symbol": "PTC",
-      "name": "PTC",
-      "topics": [],
-      "detail": {
-        "code": "PTC",
-        "name": "PTC",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "PUBM": {
@@ -59860,6 +60096,19 @@
         "topicCount": 1
       }
     },
+    "SAIL": {
+      "symbol": "SAIL",
+      "name": "SailPoint",
+      "topics": [],
+      "detail": {
+        "code": "SAIL",
+        "name": "SailPoint",
+        "topics": [
+          "us-cybersecurity"
+        ],
+        "topicCount": 1
+      }
+    },
     "SANM": {
       "symbol": "SANM",
       "name": "Sanmina",
@@ -60068,17 +60317,6 @@
           "us-nuclear-smr"
         ],
         "topicCount": 1
-      }
-    },
-    "SMTC": {
-      "symbol": "SMTC",
-      "name": "Semtech",
-      "topics": [],
-      "detail": {
-        "code": "SMTC",
-        "name": "Semtech",
-        "topics": [],
-        "topicCount": 0
       }
     },
     "SNAP": {

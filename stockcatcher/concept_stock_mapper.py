@@ -1,7 +1,9 @@
+import os
 import json
 import logging
 import requests
 import urllib3
+from supabase import create_client, Client
 
 # 關閉不安全的 HTTPS 請求警告 (針對 verify=False)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -83,7 +85,6 @@ def process_mapping(topics_data, companies_data):
         if not stock_code:
             continue
 
-        # 嘗試讀取個股隸屬的概念股主題 ID 列表
         raw_topic_ids = (
             comp.get("topics") or 
             comp.get("topicIds") or 
@@ -93,7 +94,6 @@ def process_mapping(topics_data, companies_data):
             []
         )
 
-        # 若單個主題是以字串呈現
         if isinstance(raw_topic_ids, str):
             raw_topic_ids = [raw_topic_ids]
 
@@ -102,11 +102,9 @@ def process_mapping(topics_data, companies_data):
         for tid in raw_topic_ids:
             t_key = str(tid.get("id") if isinstance(tid, dict) else tid)
             
-            # 若對應到概念股 Master 字典
             if t_key in topic_dict:
                 topic_info = topic_dict[t_key]
                 
-                # 更新個股列表
                 matched_topics_for_stock.append({
                     "topic_id": topic_info["topic_id"],
                     "name": topic_info["name"],
@@ -114,14 +112,12 @@ def process_mapping(topics_data, companies_data):
                     "description": topic_info["description"]
                 })
 
-                # 反向加入概念股主題下的股票陣列
                 topic_info["stocks"].append({
                     "symbol": stock_code,
                     "name": stock_name,
                     "detail": comp
                 })
 
-        # 更新 stocks_with_topics
         stocks_with_topics[stock_code] = {
             "symbol": stock_code,
             "name": stock_name,
@@ -149,11 +145,6 @@ def process_mapping(topics_data, companies_data):
     total_mapped_stocks = sum(1 for s in stocks_with_topics.values() if len(s["topics"]) > 0)
     logging.info(f"整合完成！共處理 {len(topics_with_stocks)} 個概念股主題，成功對應 {total_mapped_stocks} 檔個股。")
 
-    # 診斷提醒：若仍然無對應，輸出第一檔個股資料結構供除錯
-    if total_mapped_stocks == 0 and len(comp_list) > 0:
-        logging.warning("⚠️ 警告：個股對應數量仍為 0！以下為第一檔個股公司的原始欄位結構供參考：")
-        print(json.dumps(comp_list[0], ensure_ascii=False, indent=2))
-
     return result
 
 def save_json(data, output_filepath="concept_stocks_mapped.json"):
@@ -166,9 +157,70 @@ def save_json(data, output_filepath="concept_stocks_mapped.json"):
     except Exception as e:
         logging.error(f"寫入 JSON 檔失敗：{e}")
 
+# ==========================================
+# 資料庫寫入層 (Supabase Integration)
+# ==========================================
+def sync_to_supabase(mapped_data: dict):
+    """將產出的概念股對應清單寫入 Supabase"""
+    # 🛡️ 嚴格要求透過環境變數注入敏感憑證
+    url = "https://iatlchzzjkjaetorvvil.supabase.co"
+    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdGxjaHp6amtqYWV0b3J2dmlsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjAzMDQzMywiZXhwIjoyMTAxNjA2NDMzfQ.FckTSOyIo_QCocrgfaGd9mHV2wXRJxSeC5955936hSQ"
+    
+    if not url or not key:
+        logging.error("❌ 找不到 Supabase 憑證！請確認環境變數已正確設定。")
+        return
+
+    logging.info("🔗 連線至 Supabase 資料庫...")
+    supabase: Client = create_client(url, key)
+    
+    topics_with_stocks = mapped_data.get("topics_with_stocks", [])
+    total_inserted = 0
+
+    for theme in topics_with_stocks:
+        # 萃取所有欄位，若無資料則給予預設空字串
+        slug = theme.get("topic_id", "")
+        concept_name = theme.get("name", "")
+        shortname = theme.get("shortname", concept_name) # 若無短名，退回使用全名
+        description = theme.get("description", "")
+        
+        try:
+            # 1. 寫入主題表 (包含新增的 shortname 與 description)
+            theme_resp = supabase.table("themes").upsert(
+                {
+                    "slug": slug, 
+                    "concept_name": concept_name,
+                    "shortname": shortname,
+                    "description": description
+                }, 
+                on_conflict="slug"
+            ).execute()
+            
+            if not theme_resp.data:
+                continue
+                
+            theme_id = theme_resp.data[0]["id"]
+            
+            # 2. 準備成分股清單，寫入 theme_stocks 表格
+            stock_inserts = [
+                {"theme_id": theme_id, "symbol": s["symbol"], "stock_name": s["name"]}
+                for s in theme.get("stocks", [])
+            ]
+            
+            # 3. 確保資料最新：先刪舊，再寫新
+            supabase.table("theme_stocks").delete().eq("theme_id", theme_id).execute()
+            if stock_inserts:
+                supabase.table("theme_stocks").insert(stock_inserts).execute()
+                total_inserted += len(stock_inserts)
+                
+        except Exception as e:
+            logging.error(f"寫入主題 [{concept_name}] 時發生錯誤: {e}")
+
+    logging.info(f"✅ Supabase 同步完成！共更新 {len(topics_with_stocks)} 個主題，寫入 {total_inserted} 筆個股關聯。") 
+    
+    
 def main():
     print("=========================================")
-    print("  概念股與個股資料對應工具")
+    print("  概念股與個股資料對應暨同步工具")
     print("=========================================\n")
 
     topics_raw = fetch_data(TOPIC_INDEX_URL)
@@ -178,9 +230,14 @@ def main():
         print("❌ 資料下載失敗，請檢查網路連線或 API 狀態。")
         return
 
+    # 1. 資料處理與對應
     mapped_data = process_mapping(topics_raw, companies_raw)
+    
+    # 2. 儲存至本地 JSON 檔
     save_json(mapped_data, "concept_stocks_mapped.json")
+    
+    # 3. 同步至 Supabase 資料庫
+    sync_to_supabase(mapped_data)
 
 if __name__ == "__main__":
     main()
-

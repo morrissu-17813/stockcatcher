@@ -1,5 +1,5 @@
 # .github/workflows/update_themes.yml
-name: Weekly FinLab Themes Update
+name: Weekly Concept Stock Update
 
 on:
   schedule:
@@ -24,13 +24,14 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install httpx supabase
+          # 安裝新的映射腳本所需的依賴套件
+          pip install requests urllib3 supabase
 
-      - name: 🚀 Run Crawler and Update Supabase
+      - name: 🚀 Run Concept Stock Mapper and Update Supabase
         env:
           # 這裡的變數將從 GitHub Secrets 中安全讀取
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           cd stockcatcher
-          python finlab_full_crawler.py
+          python concept_stock_mapper.py
