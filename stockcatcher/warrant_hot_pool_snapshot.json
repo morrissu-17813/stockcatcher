@@ -1,0 +1,371 @@
+{
+  "saved_at": "2026-09-05T23:13:34+08:00",
+  "stocks": {
+    "2368": {
+      "name": "金像電",
+      "price": "1045.00",
+      "call_volume": 26975,
+      "put_volume": 1320,
+      "call_put_ratio": 20.435606060606062
+    },
+    "2308": {
+      "name": "台達電",
+      "price": "1825.00",
+      "call_volume": 23039,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "3017": {
+      "name": "奇鋐",
+      "price": "3570.00",
+      "call_volume": 20130,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2327": {
+      "name": "國巨*",
+      "price": "562.00",
+      "call_volume": 11474,
+      "put_volume": 3160,
+      "call_put_ratio": 3.631012658227848
+    },
+    "3231": {
+      "name": "緯創",
+      "price": "198.00",
+      "call_volume": 11159,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "3661": {
+      "name": "世芯-KY",
+      "price": "4220.00",
+      "call_volume": 9827,
+      "put_volume": 623,
+      "call_put_ratio": 15.773675762439808
+    },
+    "6442": {
+      "name": "光聖",
+      "price": "1755.00",
+      "call_volume": 9701,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2454": {
+      "name": "聯發科",
+      "price": "4415.00",
+      "call_volume": 8189,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2404": {
+      "name": "漢唐",
+      "price": "1070.00",
+      "call_volume": 7943,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6505": {
+      "name": "台塑化",
+      "price": "78.10",
+      "call_volume": 7657,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2303": {
+      "name": "聯電",
+      "price": "130.00",
+      "call_volume": 7624,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "3665": {
+      "name": "貿聯-KY",
+      "price": "2145.00",
+      "call_volume": 7365,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "1303": {
+      "name": "南亞",
+      "price": "225.50",
+      "call_volume": 6480,
+      "put_volume": 1780,
+      "call_put_ratio": 3.640449438202247
+    },
+    "2317": {
+      "name": "鴻海",
+      "price": "256.00",
+      "call_volume": 6475,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6271": {
+      "name": "同欣電",
+      "price": "237.00",
+      "call_volume": 6331,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6269": {
+      "name": "台郡",
+      "price": "67.70",
+      "call_volume": 6254,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "3008": {
+      "name": "大立光",
+      "price": "7400.00",
+      "call_volume": 6203,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "4958": {
+      "name": "臻鼎-KY",
+      "price": "463.00",
+      "call_volume": 5858,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6620": {
+      "name": "漢達",
+      "price": "107.50",
+      "call_volume": 4409,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6147": {
+      "name": "頎邦",
+      "price": "182.50",
+      "call_volume": 4191,
+      "put_volume": 575,
+      "call_put_ratio": 7.288695652173913
+    },
+    "2426": {
+      "name": "鼎元",
+      "price": "104.50",
+      "call_volume": 4189,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2345": {
+      "name": "智邦",
+      "price": "2100.00",
+      "call_volume": 3935,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6693": {
+      "name": "廣閎科",
+      "price": "181.50",
+      "call_volume": 3803,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "8932": {
+      "name": "智通*",
+      "price": "91.40",
+      "call_volume": 3647,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "5289": {
+      "name": "宜鼎",
+      "price": "1360.00",
+      "call_volume": 3644,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2481": {
+      "name": "強茂",
+      "price": "156.00",
+      "call_volume": 3493,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2408": {
+      "name": "南亞科",
+      "price": "496.00",
+      "call_volume": 3489,
+      "put_volume": 2074,
+      "call_put_ratio": 1.6822565091610415
+    },
+    "2615": {
+      "name": "萬海",
+      "price": "115.00",
+      "call_volume": 3449,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "1815": {
+      "name": "富喬",
+      "price": "118.50",
+      "call_volume": 3286,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2354": {
+      "name": "鴻準",
+      "price": "65.60",
+      "call_volume": 3249,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "4707": {
+      "name": "磐亞",
+      "price": "30.10",
+      "call_volume": 3203,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "3718": {
+      "name": "中光電投控",
+      "price": "75.50",
+      "call_volume": 3063,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "1605": {
+      "name": "華新",
+      "price": "38.40",
+      "call_volume": 3023,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "1802": {
+      "name": "台玻",
+      "price": "59.10",
+      "call_volume": 3015,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2313": {
+      "name": "華通",
+      "price": "249.50",
+      "call_volume": 2950,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "6290": {
+      "name": "良維",
+      "price": "270.00",
+      "call_volume": 2867,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "5439": {
+      "name": "高技",
+      "price": "261.50",
+      "call_volume": 2866,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "3141": {
+      "name": "晶宏",
+      "price": "102.50",
+      "call_volume": 2846,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2377": {
+      "name": "微星",
+      "price": "161.50",
+      "call_volume": 2843,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "7788": {
+      "name": "松川精密",
+      "price": "335.00",
+      "call_volume": 2837,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2330": {
+      "name": "台積電",
+      "price": "2410.00",
+      "call_volume": 2699,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "2357": {
+      "name": "華碩",
+      "price": "1025.00",
+      "call_volume": 2672,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity"
+    },
+    "8299": {
+      "name": "群聯",
+      "price": "2015",
+      "call_volume": 50289000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 34877850.0,
+      "official_markets": "TPEX"
+    },
+    "2344": {
+      "name": "華邦電",
+      "price": "174.00",
+      "call_volume": 36411000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 40998950.0,
+      "official_markets": "TWSE"
+    },
+    "6669": {
+      "name": "緯穎",
+      "price": "2565.00",
+      "call_volume": 33249000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 92794610.0,
+      "official_markets": "TWSE"
+    },
+    "2324": {
+      "name": "仁寶",
+      "price": "41.60",
+      "call_volume": 25803000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 36862610.0,
+      "official_markets": "TWSE"
+    },
+    "6488": {
+      "name": "環球晶",
+      "price": "981",
+      "call_volume": 23377000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 30330440.0,
+      "official_markets": "TPEX"
+    },
+    "2464": {
+      "name": "盟立",
+      "price": "211.00",
+      "call_volume": 21815000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 33610300.0,
+      "official_markets": "TWSE"
+    },
+    "3006": {
+      "name": "晶豪科",
+      "price": "278.50",
+      "call_volume": 21626000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 21931320.0,
+      "official_markets": "TWSE"
+    },
+    "2376": {
+      "name": "技嘉",
+      "price": "361.00",
+      "call_volume": 20781000,
+      "put_volume": 0,
+      "call_put_ratio": "Infinity",
+      "official_turnover": 24182910.0,
+      "official_markets": "TWSE"
+    }
+  }
+}
