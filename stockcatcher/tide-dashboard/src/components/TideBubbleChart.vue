@@ -85,7 +85,7 @@ const initChart = () => {
               <span>📊 量比: <b style="color: #fb923c;">${d.vol_ratio}x</b></span>
             </div>
             <div style="font-size: 12px; color: #E2E8F0; margin-bottom: 8px;">
-              📌 發動標的: ${d.representative_stocks} ${d.description}
+              📌 發動標的: ${d.representative_stocks} 
             </div>
             <div style="font-size: 12px; color: #94A3B8; text-align: justify;">
               ${descText}
