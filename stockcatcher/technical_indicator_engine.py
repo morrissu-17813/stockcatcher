@@ -11,6 +11,7 @@ import pandas as pd
 
 from dotenv import load_dotenv
 import requests
+import urllib3
 
 _ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 load_dotenv(dotenv_path=_ENV_PATH)
@@ -19,6 +20,8 @@ FUGLE_API_KEY = "NTMyNDYzMzItZDkxYS00MmQwLThiMGEtMTY2NjkyZTM4MTExIGYzNDRjNWNmLTd
 FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE"
 TELEGRAM_BOT_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
 TELEGRAM_CHAT_ID = "1087480334"
+HTTP_SESSION = requests.Session()
+VERIFY_SSL = True
 TAIPEI_TIMEZONE = timezone(timedelta(hours=8))
 MARKET_OPEN = datetime_time(9, 0)
 MARKET_CLOSE = datetime_time(13, 30)
@@ -35,6 +38,54 @@ OPENING_KLINE_VOLUME_MULTIPLIER = 1.8
 KLINE_MIN_VOLUME_HISTORY = 5
 WARRANT_VOLUME_GROWTH_PERCENT = 20.0
 WARRANT_VOLUME_GROWTH_MINIMUM = 500
+WARRANT_POOL_QUOTA = 50
+WARRANT_POOL_SNAPSHOT_FILE = os.path.join(
+    os.path.dirname(__file__), "warrant_hot_pool_snapshot.json"
+)
+
+
+def request_get(url: str, **kwargs):
+    """GET 重試；僅在本機憑證鏈失敗時降級 SSL 驗證。"""
+    global VERIFY_SSL
+    last_error = None
+    for attempt in range(3):
+        try:
+            response = HTTP_SESSION.get(url, verify=VERIFY_SSL, **kwargs)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.SSLError as error:
+            last_error = error
+            VERIFY_SSL = False
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except requests.RequestException as error:
+            last_error = error
+            if attempt < 2:
+                time.sleep(attempt + 1)
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError(f"GET request failed without an exception: {url}")
+
+
+def request_post(url: str, **kwargs):
+    """POST 重試並沿用 SSL fallback。"""
+    global VERIFY_SSL
+    last_error = None
+    for attempt in range(3):
+        try:
+            response = HTTP_SESSION.post(url, verify=VERIFY_SSL, **kwargs)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.SSLError as error:
+            last_error = error
+            VERIFY_SSL = False
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        except requests.RequestException as error:
+            last_error = error
+            if attempt < 2:
+                time.sleep(attempt + 1)
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError(f"POST request failed without an exception: {url}")
 
 
 def get_taipei_now() -> datetime:
@@ -101,7 +152,7 @@ def fetch_effective_3k_breakout(symbol: str, volume_multiplier: float = KLINE_VO
         return None
 
     url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{symbol}"
-    response = requests.get(
+    response = request_get(
         url,
         headers={"X-API-KEY": FUGLE_API_KEY},
         params={"timeframe": str(KLINE_TIMEFRAME_MINUTES), "limit": "200"},
@@ -172,7 +223,7 @@ def send_telegram_message(text: str, chat_id: Optional[str] = None, token: Optio
         "parse_mode": "Markdown",
         "disable_web_page_preview": True,
     }
-    response = requests.post(url, data=payload, timeout=15)
+    response = request_post(url, data=payload, timeout=15)
     try:
         result = response.json()
     except ValueError:
@@ -400,8 +451,8 @@ class FundamentalChipDataLayer:
             if not isinstance(row, dict):
                 continue
 
+            date_str = row.get("成交日期", "")
             try:
-                date_str = row.get("成交日期", "")
                 if date_str:
                     row_date = pd.to_datetime(date_str, format="%Y/%m/%d", errors="coerce")
                     if row_date is None or row_date < cutoff:
@@ -499,7 +550,7 @@ class TechnicalSignalEngine:
     這樣可以做到「完全無延遲」的盤中技術判斷，因為計算都是在記憶體內執行。
     """
 
-    def __init__(self, api_key: str = None, timezone_offset: int = 8):
+    def __init__(self, api_key: Optional[str] = None, timezone_offset: int = 8):
         self.api_key = api_key or FUGLE_API_KEY
         self.timezone_offset = timezone_offset
         self.cache: Dict[str, pd.DataFrame] = {}
@@ -510,7 +561,7 @@ class TechnicalSignalEngine:
 
     def _request_json(self, url: str, params: Optional[Dict[str, Any]] = None, timeout: int = 10) -> Dict[str, Any]:
         headers = {"X-API-KEY": self.api_key}
-        response = requests.get(url, headers=headers, params=params or {}, timeout=timeout)
+        response = request_get(url, headers=headers, params=params or {}, timeout=timeout)
         if response.status_code != 200:
             raise RuntimeError(f"Fugle API request failed: {response.status_code} {response.text}")
         payload = response.json()
@@ -559,7 +610,7 @@ class TechnicalSignalEngine:
         if "volume" not in df.columns:
             df["volume"] = 0.0
 
-        df = self._normalize_ohlcv(df)
+        df = self._normalize_ohlcv(pd.DataFrame(df))
         self.cache[symbol] = df
         return df
 
@@ -879,7 +930,9 @@ class TechnicalSignalEngine:
                 snapshot = self.build_signal_snapshot(symbol)
             except Exception:
                 continue
-            if snapshot.score >= min_score and (snapshot.is_3k_breakout or snapshot.is_5k_breakout):
+            if float(snapshot.get("score", 0.0) or 0.0) >= min_score and (
+                bool(snapshot.get("is_3k_breakout")) or bool(snapshot.get("is_5k_breakout"))
+            ):
                 candidates.append(dict(snapshot))
         candidates.sort(key=lambda item: item.get("score", 0), reverse=True)
         return candidates
@@ -959,15 +1012,15 @@ class TechnicalSignalEngine:
         if tier3_ultimate:
             should_send = True
             tier_level = 3
-            trigger_reason = f"量能{volume_ratio:.2f}x + 技術{score:.1f} + 內部人連買 + 大戶{big_holder_shares:.0f}張"
+            trigger_reason = f"有效3K + 量能{volume_ratio:.2f}x + 內部人連買 + 大戶{big_holder_shares:.0f}張"
         elif tier2_advanced:
             should_send = True
             tier_level = 2
-            trigger_reason = f"量能{volume_ratio:.2f}x + 技術{score:.1f} + 內部人買超"
+            trigger_reason = f"有效3K + 量能{volume_ratio:.2f}x + 內部人買超"
         elif tier1_base:
             should_send = True
             tier_level = 1
-            trigger_reason = f"量能{volume_ratio:.2f}x + 技術{score:.1f}"
+            trigger_reason = f"有效3K + 量能{volume_ratio:.2f}x"
         else:
             should_send = False
             tier_level = 0
@@ -1026,9 +1079,6 @@ class TechnicalSignalEngine:
         if decision["snapshot"] is None:
             decision["snapshot"] = {}
         snap = decision["snapshot"]
-        chip_data = decision["chip"]
-        insider_data = decision["insider"]
-        annotation = decision["annotation"]
         trigger_reason = decision.get("trigger_reason", "")
         tier_level = decision.get("tier_level", 0)
 
@@ -1042,28 +1092,26 @@ class TechnicalSignalEngine:
         
         # nstock 超連結
         nstock_url = f"https://www.nstock.tw/stock_info?stock_id={symbol}"
+        stock_name = str(snap.get("name", "")).strip()
+        stock_label = f"{symbol} {stock_name}".strip()
+        effective_3k_line = ""
+        if effective_3k:
+            effective_3k_line = (
+                f"  有效3K: 收盤 {float(effective_3k['close']):.2f} "
+                f"> 前兩K高點 {float(effective_3k['breakout_price']):.2f}, "
+                f"K3量比 {float(effective_3k['volume_ratio']):.2f}x\n"
+            )
 
         return (
             f"*{tier_marker}*\n"
-            f"📈 *標的：* [{symbol}]({nstock_url})\n"
-            f"💰 價格: {float(snap.get('close', 0.0)):.2f}\n"
+            f"📈 *標的：* [{stock_label}]({nstock_url})\n"
+            f"💰 現價: {float(snap.get('close', 0.0)):.2f}\n"
             f"🎯 觸發原因: {trigger_reason}\n"
             f"─────────\n"
             f"📊 技術面:\n"
-            f"  RSI14: {float(snap.get('rsi14', 0.0)):.1f}\n"
-            f"  技術分數: {float(snap.get('score', 0.0)):.1f}\n"
             f"  趨勢: {snap.get('trend', 'N/A')}\n"
-            f"  突破: 3K={snap.get('is_3k_breakout', False)}, 5K={snap.get('is_5k_breakout', False)}\n"
             f"  量能比: {float(snap.get('volume_ratio', 0.0)):.2f}x\n"
-            f"  有效3K: 收盤 {float(effective_3k['close']):.2f} > 前兩K高點 {float(effective_3k['breakout_price']):.2f}, "
-            f"K3量比 {float(effective_3k['volume_ratio']):.2f}x\n" if effective_3k else ""
-            f"─────────\n"
-            f"💼 籌碼面:\n"
-            f"  內部買超: {insider_data.get('net_buy', 0.0):.0f} ({annotation})\n"
-            f"  大戶融資: {chip_data.get('big_holder', 0.0):.0f}\n"
-            f"  外資: {chip_data.get('foreign', 0.0):.0f}\n"
-            f"  投信: {chip_data.get('investment', 0.0):.0f}\n"
-            f"  自營: {chip_data.get('dealer', 0.0):.0f}\n"
+            f"{effective_3k_line}"
             f"═════════════════════"
         )
 
@@ -1115,12 +1163,197 @@ class WarrantReverseMonitor:
     不監控 20,000 檔權證，而是監控 400~500 檔現股，當現股爆量敲外盤與急拉時，反查對應權證。
     """
 
-    def __init__(self, quota: int = 30, group_size: int = 20):
+    def __init__(self, quota: int = WARRANT_POOL_QUOTA, group_size: int = 20):
         self.quota = quota
         self.group_size = group_size
         self.last_snapshot: Dict[str, Dict[str, float]] = {}
         self.last_pool_metadata: Dict[str, Dict[str, Any]] = {}
         self.latest_quotes: Dict[str, Dict[str, Any]] = {}
+        self.baseline_pool_metadata: Dict[str, Dict[str, Any]] = {}
+
+    def load_pool_snapshot(self) -> Dict[str, Dict[str, Any]]:
+        """讀取最後一次成功的熱門池，供隔日盤前作為基準。"""
+        try:
+            with open(WARRANT_POOL_SNAPSHOT_FILE, "r", encoding="utf-8") as file:
+                payload = json.load(file)
+            stocks = payload.get("stocks", {})
+            if not isinstance(stocks, dict):
+                return {}
+            return {
+                sid: metadata
+                for sid, metadata in stocks.items()
+                if re.fullmatch(r"\d{4}", sid) and isinstance(metadata, dict)
+            }
+        except (OSError, ValueError, TypeError):
+            return {}
+
+    def save_pool_snapshot(self, stocks: Dict[str, Dict[str, Any]]) -> None:
+        """保存成功熱門池，避免隔日盤前富邦榜為空時失去標的。"""
+        serializable_stocks = {}
+        for sid, metadata in stocks.items():
+            item = dict(metadata)
+            if item.get("call_put_ratio") == float("inf"):
+                item["call_put_ratio"] = "Infinity"
+            serializable_stocks[sid] = item
+        payload = {
+            "saved_at": get_taipei_now().isoformat(timespec="seconds"),
+            "stocks": serializable_stocks,
+        }
+        with open(WARRANT_POOL_SNAPSHOT_FILE, "w", encoding="utf-8") as file:
+            json.dump(payload, file, ensure_ascii=False, indent=2, allow_nan=False)
+
+    def fetch_official_previous_day_underlyings(
+        self, excluded_symbols: set[str], limit: int
+    ) -> Dict[str, Dict[str, Any]]:
+        """彙總 TWSE/TPEX 前一交易日認購權證成交資料後補足標的。"""
+        if limit <= 0:
+            return {}
+        try:
+            listed_rows = request_get(
+                "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",
+                timeout=300,
+            ).json()
+            otc_rows = request_get(
+                "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes",
+                timeout=300,
+            ).json()
+            basic_rows = request_get(
+                "https://openapi.twse.com.tw/v1/opendata/t187ap37_L",
+                timeout=600,
+            ).json()
+            trade_rows = request_get(
+                "https://openapi.twse.com.tw/v1/opendata/t187ap42_L",
+                timeout=600,
+            ).json()
+            tpex_issue_rows = request_get(
+                "https://www.tpex.org.tw/openapi/v1/tpex_warrant_issue",
+                timeout=600,
+            ).json()
+            tpex_trade_rows = request_get(
+                "https://www.tpex.org.tw/openapi/v1/tpex_warrant_daily_quts",
+                timeout=600,
+            ).json()
+        except (requests.RequestException, ValueError, TypeError) as exc:
+            print(f"[官方昨日權證池] 補足失敗: {exc}")
+            return {}
+
+        name_to_stock: Dict[str, Dict[str, Any]] = {}
+        for row in listed_rows if isinstance(listed_rows, list) else []:
+            sid = str(row.get("Code", "")).strip()
+            name = _norm_text(row.get("Name", ""))
+            if re.fullmatch(r"\d{4}", sid) and name:
+                name_to_stock[name] = {
+                    "sid": sid,
+                    "name": str(row.get("Name", "")).strip(),
+                    "price": row.get("ClosingPrice", "-"),
+                }
+        for row in otc_rows if isinstance(otc_rows, list) else []:
+            sid = str(row.get("SecuritiesCompanyCode", "")).strip()
+            name = _norm_text(row.get("CompanyName", ""))
+            if re.fullmatch(r"\d{4}", sid) and name:
+                name_to_stock[name] = {
+                    "sid": sid,
+                    "name": str(row.get("CompanyName", "")).strip(),
+                    "price": row.get("Close", "-"),
+                }
+
+        warrant_to_stock: Dict[str, Dict[str, Any]] = {}
+        for row in basic_rows if isinstance(basic_rows, list) else []:
+            if "認購" not in str(row.get("權證類型", "")):
+                continue
+            warrant_code = str(row.get("權證代號", "")).strip()
+            stock = name_to_stock.get(_norm_text(row.get("標的證券/指數", "")))
+            if warrant_code and stock:
+                warrant_to_stock[warrant_code] = stock
+
+        stats: Dict[str, Dict[str, Any]] = {}
+
+        def add_warrant_trade(
+            sid: str,
+            name: str,
+            price: Any,
+            volume: Any,
+            amount: Any,
+            market: str,
+        ) -> None:
+            if not re.fullmatch(r"\d{4}", sid) or sid in excluded_symbols:
+                return
+            trade_volume = _safe_cast(volume, int, 0)
+            trade_amount = _safe_cast(amount, float, 0.0)
+            if trade_volume <= 0 or trade_amount <= 0:
+                return
+            item = stats.setdefault(
+                sid,
+                {
+                    "name": name or sid,
+                    "price": str(price or "-"),
+                    "call_volume": 0,
+                    "put_volume": 0,
+                    "call_put_ratio": float("inf"),
+                    "official_turnover": 0.0,
+                    "official_markets": set(),
+                },
+            )
+            item["call_volume"] += trade_volume
+            item["official_turnover"] += trade_amount
+            item["official_markets"].add(market)
+
+        twse_trade_rows = trade_rows if isinstance(trade_rows, list) else []
+        twse_latest_date = max(
+            (str(row.get("交易日期", "")) for row in twse_trade_rows),
+            default="",
+        )
+        for row in twse_trade_rows:
+            if str(row.get("交易日期", "")) != twse_latest_date:
+                continue
+            stock = warrant_to_stock.get(str(row.get("權證代號", "")).strip())
+            if not stock:
+                continue
+            add_warrant_trade(
+                stock["sid"],
+                stock["name"],
+                stock["price"],
+                row.get("成交張數"),
+                row.get("成交金額"),
+                "TWSE",
+            )
+
+        tpex_call_codes = {
+            str(row.get("Code", "")).strip()
+            for row in tpex_issue_rows if isinstance(tpex_issue_rows, list)
+            if isinstance(row, dict) and str(row.get("Type", "")).strip() == "認購"
+        }
+        tpex_rows = tpex_trade_rows if isinstance(tpex_trade_rows, list) else []
+        tpex_latest_date = max(
+            (str(row.get("Date", "")) for row in tpex_rows),
+            default="",
+        )
+        for row in tpex_rows:
+            if not isinstance(row, dict):
+                continue
+            if str(row.get("Date", "")) != tpex_latest_date:
+                continue
+            warrant_code = str(row.get("Code", "")).strip()
+            if warrant_code not in tpex_call_codes:
+                continue
+            add_warrant_trade(
+                str(row.get("UnderlyingStockCode", "")).strip(),
+                str(row.get("UnderlyingStock", "")).strip(),
+                row.get("UnderlyingStockClosePrice", "-"),
+                row.get("TradeVol."),
+                row.get("TradeValue"),
+                "TPEX",
+            )
+
+        for item in stats.values():
+            item["official_markets"] = "+".join(sorted(item["official_markets"]))
+
+        ranked = sorted(
+            stats.items(),
+            key=lambda item: (item[1]["official_turnover"], item[1]["call_volume"]),
+            reverse=True,
+        )[:limit]
+        return dict(ranked)
 
     def fetch_hot_warrant_underlyings(self, quota: Optional[int] = None) -> List[str]:
         """
@@ -1138,7 +1371,7 @@ class WarrantReverseMonitor:
                 page = 1
                 total_pages = 1
                 while page <= total_pages:
-                    response = requests.get(
+                    response = request_get(
                         FUBON_RANK_URL,
                         params={"rank": "sumvol_desc", "callput": callput, "page": page},
                         headers=FUBON_RANK_HEADERS,
@@ -1185,7 +1418,18 @@ class WarrantReverseMonitor:
                     page += 1
         except (requests.RequestException, ValueError, TypeError) as exc:
             print(f"[富邦權證池] 取得失敗: {exc}")
-            return []
+            cached_pool = dict(self.baseline_pool_metadata or self.load_pool_snapshot())
+            if len(cached_pool) < limit:
+                cached_pool.update(
+                    self.fetch_official_previous_day_underlyings(
+                        set(cached_pool), limit - len(cached_pool)
+                    )
+                )
+            self.baseline_pool_metadata = dict(list(cached_pool.items())[:limit])
+            self.last_pool_metadata = dict(list(cached_pool.items())[:limit])
+            if self.last_pool_metadata:
+                self.save_pool_snapshot(self.last_pool_metadata)
+            return list(self.last_pool_metadata)
 
         for stock_code in list(target_stocks):
             stock = target_stocks[stock_code]
@@ -1202,8 +1446,45 @@ class WarrantReverseMonitor:
             key=lambda item: (item[1]["call_volume"], item[1]["put_volume"]),
             reverse=True,
         )
-        self.last_pool_metadata = dict(ranked[:limit])
-        return [stock_code for stock_code, _ in ranked[:limit]]
+        live_pool = dict(ranked)
+        if not self.baseline_pool_metadata:
+            self.baseline_pool_metadata = self.load_pool_snapshot()
+        if len(self.baseline_pool_metadata) < limit:
+            official_pool = self.fetch_official_previous_day_underlyings(
+                set(self.baseline_pool_metadata),
+                limit - len(self.baseline_pool_metadata),
+            )
+            self.baseline_pool_metadata.update(official_pool)
+            if official_pool:
+                print(f"[官方昨日權證池] 補入 {len(official_pool)} 檔")
+
+        baseline_ranked = sorted(
+            self.baseline_pool_metadata.items(),
+            key=lambda item: _safe_cast(item[1].get("call_volume"), int, 0),
+            reverse=True,
+        )[:limit]
+        frozen_baseline = dict(baseline_ranked)
+        self.baseline_pool_metadata = frozen_baseline
+        merged_pool = dict(frozen_baseline)
+        for stock_code, metadata in live_pool.items():
+            merged_pool[stock_code] = metadata
+
+        self.last_pool_metadata = merged_pool
+        if live_pool:
+            next_baseline = dict(
+                sorted(
+                    live_pool.items(),
+                    key=lambda item: _safe_cast(item[1].get("call_volume"), int, 0),
+                    reverse=True,
+                )[:limit]
+            )
+            if len(next_baseline) < limit:
+                for stock_code, metadata in frozen_baseline.items():
+                    next_baseline.setdefault(stock_code, metadata)
+                    if len(next_baseline) >= limit:
+                        break
+            self.save_pool_snapshot(next_baseline)
+        return list(self.last_pool_metadata)
 
     def build_stock_groups(self, symbols: List[str]) -> List[List[str]]:
         groups = []
@@ -1226,7 +1507,10 @@ class WarrantReverseMonitor:
             return []
 
         try:
-            res = requests.get(f"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch={ex_ch}", timeout=3)
+            res = request_get(
+                f"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch={ex_ch}",
+                timeout=3,
+            )
             payload = res.json()
             rows = payload.get("msgArray", [])
         except Exception:
@@ -1238,9 +1522,6 @@ class WarrantReverseMonitor:
             if not sid:
                 continue
             current_price = _safe_cast(stock.get("z"), float, 0.0)
-            reference_price = _safe_cast(stock.get("y"), float, 0.0)
-            if current_price <= 0:
-                current_price = reference_price
             total_vol = int(_safe_cast(stock.get("v"), float, 0.0))
             ask_values = str(stock.get("a", "")).split("_")
             ask_price_1 = _safe_cast(ask_values[0] if ask_values else None, float, 0.0)
@@ -1250,6 +1531,9 @@ class WarrantReverseMonitor:
                 "name": str(stock.get("n", "")).strip(),
                 "current_price": current_price,
                 "total_volume": total_vol,
+                "trade_time": str(stock.get("t", "")).strip(),
+                "is_warrant_surge": False,
+                "surge_amount": 0.0,
             }
             prev = self.last_snapshot.get(sid)
             if prev is not None:
@@ -1258,6 +1542,8 @@ class WarrantReverseMonitor:
                 diff_vol = total_vol - prev_vol
                 diff_amount = diff_vol * current_price * 1000
                 if diff_vol > 0 and diff_amount >= 3_000_000 and current_price >= prev_price:
+                    self.latest_quotes[sid]["is_warrant_surge"] = True
+                    self.latest_quotes[sid]["surge_amount"] = diff_amount
                     triggered.append(
                         {
                             "sid": sid,
@@ -1286,14 +1572,14 @@ class WarrantReverseMonitor:
 class WarrantTelegramAlertRunner:
     """
     真正可用版：
-    1) 產生 30 檔熱門現股池
+    1) 產生 50 檔熱門現股池
     2) 用 MIS 逆向掃描現股急拉與大單消耗
     3) 反查對應權證熱點
     4) 合併技術指標 + 籌碼 + 內部買超
     5) 符合條件才直接發 Telegram 主動通知
     """
 
-    def __init__(self, quota: int = 30, group_size: int = 20, chat_id: Optional[str] = None):
+    def __init__(self, quota: int = WARRANT_POOL_QUOTA, group_size: int = 20, chat_id: Optional[str] = None):
         self.quota = quota
         self.group_size = group_size
         self.chat_id = chat_id or TELEGRAM_CHAT_ID
@@ -1354,9 +1640,11 @@ class WarrantTelegramAlertRunner:
 
         for index, symbol in enumerate(top_symbols, start=1):
             info = self.warrant_pool_metadata.get(symbol, {})
-            price = info.get("price", "--")
+            quote = self.monitor.latest_quotes.get(symbol, {})
+            price = quote.get("current_price", "--")
+            name = quote.get("name") or info.get("name", "--")
             lines.append(
-                f"{index}. {symbol} {info.get('name', '--')}"
+                f"{index}. {symbol} {name}"
                 f"｜價格 {price}"
             )
         return "\n".join(lines)
@@ -1372,16 +1660,18 @@ class WarrantTelegramAlertRunner:
             return {"status_code": 0, "body": {"ok": False, "error": str(exc)}}
 
     def log_monitoring_status(self, pool: Optional[List[str]] = None) -> None:
-        """依 scanner.py 風格輸出本輪30檔批次行情與3K狀態。"""
+        """輸出全池 MIS 最新成交價、急拉旗標與有效3K狀態。"""
         symbols = pool if pool is not None else list(self.warrant_pool_metadata)
         quotes = self.monitor.latest_quotes
         print(f"[監控LOG {get_taipei_now():%Y-%m-%d %H:%M:%S}] 池子 {len(symbols)} 檔", flush=True)
-        print("股號     股名                 現價         3K突破價", flush=True)
+        print("股號     股名                 MIS現價     急拉    成交時間    3K突破價", flush=True)
         for symbol in symbols:
             info = self.warrant_pool_metadata.get(symbol, {})
             quote = quotes.get(symbol, {})
             current_price = quote.get("current_price", "--")
             effective_3k = self.last_effective_3k.get(symbol)
+            surge_flag = "🚀" if quote.get("is_warrant_surge") else "--"
+            trade_time = quote.get("trade_time") or "--"
             breakout_price = (
                 f"{float(effective_3k['breakout_price']):.2f}"
                 if effective_3k else "--"
@@ -1390,9 +1680,47 @@ class WarrantTelegramAlertRunner:
                 f"{symbol:<8}"
                 f"{str(quote.get('name') or info.get('name') or '--')[:18]:<20}"
                 f"{str(current_price):>10}"
+                f"{surge_flag:>8}"
+                f"{str(trade_time):>12}"
                 f"{breakout_price:>14}"
                 , flush=True
             )
+
+    def build_warrant_alert_message(
+        self,
+        stock_code: str,
+        stock: Dict[str, Any],
+        signal: Dict[str, Any],
+        grade: str,
+        is_warrant_surge: bool,
+        snapshot: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """建立權證量能＋有效3K的 Telegram 訊息。"""
+        grade_badges = {"A": "🎯 A", "AA": "🔥 AA", "AAA": "🚀 AAA"}
+        snapshot = snapshot or {}
+        volume_ratio = float(snapshot.get("volume_ratio", signal.get("volume_ratio", 0.0)))
+        score = float(snapshot.get("score", 0.0))
+        trend = str(snapshot.get("trend", "N/A"))
+        surge_reason = "權證急拉" if is_warrant_surge else "無權證急拉"
+        trigger_reason = (
+            f"量能{volume_ratio:.2f}x 、 技術分數{score:.1f}、"
+            f"{surge_reason}、{trend}"
+        )
+        message_lines = [
+            "🚨 [訊號觸發]",
+            f"🎯 *核心策略：* 🎫 [權證主力標的] 有效3K突破 {grade_badges[grade]}",
+            "━━━━━━━━━━━━",
+            f"📈 *標的：* [{stock_code} {stock['name']}](https://www.nstock.tw/stock_info?stock_id={stock_code})",
+            f"💰 *現價：* `{float(stock['price']):.2f}`",
+            f"🎯 *觸發原因：* {trigger_reason}",
+            f"📐 *3K收盤／突破價：* `{float(signal['close']):.2f}` / `{float(signal['breakout_price']):.2f}`",
+            f"📊 *3K量能：* `{float(signal['volume']):,.0f}`（均量 `{float(signal['volume_ratio']):.2f}x`）",
+            f"🎫 *認購量增：* `{int(stock.get('warrant_volume_change', 0)):+,}` "
+            f"(`{float(stock.get('warrant_volume_growth_percent', 0.0)):+.1f}%`)",
+            "━━━━━━━━━━━━",
+            f"⏰ {get_taipei_now():%H:%M:%S}",
+        ]
+        return "\n".join(message_lines)
 
     def refresh_monitoring_status(self, pool: Optional[List[str]] = None) -> None:
         """非盤中也刷新行情與3K狀態，但不執行交易訊號或Telegram通知。"""
@@ -1471,6 +1799,7 @@ class WarrantTelegramAlertRunner:
         if last_price <= 0 or total_volume <= 0:
             raise ValueError(f"MIS 即時資料不完整: {symbol}")
         signal.update({
+            "name": str(hit.get("name") or self.monitor.latest_quotes.get(symbol, {}).get("name") or symbol).strip(),
             "close": last_price,
             "volume": total_volume,
             "date": str(get_taipei_now()),
@@ -1552,24 +1881,22 @@ class WarrantTelegramAlertRunner:
             if not decision["should_send"]:
                 continue
 
-            message = self.engine.build_trigger_message(
-                symbol,
-                snapshot=snapshot,
-                chip=chip,
-                insider=insider,
-                effective_3k=effective_3k,
-            )
-            source_info = real_chip.get("source", "無買超資料")
             warrant_info = self.warrant_pool_metadata.get(symbol, {})
             warrant_grade = "AA" if warrant_info.get("is_warrant_volume_accelerating") else "A"
-            message += (
-                f"\n反查標的: {symbol}"
-                f"\nMIS急拉量: {float(hit.get('diff_amount', 0.0)):.0f}"
-                f"\n先行價差: {float(hit.get('current_price', 0.0)):.2f}"
-                f"\n權證評級: {warrant_grade}"
-                f"\n認購量增: {int(warrant_info.get('warrant_volume_change', 0)):+,}"
-                f" ({float(warrant_info.get('warrant_volume_growth_percent', 0.0)):+.1f}%)"
-                f"\n籌碼來源: {source_info}"
+            alert_stock = {
+                **warrant_info,
+                "name": str(hit.get("name") or snapshot.get("name") or symbol).strip(),
+                "price": float(hit["current_price"]),
+            }
+            message = self.build_warrant_alert_message(
+                stock_code=symbol,
+                stock=alert_stock,
+                signal=effective_3k,
+                grade=warrant_grade,
+                is_warrant_surge=bool(
+                    self.monitor.latest_quotes.get(symbol, {}).get("is_warrant_surge")
+                ),
+                snapshot=snapshot,
             )
             payload = send_telegram_message(message, chat_id=self.chat_id, token=TELEGRAM_BOT_TOKEN)
             if payload.get("body", {}).get("ok"):
@@ -1581,7 +1908,7 @@ class WarrantTelegramAlertRunner:
                 "warrant_grade": warrant_grade,
                 "warrant_volume_change": warrant_info.get("warrant_volume_change", 0),
                 "warrant_volume_growth_percent": warrant_info.get("warrant_volume_growth_percent", 0.0),
-                "chip_source": source_info,
+                "chip_source": real_chip.get("source", ""),
                 "real_chip": real_chip,
                 "decision": decision,
                 "telegram": payload,
@@ -1618,7 +1945,7 @@ if __name__ == "__main__":
     # 定時執行 loop：每 10 秒掃一次盤中現股急拉信號
     # 支援每天 09:00 ~ 13:30 盤中自動監控
 
-    runner = WarrantTelegramAlertRunner(quota=30, group_size=20, chat_id=TELEGRAM_CHAT_ID)
+    runner = WarrantTelegramAlertRunner(quota=WARRANT_POOL_QUOTA, group_size=20, chat_id=TELEGRAM_CHAT_ID)
     
     print("=" * 60)
     print("🚀 權證現股即時逆向監控啟動")
