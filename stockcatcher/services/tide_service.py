@@ -158,7 +158,10 @@ def get_real_tide_resonance(supabase_client, signals_table: str = "tianji_signal
                 "concept_name": name,                 # 原始全名 (例: IC 設計｜客製 ASIC 與矽智財)
                 "shortname": shortname,               # 俐落短名 (例: ASIC 與矽智財)
                 "description": description,           # 產業深度描述
-                "cluster_name": shortname,            # 💡 保留舊欄位名稱但替換為短名，避免前端舊程式碼破版
+                # 🚨 架構師修正：將 cluster_name 恢復為全名 (name)
+                # 這樣你原本負責發送 LINE Flex Message 的程式碼就不需要做任何修改，
+                # 它預設讀取 cluster_name 時，就會拿到完整的 "IC 設計｜客製 ASIC 與矽智財"
+                "cluster_name": name,
                 "heat_score": score,
                 "vol_ratio": round(avg_vol_ratio, 2),
                 "representative_stocks": "、".join(rep_stocks),
