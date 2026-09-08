@@ -30,37 +30,34 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
     return real_names
 
 # ==========================================
-# 📊 1. 資料運算層 (具備冷啟動容錯機制)
+# 📊 1. 資料運算層 (無資料時以 None 代替，不報錯)
 # ==========================================
 def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
-    """從 Supabase 抓取 TDCC 資料，計算差值排行 (具備降級容錯)"""
+    """從 Supabase 抓取 TDCC 資料，無歷史資料時自動降級排序"""
     date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).execute()
     unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)
     
-    # 🚨 修正：即使只有 1 週資料也不拋棄，照常運行
     if len(unique_dates) == 0:
         return None 
         
-    t0_date = unique_dates[0]
-    # 智慧降級：如果歷史資料不夠，就拿最舊的一天來頂替
-    t1_date = unique_dates[1] if len(unique_dates) >= 2 else t0_date
-    t4_date = unique_dates[4] if len(unique_dates) >= 5 else unique_dates[-1]
+    t0 = unique_dates[0]
+    t1 = unique_dates[1] if len(unique_dates) >= 2 else None
+    t4 = unique_dates[4] if len(unique_dates) >= 5 else None
 
-    data_res = supabase.table("tdcc_history").select("*").in_("date", [t0_date, t1_date, t4_date]).execute()
+    # 僅查詢有資料的日期
+    target_dates = [d for d in [t0, t1, t4] if d is not None]
+    data_res = supabase.table("tdcc_history").select("*").in_("date", target_dates).execute()
     records = data_res.data
 
     if not records:
         return None
 
-    # 利用原生字典進行樞紐轉換
     stock_map = {}
     for row in records:
         sym = row["symbol"]
         date_val = row["date"]
-        
         if sym not in stock_map:
             stock_map[sym] = {}
-            
         stock_map[sym][date_val] = {
             "ratio_400k": float(row.get("ratio_400k", 0) or 0),
             "ratio_1000k": float(row.get("ratio_1000k", 0) or 0)
@@ -71,40 +68,39 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
 
     results = []
     for symbol, dates_data in stock_map.items():
-        if t0_date not in dates_data:
+        if t0 not in dates_data:
             continue
             
-        r400_t0 = dates_data[t0_date]["ratio_400k"]
-        r1000_t0 = dates_data[t0_date]["ratio_1000k"]
+        r400_t0 = dates_data[t0]["ratio_400k"]
+        r1000_t0 = dates_data[t0]["ratio_1000k"]
 
-        r400_t1 = dates_data.get(t1_date, {}).get("ratio_400k", r400_t0)
-        r1000_t1 = dates_data.get(t1_date, {}).get("ratio_1000k", r1000_t0)
-        r400_t4 = dates_data.get(t4_date, {}).get("ratio_400k", r400_t0)
-        r1000_t4 = dates_data.get(t4_date, {}).get("ratio_1000k", r1000_t0)
-
-        diff_400_1w = round(r400_t0 - r400_t1, 2)
-        diff_400_4w = round(r400_t0 - r400_t4, 2)
-        diff_1000_1w = round(r1000_t0 - r1000_t1, 2)
-        diff_1000_4w = round(r1000_t0 - r1000_t4, 2)
-
-        if diff_400_4w == 0 and diff_1000_4w == 0:
-            continue
+        # 💡 若無歷史資料，將差值設為 None
+        diff_400_1w = round(r400_t0 - dates_data[t1]["ratio_400k"], 2) if t1 and t1 in dates_data else None
+        diff_400_4w = round(r400_t0 - dates_data[t4]["ratio_400k"], 2) if t4 and t4 in dates_data else None
+        diff_1000_1w = round(r1000_t0 - dates_data[t1]["ratio_1000k"], 2) if t1 and t1 in dates_data else None
+        diff_1000_4w = round(r1000_t0 - dates_data[t4]["ratio_1000k"], 2) if t4 and t4 in dates_data else None
 
         results.append({
             "symbol": symbol,
             "name": real_stock_names.get(symbol, "未知股名"), 
+            "current_400k": r400_t0, # 儲存絕對值供降級排序使用
             "diff_400_1w": diff_400_1w,
             "diff_400_4w": diff_400_4w,
             "diff_1000_1w": diff_1000_1w,
             "diff_1000_4w": diff_1000_4w
         })
 
-    top_20 = sorted(results, key=lambda x: x["diff_400_4w"], reverse=True)[:20]
-    return {"date": t0_date, "data": top_20}
+    # 💡 降級排序邏輯：如果有 4 週差值，就用差值排；如果沒有，就用「目前的 400 張佔比」排
+    results.sort(
+        key=lambda x: x["diff_400_4w"] if x["diff_400_4w"] is not None else x["current_400k"], 
+        reverse=True
+    )
+    
+    return {"date": t0, "data": results[:20], "is_fallback": (t4 is None)}
 
 
 def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, Any]]:
-    """查詢單一股票 TDCC 變化 (具備降級容錯)"""
+    """查詢單一股票 TDCC 變化，缺失資料回傳 None"""
     date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).execute()
     unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)
     
@@ -112,16 +108,14 @@ def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, A
         return None
         
     t0 = unique_dates[0]
-    t1 = unique_dates[1] if len(unique_dates) >= 2 else t0
-    t2 = unique_dates[2] if len(unique_dates) >= 3 else t1
-    t4 = unique_dates[4] if len(unique_dates) >= 5 else unique_dates[-1]
+    t1 = unique_dates[1] if len(unique_dates) >= 2 else None
+    t2 = unique_dates[2] if len(unique_dates) >= 3 else None
+    t4 = unique_dates[4] if len(unique_dates) >= 5 else None
 
-    target_dates = list(set([t0, t1, t2, t4]))
-
+    target_dates = [d for d in [t0, t1, t2, t4] if d is not None]
     data_res = supabase.table("tdcc_history").select("*").eq("symbol", symbol).in_("date", target_dates).execute()
     records = data_res.data
     
-    # 🚨 修正：哪怕只有一筆資料，也要允許渲染
     if not records: 
         return None
 
@@ -132,53 +126,60 @@ def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, A
             "ratio_1000k": float(row.get("ratio_1000k", 0) or 0)
         }
 
-    # 如果歷史日期沒資料，以最新的資料頂替 (讓相減結果自動歸零)
-    def get_ratio(d_str: str, key: str) -> float:
-        if d_str not in date_map:
-            return date_map.get(t0, {}).get(key, 0.0)
-        return date_map.get(d_str, {}).get(key, 0.0)
+    r400_t0 = date_map.get(t0, {}).get("ratio_400k", 0.0)
+    r1000_t0 = date_map.get(t0, {}).get("ratio_1000k", 0.0)
+
+    # 安全相減函式
+    def calc_diff(target_t: Optional[str], key: str, current_val: float) -> Optional[float]:
+        if target_t and target_t in date_map:
+            return round(current_val - date_map[target_t][key], 2)
+        return None
 
     real_stock_names = get_real_stock_names(supabase, [symbol])
-    stock_name = real_stock_names.get(symbol, "未知股名")
 
     return {
         "sid": symbol,
-        "name": stock_name, 
+        "name": real_stock_names.get(symbol, "未知股名"), 
         "price": 0.0,
         "tdcc": {
             "1w": {
-                "holders_400": round(get_ratio(t0, "ratio_400k") - get_ratio(t1, "ratio_400k"), 2),
-                "holders_1000": round(get_ratio(t0, "ratio_1000k") - get_ratio(t1, "ratio_1000k"), 2)
+                "holders_400": calc_diff(t1, "ratio_400k", r400_t0),
+                "holders_1000": calc_diff(t1, "ratio_1000k", r1000_t0)
             },
             "2w": {
-                "holders_400": round(get_ratio(t0, "ratio_400k") - get_ratio(t2, "ratio_400k"), 2),
-                "holders_1000": round(get_ratio(t0, "ratio_1000k") - get_ratio(t2, "ratio_1000k"), 2)
+                "holders_400": calc_diff(t2, "ratio_400k", r400_t0),
+                "holders_1000": calc_diff(t2, "ratio_1000k", r1000_t0)
             },
             "4w": {
-                "holders_400": round(get_ratio(t0, "ratio_400k") - get_ratio(t4, "ratio_400k"), 2),
-                "holders_1000": round(get_ratio(t0, "ratio_1000k") - get_ratio(t4, "ratio_1000k"), 2)
+                "holders_400": calc_diff(t4, "ratio_400k", r400_t0),
+                "holders_1000": calc_diff(t4, "ratio_1000k", r1000_t0)
             }
         }
     }
 
 # ==========================================
-# 🎨 2. 視圖渲染層 (Flex Message Builders)
+# 🎨 2. 視圖渲染層 (將 None 渲染為 - )
 # ==========================================
 
 def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
     latest_date = parsed_data["date"]
     formatted_date = f"{latest_date[:4]}/{latest_date[4:6]}/{latest_date[6:]}"
     top_stocks = parsed_data["data"]
+    is_fallback = parsed_data.get("is_fallback", False)
 
-    def format_diff_str(diff_1w: float, diff_4w: float) -> str:
-        s_1w = f"+{diff_1w:.2f}%" if diff_1w > 0 else f"{diff_1w:.2f}%"
-        s_4w = f"+{diff_4w:.2f}%" if diff_4w > 0 else f"{diff_4w:.2f}%"
+    # 💡 判斷是否為 None，如果是就輸出 -
+    def format_diff_str(diff_1w: Optional[float], diff_4w: Optional[float]) -> str:
+        s_1w = f"+{diff_1w:.2f}%" if diff_1w is not None and diff_1w > 0 else (f"{diff_1w:.2f}%" if diff_1w is not None else "-")
+        s_4w = f"+{diff_4w:.2f}%" if diff_4w is not None and diff_4w > 0 else (f"{diff_4w:.2f}%" if diff_4w is not None else "-")
         return f"{s_1w} / {s_4w}"
 
-    def get_color_by_trend(diff_4w: float) -> str:
+    def get_color_by_trend(diff_4w: Optional[float]) -> str:
+        if diff_4w is None: return "#888888"
         if diff_4w > 0: return "#D9534F"
         if diff_4w < 0: return "#5CB85C"
         return "#888888"                  
+
+    sort_title = "歷史數據累積中 (依 400張佔比排序)" if is_fallback else "依 4 週 400張增幅排序"
 
     flex_msg = {
         "type": "bubble", "size": "mega",
@@ -186,7 +187,7 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
             "type": "box", "layout": "vertical", "backgroundColor": "#1A2A3A", "paddingAll": "md",
             "contents": [
                 {"type": "text", "text": "📊 大戶千張 / 400張籌碼變化 TOP 排行", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
-                {"type": "text", "text": f"基準日期: {formatted_date} (依 4 週 400張增幅排序)", "color": "#CCCCCC", "size": "xxs", "margin": "xs"}
+                {"type": "text", "text": f"基準日期: {formatted_date} ({sort_title})", "color": "#CCCCCC", "size": "xxs", "margin": "xs"}
             ]
         },
         "body": {
@@ -222,13 +223,6 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
         }
         rows_container["contents"].append(row)
 
-    # 🚨 若無資料 (例如剛上線第一週，差值皆為 0 被濾掉)，補上提示訊息
-    if not rows_container["contents"]:
-        rows_container["contents"].append({
-            "type": "text", "text": "⚠️ 資料庫正在累積歷史數據，需等待次週排程後方可顯示增減排行。",
-            "color": "#888888", "size": "xs", "align": "center", "margin": "md", "wrap": True
-        })
-
     flex_msg["body"]["contents"].append(rows_container)
     return flex_msg
 
@@ -239,10 +233,12 @@ def generate_stock_tdcc_flex(stock_data: Dict[str, Any]) -> Dict[str, Any]:
     price = stock_data.get("price", 0.0)
     tdcc = stock_data.get("tdcc", {})
 
-    def format_diff(val: float) -> Dict[str, str]:
+    # 💡 判斷是否為 None，如果是就輸出 -
+    def format_diff(val: Optional[float]) -> Dict[str, str]:
+        if val is None: return {"text": "-", "color": "#888888"}
         if val > 0: return {"text": f"+{val:.2f}%", "color": "#D9534F"}
         elif val < 0: return {"text": f"{val:.2f}%", "color": "#5CB85C"}
-        return {"text": "-", "color": "#888888"}
+        return {"text": "0.00%", "color": "#888888"}
 
     body_contents = [
         {
@@ -258,8 +254,8 @@ def generate_stock_tdcc_flex(stock_data: Dict[str, Any]) -> Dict[str, Any]:
 
     for label, key in [("1 週", "1w"), ("2 週", "2w"), ("4 週", "4w")]:
         period_data = tdcc.get(key, {})
-        diff_400 = format_diff(period_data.get("holders_400", 0.0))
-        diff_1000 = format_diff(period_data.get("holders_1000", 0.0))
+        diff_400 = format_diff(period_data.get("holders_400", None))
+        diff_1000 = format_diff(period_data.get("holders_1000", None))
 
         row = {
             "type": "box", "layout": "horizontal", "margin": "md", "alignItems": "center",
