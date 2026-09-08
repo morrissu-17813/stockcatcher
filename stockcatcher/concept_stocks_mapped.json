@@ -4013,11 +4013,10 @@
             "code": "2354",
             "name": "鴻準",
             "topics": [
-              "mobile",
               "precision-metal-casing",
               "thermal_components_air"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -4181,7 +4180,7 @@
       "name": "散熱冷卻｜液冷散熱系統",
       "shortname": "液冷散熱",
       "description": "Cold Plate、CDU 與浸沒式冷卻，針對 1000W+ Blackwell/Rubin 世代的高密度液冷基礎設施。",
-      "stock_count": 12,
+      "stock_count": 13,
       "stocks": [
         {
           "symbol": "2308",
@@ -4330,6 +4329,19 @@
             "topics": [
               "liquid_cooling_advanced",
               "thermal_components_air"
+            ],
+            "topicCount": 2
+          }
+        },
+        {
+          "symbol": "6805",
+          "name": "富世達",
+          "detail": {
+            "code": "6805",
+            "name": "富世達",
+            "topics": [
+              "liquid_cooling_advanced",
+              "precision-metal-casing"
             ],
             "topicCount": 2
           }
@@ -8138,11 +8150,10 @@
             "code": "2354",
             "name": "鴻準",
             "topics": [
-              "mobile",
               "precision-metal-casing",
               "thermal_components_air"
             ],
-            "topicCount": 3
+            "topicCount": 2
           }
         },
         {
@@ -8213,9 +8224,10 @@
             "code": "6805",
             "name": "富世達",
             "topics": [
+              "liquid_cooling_advanced",
               "precision-metal-casing"
             ],
-            "topicCount": 1
+            "topicCount": 2
           }
         }
       ]
@@ -10864,7 +10876,7 @@
       "name": "消費終端｜智慧型手機",
       "shortname": "智慧型手機",
       "description": "聚焦 Apple iPhone 供應鏈、Android 旗艦機代工與摺疊機技術，涵蓋精密光學、手機板材、金屬機殼到整機組裝的完整手機零組件生態。",
-      "stock_count": 10,
+      "stock_count": 9,
       "stocks": [
         {
           "symbol": "2313",
@@ -10894,20 +10906,6 @@
               "silicon-photonics"
             ],
             "topicCount": 5
-          }
-        },
-        {
-          "symbol": "2354",
-          "name": "鴻準",
-          "detail": {
-            "code": "2354",
-            "name": "鴻準",
-            "topics": [
-              "mobile",
-              "precision-metal-casing",
-              "thermal_components_air"
-            ],
-            "topicCount": 3
           }
         },
         {
@@ -12267,7 +12265,7 @@
       "name": "傳產工業｜石化及塑橡膠",
       "shortname": "石化與塑橡膠",
       "description": "以輕油裂解為起點，串聯通用塑膠、合成橡膠、特化品至下游纖維與製品的完整台灣石化產業鏈。台塑集團為主幹，涵蓋中油體系、獨立中游聚合廠及多元下游加工廠，受惠於油價周期、中國去庫存後的需求回溫與特化品高值化轉型。",
-      "stock_count": 20,
+      "stock_count": 21,
       "stocks": [
         {
           "symbol": "1301",
@@ -12319,6 +12317,18 @@
               "petrochem-plastics"
             ],
             "topicCount": 2
+          }
+        },
+        {
+          "symbol": "1307",
+          "name": "三芳",
+          "detail": {
+            "code": "1307",
+            "name": "三芳",
+            "topics": [
+              "petrochem-plastics"
+            ],
+            "topicCount": 1
           }
         },
         {
@@ -12432,10 +12442,10 @@
         },
         {
           "symbol": "1721",
-          "name": "三晃",
+          "name": "國慶科技",
           "detail": {
             "code": "1721",
-            "name": "三晃",
+            "name": "國慶科技",
             "topics": [
               "petrochem-plastics"
             ],
@@ -14434,7 +14444,7 @@
       "name": "傳產工業｜鋼鐵與特鋼",
       "shortname": "鋼鐵與特鋼",
       "description": "聚焦與 AI 資料中心、國防航太、半導體/科技廠房及能源基建有明確連結的鋼材供應鏈，涵蓋鋼構、H 型鋼、特鋼、不鏽鋼管線、機櫃材料與北美基建通路；排除僅一般建材、家電烤漆鋼、普通扣件或單純景氣復甦的鋼鐵公司。",
-      "stock_count": 14,
+      "stock_count": 15,
       "stocks": [
         {
           "symbol": "1605",
@@ -14596,6 +14606,18 @@
               "steel-special"
             ],
             "topicCount": 3
+          }
+        },
+        {
+          "symbol": "2211",
+          "name": "長榮鋼",
+          "detail": {
+            "code": "2211",
+            "name": "長榮鋼",
+            "topics": [
+              "steel-special"
+            ],
+            "topicCount": 1
           }
         },
         {
@@ -16456,6 +16478,19 @@
         "topics": [],
         "topicCount": 0,
         "isETF": true
+      }
+    },
+    "000810": {
+      "symbol": "000810",
+      "name": "三星火災",
+      "topics": [],
+      "detail": {
+        "code": "000810.KS",
+        "name": "三星火災",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
       }
     },
     "00830": {
@@ -18429,12 +18464,21 @@
     "1307": {
       "symbol": "1307",
       "name": "三芳",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "petrochem-plastics",
+          "name": "傳產工業｜石化及塑橡膠",
+          "shortname": "石化與塑橡膠",
+          "description": "以輕油裂解為起點，串聯通用塑膠、合成橡膠、特化品至下游纖維與製品的完整台灣石化產業鏈。台塑集團為主幹，涵蓋中油體系、獨立中游聚合廠及多元下游加工廠，受惠於油價周期、中國去庫存後的需求回溫與特化品高值化轉型。"
+        }
+      ],
       "detail": {
         "code": "1307",
         "name": "三芳",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "petrochem-plastics"
+        ],
+        "topicCount": 1
       }
     },
     "1308": {
@@ -18987,6 +19031,19 @@
         "name": "南紡",
         "topics": [],
         "topicCount": 0
+      }
+    },
+    "001440": {
+      "symbol": "001440",
+      "name": "大韓電線",
+      "topics": [],
+      "detail": {
+        "code": "001440.KS",
+        "name": "大韓電線",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
       }
     },
     "1441": {
@@ -20592,7 +20649,7 @@
     },
     "1721": {
       "symbol": "1721",
-      "name": "三晃",
+      "name": "國慶科技",
       "topics": [
         {
           "topic_id": "petrochem-plastics",
@@ -20603,7 +20660,7 @@
       ],
       "detail": {
         "code": "1721",
-        "name": "三晃",
+        "name": "國慶科技",
         "topics": [
           "petrochem-plastics"
         ],
@@ -22205,12 +22262,21 @@
     "2211": {
       "symbol": "2211",
       "name": "長榮鋼",
-      "topics": [],
+      "topics": [
+        {
+          "topic_id": "steel-special",
+          "name": "傳產工業｜鋼鐵與特鋼",
+          "shortname": "鋼鐵與特鋼",
+          "description": "聚焦與 AI 資料中心、國防航太、半導體/科技廠房及能源基建有明確連結的鋼材供應鏈，涵蓋鋼構、H 型鋼、特鋼、不鏽鋼管線、機櫃材料與北美基建通路；排除僅一般建材、家電烤漆鋼、普通扣件或單純景氣復甦的鋼鐵公司。"
+        }
+      ],
       "detail": {
         "code": "2211",
         "name": "長榮鋼",
-        "topics": [],
-        "topicCount": 0
+        "topics": [
+          "steel-special"
+        ],
+        "topicCount": 1
       }
     },
     "2221": {
@@ -23231,12 +23297,6 @@
       "name": "鴻準",
       "topics": [
         {
-          "topic_id": "mobile",
-          "name": "消費終端｜智慧型手機",
-          "shortname": "智慧型手機",
-          "description": "聚焦 Apple iPhone 供應鏈、Android 旗艦機代工與摺疊機技術，涵蓋精密光學、手機板材、金屬機殼到整機組裝的完整手機零組件生態。"
-        },
-        {
           "topic_id": "precision-metal-casing",
           "name": "電子零組件｜精密機構件",
           "shortname": "精密機構件",
@@ -23253,11 +23313,10 @@
         "code": "2354",
         "name": "鴻準",
         "topics": [
-          "mobile",
           "precision-metal-casing",
           "thermal_components_air"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "2355": {
@@ -38818,6 +38877,19 @@
         "topicCount": 1
       }
     },
+    "005830": {
+      "symbol": "005830",
+      "name": "DB 損保",
+      "topics": [],
+      "detail": {
+        "code": "005830.KS",
+        "name": "DB 損保",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "5859": {
       "symbol": "5859",
       "name": "遠壽",
@@ -39031,6 +39103,19 @@
           "kr-memory"
         ],
         "topicCount": 2
+      }
+    },
+    "005940": {
+      "symbol": "005940",
+      "name": "NH 投資證券",
+      "topics": [],
+      "detail": {
+        "code": "005940.KS",
+        "name": "NH 投資證券",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
       }
     },
     "6005": {
@@ -46015,6 +46100,19 @@
         "topicCount": 1
       }
     },
+    "006800": {
+      "symbol": "006800",
+      "name": "未來資產證券",
+      "topics": [],
+      "detail": {
+        "code": "006800.KS",
+        "name": "未來資產證券",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "6803": {
       "symbol": "6803",
       "name": "崑鼎",
@@ -46058,6 +46156,12 @@
       "name": "富世達",
       "topics": [
         {
+          "topic_id": "liquid_cooling_advanced",
+          "name": "散熱冷卻｜液冷散熱系統",
+          "shortname": "液冷散熱",
+          "description": "Cold Plate、CDU 與浸沒式冷卻，針對 1000W+ Blackwell/Rubin 世代的高密度液冷基礎設施。"
+        },
+        {
           "topic_id": "precision-metal-casing",
           "name": "電子零組件｜精密機構件",
           "shortname": "精密機構件",
@@ -46068,9 +46172,10 @@
         "code": "6805",
         "name": "富世達",
         "topics": [
+          "liquid_cooling_advanced",
           "precision-metal-casing"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "6807": {
@@ -47597,11 +47702,11 @@
     },
     "6949": {
       "symbol": "6949",
-      "name": "沛爾生醫-創",
+      "name": "沛爾生醫*-創",
       "topics": [],
       "detail": {
         "code": "6949",
-        "name": "沛爾生醫-創",
+        "name": "沛爾生醫*-創",
         "topics": [],
         "topicCount": 0
       }
@@ -54505,6 +54610,19 @@
         "topicCount": 1
       }
     },
+    "010170": {
+      "symbol": "010170",
+      "name": "大韓光通訊",
+      "topics": [],
+      "detail": {
+        "code": "010170.KQ",
+        "name": "大韓光通訊",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
     "011070": {
       "symbol": "011070",
       "name": "LG Innotek",
@@ -54635,6 +54753,32 @@
         "topicCount": 1
       }
     },
+    "016360": {
+      "symbol": "016360",
+      "name": "三星證券",
+      "topics": [],
+      "detail": {
+        "code": "016360.KS",
+        "name": "三星證券",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "017670": {
+      "symbol": "017670",
+      "name": "SK 電訊",
+      "topics": [],
+      "detail": {
+        "code": "017670.KS",
+        "name": "SK 電訊",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
     "018880": {
       "symbol": "018880",
       "name": "翰昂系統",
@@ -54661,6 +54805,19 @@
         "topicCount": 1
       }
     },
+    "024110": {
+      "symbol": "024110",
+      "name": "IBK 企業銀行",
+      "topics": [],
+      "detail": {
+        "code": "024110.KS",
+        "name": "IBK 企業銀行",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "028670": {
       "symbol": "028670",
       "name": "泛洋海運",
@@ -54670,6 +54827,45 @@
         "name": "泛洋海運",
         "topics": [
           "kr-shipping"
+        ],
+        "topicCount": 1
+      }
+    },
+    "030200": {
+      "symbol": "030200",
+      "name": "KT",
+      "topics": [],
+      "detail": {
+        "code": "030200.KS",
+        "name": "KT",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
+    "032640": {
+      "symbol": "032640",
+      "name": "LG U+",
+      "topics": [],
+      "detail": {
+        "code": "032640.KS",
+        "name": "LG U+",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
+    "032830": {
+      "symbol": "032830",
+      "name": "三星生命",
+      "topics": [],
+      "detail": {
+        "code": "032830.KS",
+        "name": "三星生命",
+        "topics": [
+          "kr-finance"
         ],
         "topicCount": 1
       }
@@ -54700,6 +54896,32 @@
         "topicCount": 1
       }
     },
+    "035420": {
+      "symbol": "035420",
+      "name": "NAVER",
+      "topics": [],
+      "detail": {
+        "code": "035420.KS",
+        "name": "NAVER",
+        "topics": [
+          "kr-platform-internet"
+        ],
+        "topicCount": 1
+      }
+    },
+    "035720": {
+      "symbol": "035720",
+      "name": "Kakao",
+      "topics": [],
+      "detail": {
+        "code": "035720.KS",
+        "name": "Kakao",
+        "topics": [
+          "kr-platform-internet"
+        ],
+        "topicCount": 1
+      }
+    },
     "036540": {
       "symbol": "036540",
       "name": "SFA半導體",
@@ -54722,6 +54944,32 @@
         "name": "Jusung Engineering",
         "topics": [
           "kr-semi-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "039490": {
+      "symbol": "039490",
+      "name": "Kiwoom 證券",
+      "topics": [],
+      "detail": {
+        "code": "039490.KS",
+        "name": "Kiwoom 證券",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "042000": {
+      "symbol": "042000",
+      "name": "Cafe24",
+      "topics": [],
+      "detail": {
+        "code": "042000.KQ",
+        "name": "Cafe24",
+        "topics": [
+          "kr-platform-internet"
         ],
         "topicCount": 1
       }
@@ -54830,6 +55078,19 @@
         "topicCount": 1
       }
     },
+    "055550": {
+      "symbol": "055550",
+      "name": "新韓控股",
+      "topics": [],
+      "detail": {
+        "code": "055550.KS",
+        "name": "新韓控股",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "058470": {
       "symbol": "058470",
       "name": "Leeno Industrial",
@@ -54869,6 +55130,19 @@
         "topicCount": 1
       }
     },
+    "066570": {
+      "symbol": "066570",
+      "name": "LG 電子",
+      "topics": [],
+      "detail": {
+        "code": "066570.KS",
+        "name": "LG 電子",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
     "066970": {
       "symbol": "066970",
       "name": "L&F",
@@ -54878,6 +55152,19 @@
         "name": "L&F",
         "topics": [
           "kr-battery-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "067160": {
+      "symbol": "067160",
+      "name": "SOOP",
+      "topics": [],
+      "detail": {
+        "code": "067160.KQ",
+        "name": "SOOP",
+        "topics": [
+          "kr-platform-internet"
         ],
         "topicCount": 1
       }
@@ -54904,6 +55191,19 @@
         "name": "賽特瑞恩",
         "topics": [
           "kr-biotech-cdmo"
+        ],
+        "topicCount": 1
+      }
+    },
+    "071050": {
+      "symbol": "071050",
+      "name": "韓國金融控股",
+      "topics": [],
+      "detail": {
+        "code": "071050.KS",
+        "name": "韓國金融控股",
+        "topics": [
+          "kr-finance"
         ],
         "topicCount": 1
       }
@@ -54960,6 +55260,32 @@
         "topicCount": 1
       }
     },
+    "086790": {
+      "symbol": "086790",
+      "name": "Hana 金融",
+      "topics": [],
+      "detail": {
+        "code": "086790.KS",
+        "name": "Hana 金融",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "088350": {
+      "symbol": "088350",
+      "name": "韓華生命",
+      "topics": [],
+      "detail": {
+        "code": "088350.KS",
+        "name": "韓華生命",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "089030": {
       "symbol": "089030",
       "name": "Techwing",
@@ -54969,6 +55295,19 @@
         "name": "Techwing",
         "topics": [
           "kr-semi-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "089600": {
+      "symbol": "089600",
+      "name": "KT Nasmedia",
+      "topics": [],
+      "detail": {
+        "code": "089600.KQ",
+        "name": "KT Nasmedia",
+        "topics": [
+          "kr-platform-internet"
         ],
         "topicCount": 1
       }
@@ -55103,6 +55442,19 @@
         "topicCount": 1
       }
     },
+    "105560": {
+      "symbol": "105560",
+      "name": "KB 金融",
+      "topics": [],
+      "detail": {
+        "code": "105560.KS",
+        "name": "KB 金融",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "108320": {
       "symbol": "108320",
       "name": "LX Semicon",
@@ -55142,6 +55494,32 @@
         "topicCount": 1
       }
     },
+    "119850": {
+      "symbol": "119850",
+      "name": "GnCenergy",
+      "topics": [],
+      "detail": {
+        "code": "119850.KQ",
+        "name": "GnCenergy",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
+    "126340": {
+      "symbol": "126340",
+      "name": "VinaTech",
+      "topics": [],
+      "detail": {
+        "code": "126340.KQ",
+        "name": "VinaTech",
+        "topics": [
+          "kr-ai-datacenter"
+        ],
+        "topicCount": 1
+      }
+    },
     "128940": {
       "symbol": "128940",
       "name": "韓美藥品",
@@ -55151,6 +55529,32 @@
         "name": "韓美藥品",
         "topics": [
           "kr-biotech-cdmo"
+        ],
+        "topicCount": 1
+      }
+    },
+    "138040": {
+      "symbol": "138040",
+      "name": "Meritz 金融",
+      "topics": [],
+      "detail": {
+        "code": "138040.KS",
+        "name": "Meritz 金融",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "138080": {
+      "symbol": "138080",
+      "name": "OE Solutions",
+      "topics": [],
+      "detail": {
+        "code": "138080.KQ",
+        "name": "OE Solutions",
+        "topics": [
+          "kr-ai-datacenter"
         ],
         "topicCount": 1
       }
@@ -55190,6 +55594,19 @@
         "name": "LigaChem Bio",
         "topics": [
           "kr-biotech-cdmo"
+        ],
+        "topicCount": 1
+      }
+    },
+    "178320": {
+      "symbol": "178320",
+      "name": "Seojin System",
+      "topics": [],
+      "detail": {
+        "code": "178320.KQ",
+        "name": "Seojin System",
+        "topics": [
+          "kr-ai-datacenter"
         ],
         "topicCount": 1
       }
@@ -55268,6 +55685,19 @@
         "name": "Simmtech",
         "topics": [
           "kr-substrate-osat"
+        ],
+        "topicCount": 1
+      }
+    },
+    "229640": {
+      "symbol": "229640",
+      "name": "LS Eco Energy",
+      "topics": [],
+      "detail": {
+        "code": "229640.KS",
+        "name": "LS Eco Energy",
+        "topics": [
+          "kr-ai-datacenter"
         ],
         "topicCount": 1
       }
@@ -55363,6 +55793,19 @@
         "topicCount": 1
       }
     },
+    "279570": {
+      "symbol": "279570",
+      "name": "K Bank",
+      "topics": [],
+      "detail": {
+        "code": "279570.KS",
+        "name": "K Bank",
+        "topics": [
+          "kr-platform-internet"
+        ],
+        "topicCount": 1
+      }
+    },
     "287840": {
       "symbol": "287840",
       "name": "IntoCell",
@@ -55402,6 +55845,19 @@
         "topicCount": 1
       }
     },
+    "316140": {
+      "symbol": "316140",
+      "name": "友利金融",
+      "topics": [],
+      "detail": {
+        "code": "316140.KS",
+        "name": "友利金融",
+        "topics": [
+          "kr-finance"
+        ],
+        "topicCount": 1
+      }
+    },
     "319400": {
       "symbol": "319400",
       "name": "Hyundai Movex",
@@ -55411,6 +55867,19 @@
         "name": "Hyundai Movex",
         "topics": [
           "kr-robotics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "323410": {
+      "symbol": "323410",
+      "name": "KakaoBank",
+      "topics": [],
+      "detail": {
+        "code": "323410.KS",
+        "name": "KakaoBank",
+        "topics": [
+          "kr-platform-internet"
         ],
         "topicCount": 1
       }
@@ -55515,6 +55984,19 @@
         "name": "LG新能源",
         "topics": [
           "kr-battery-cell"
+        ],
+        "topicCount": 1
+      }
+    },
+    "377300": {
+      "symbol": "377300",
+      "name": "KakaoPay",
+      "topics": [],
+      "detail": {
+        "code": "377300.KS",
+        "name": "KakaoPay",
+        "topics": [
+          "kr-platform-internet"
         ],
         "topicCount": 1
       }
@@ -55728,6 +56210,32 @@
         "topicCount": 0
       }
     },
+    "A": {
+      "symbol": "A",
+      "name": "Agilent Technologies",
+      "topics": [],
+      "detail": {
+        "code": "A",
+        "name": "Agilent Technologies",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
+    "AA": {
+      "symbol": "AA",
+      "name": "美國鋁業",
+      "topics": [],
+      "detail": {
+        "code": "AA",
+        "name": "美國鋁業",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "AAL": {
       "symbol": "AAL",
       "name": "美國航空",
@@ -55750,6 +56258,19 @@
         "name": "Applied Optoelectronics",
         "topics": [
           "us-optical-communication"
+        ],
+        "topicCount": 1
+      }
+    },
+    "AAON": {
+      "symbol": "AAON",
+      "name": "AAON",
+      "topics": [],
+      "detail": {
+        "code": "AAON",
+        "name": "AAON",
+        "topics": [
+          "us-datacenter-cooling"
         ],
         "topicCount": 1
       }
@@ -55806,6 +56327,45 @@
         "topicCount": 1
       }
     },
+    "ACM": {
+      "symbol": "ACM",
+      "name": "AECOM",
+      "topics": [],
+      "detail": {
+        "code": "ACM",
+        "name": "AECOM",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ACMR": {
+      "symbol": "ACMR",
+      "name": "ACM Research",
+      "topics": [],
+      "detail": {
+        "code": "ACMR",
+        "name": "ACM Research",
+        "topics": [
+          "us-glass-core-substrate"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ACN": {
+      "symbol": "ACN",
+      "name": "Accenture",
+      "topics": [],
+      "detail": {
+        "code": "ACN",
+        "name": "Accenture",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "ADBE": {
       "symbol": "ADBE",
       "name": "Adobe",
@@ -55834,6 +56394,19 @@
         "topicCount": 2
       }
     },
+    "ADUS": {
+      "symbol": "ADUS",
+      "name": "Addus HomeCare",
+      "topics": [],
+      "detail": {
+        "code": "ADUS",
+        "name": "Addus HomeCare",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "AEE": {
       "symbol": "AEE",
       "name": "Ameren",
@@ -55856,6 +56429,19 @@
         "name": "Aehr",
         "topics": [
           "us-semi-test-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "AEP": {
+      "symbol": "AEP",
+      "name": "American Electric Power",
+      "topics": [],
+      "detail": {
+        "code": "AEP",
+        "name": "American Electric Power",
+        "topics": [
+          "us-power-utilities-ipp"
         ],
         "topicCount": 1
       }
@@ -55895,6 +56481,19 @@
         "name": "AGCO",
         "topics": [
           "us-heavy-machinery"
+        ],
+        "topicCount": 1
+      }
+    },
+    "AGX": {
+      "symbol": "AGX",
+      "name": "Argan",
+      "topics": [],
+      "detail": {
+        "code": "AGX",
+        "name": "Argan",
+        "topics": [
+          "us-datacenter-construction"
         ],
         "topicCount": 1
       }
@@ -56037,9 +56636,10 @@
         "code": "AMAT",
         "name": "Applied Materials",
         "topics": [
+          "us-glass-core-substrate",
           "us-wafer-fab-equipment"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "AMBA": {
@@ -56050,7 +56650,21 @@
         "code": "AMBA",
         "name": "Ambarella",
         "topics": [
+          "us-fpga-edge-ai",
           "us-humanoid-robotics"
+        ],
+        "topicCount": 2
+      }
+    },
+    "AMBQ": {
+      "symbol": "AMBQ",
+      "name": "Ambiq Micro",
+      "topics": [],
+      "detail": {
+        "code": "AMBQ",
+        "name": "Ambiq Micro",
+        "topics": [
+          "us-fpga-edge-ai"
         ],
         "topicCount": 1
       }
@@ -56065,9 +56679,10 @@
         "topics": [
           "us-ai-pc-devices",
           "us-cpu-agentic-ai",
+          "us-fpga-edge-ai",
           "us-gpu-ai-chip"
         ],
-        "topicCount": 3
+        "topicCount": 4
       }
     },
     "AMGN": {
@@ -56105,9 +56720,10 @@
         "code": "AMKR",
         "name": "Amkor",
         "topics": [
-          "us-advanced-packaging"
+          "us-advanced-packaging",
+          "us-glass-core-substrate"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "AMSC": {
@@ -56173,9 +56789,10 @@
         "code": "APD",
         "name": "Air Products and Chemicals",
         "topics": [
+          "us-chemicals-materials",
           "us-semiconductor-materials"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "APH": {
@@ -56199,10 +56816,22 @@
         "code": "APLD",
         "name": "Applied Digital",
         "topics": [
-          "us-ai-server-cloud",
-          "us-datacenter-reit"
+          "us-neocloud"
         ],
-        "topicCount": 2
+        "topicCount": 1
+      }
+    },
+    "APO": {
+      "symbol": "APO",
+      "name": "Apollo Global Management",
+      "topics": [],
+      "detail": {
+        "code": "APO",
+        "name": "Apollo Global Management",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
       }
     },
     "APP": {
@@ -56231,6 +56860,19 @@
         "topicCount": 1
       }
     },
+    "ARCC": {
+      "symbol": "ARCC",
+      "name": "Ares Capital",
+      "topics": [],
+      "detail": {
+        "code": "ARCC",
+        "name": "Ares Capital",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "AREC": {
       "symbol": "AREC",
       "name": "American Resources",
@@ -56240,6 +56882,19 @@
         "name": "American Resources",
         "topics": [
           "us-critical-minerals"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ARES": {
+      "symbol": "ARES",
+      "name": "Ares Management",
+      "topics": [],
+      "detail": {
+        "code": "ARES",
+        "name": "Ares Management",
+        "topics": [
+          "us-alternative-assets"
         ],
         "topicCount": 1
       }
@@ -56254,9 +56909,10 @@
         "topics": [
           "us-cpu-agentic-ai",
           "us-custom-asic-ip",
-          "us-eda"
+          "us-eda",
+          "us-fpga-edge-ai"
         ],
-        "topicCount": 3
+        "topicCount": 4
       }
     },
     "ARRY": {
@@ -56272,6 +56928,45 @@
         "topicCount": 1
       }
     },
+    "ARW": {
+      "symbol": "ARW",
+      "name": "艾睿電子",
+      "topics": [],
+      "detail": {
+        "code": "ARW",
+        "name": "艾睿電子",
+        "topics": [
+          "us-ic-distribution"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ASH": {
+      "symbol": "ASH",
+      "name": "Ashland",
+      "topics": [],
+      "detail": {
+        "code": "ASH",
+        "name": "Ashland",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ASTH": {
+      "symbol": "ASTH",
+      "name": "Astrana Health",
+      "topics": [],
+      "detail": {
+        "code": "ASTH",
+        "name": "Astrana Health",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "ASTS": {
       "symbol": "ASTS",
       "name": "AST SpaceMobile",
@@ -56281,6 +56976,19 @@
         "name": "AST SpaceMobile",
         "topics": [
           "us-space-satellite"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ATI": {
+      "symbol": "ATI",
+      "name": "ATI",
+      "topics": [],
+      "detail": {
+        "code": "ATI",
+        "name": "ATI",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -56308,9 +57016,36 @@
         "topics": [
           "us-custom-asic-ip",
           "us-network-infrastructure",
-          "us-optical-communication"
+          "us-optical-communication",
+          "us-rf-frontend"
         ],
-        "topicCount": 3
+        "topicCount": 4
+      }
+    },
+    "AVNT": {
+      "symbol": "AVNT",
+      "name": "Avient",
+      "topics": [],
+      "detail": {
+        "code": "AVNT",
+        "name": "Avient",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "AVT": {
+      "symbol": "AVT",
+      "name": "安富利",
+      "topics": [],
+      "detail": {
+        "code": "AVT",
+        "name": "安富利",
+        "topics": [
+          "us-ic-distribution"
+        ],
+        "topicCount": 1
       }
     },
     "AVTR": {
@@ -56321,10 +57056,36 @@
         "code": "AVTR",
         "name": "Avantor",
         "topics": [
-          "us-glp1-obesity",
+          "us-lifescience-cro",
           "us-semiconductor-materials"
         ],
         "topicCount": 2
+      }
+    },
+    "AWK": {
+      "symbol": "AWK",
+      "name": "American Water Works",
+      "topics": [],
+      "detail": {
+        "code": "AWK",
+        "name": "American Water Works",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
+      }
+    },
+    "AWR": {
+      "symbol": "AWR",
+      "name": "American States Water",
+      "topics": [],
+      "detail": {
+        "code": "AWR",
+        "name": "American States Water",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
       }
     },
     "AXP": {
@@ -56379,6 +57140,19 @@
         "topicCount": 1
       }
     },
+    "BAM": {
+      "symbol": "BAM",
+      "name": "Brookfield Asset Management",
+      "topics": [],
+      "detail": {
+        "code": "BAM",
+        "name": "Brookfield Asset Management",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "BBY": {
       "symbol": "BBY",
       "name": "百思買",
@@ -56427,6 +57201,19 @@
         "name": "Beam Therapeutics",
         "topics": [
           "us-biotech-ai"
+        ],
+        "topicCount": 1
+      }
+    },
+    "BELFB": {
+      "symbol": "BELFB",
+      "name": "Bel Fuse",
+      "topics": [],
+      "detail": {
+        "code": "BELFB",
+        "name": "Bel Fuse",
+        "topics": [
+          "us-passive-components"
         ],
         "topicCount": 1
       }
@@ -56504,9 +57291,10 @@
         "code": "BLK",
         "name": "BlackRock",
         "topics": [
+          "us-alternative-assets",
           "us-banking"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "BMBL": {
@@ -56535,6 +57323,19 @@
         "topicCount": 1
       }
     },
+    "BN": {
+      "symbol": "BN",
+      "name": "Brookfield Corporation",
+      "topics": [],
+      "detail": {
+        "code": "BN",
+        "name": "Brookfield Corporation",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "BNTX": {
       "symbol": "BNTX",
       "name": "BioNTech SE",
@@ -56557,6 +57358,19 @@
         "name": "Berkshire Hathaway",
         "topics": [
           "us-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "BRKR": {
+      "symbol": "BRKR",
+      "name": "Bruker",
+      "topics": [],
+      "detail": {
+        "code": "BRKR",
+        "name": "Bruker",
+        "topics": [
+          "us-lifescience-cro"
         ],
         "topicCount": 1
       }
@@ -56613,6 +57427,19 @@
         "topicCount": 1
       }
     },
+    "BX": {
+      "symbol": "BX",
+      "name": "Blackstone",
+      "topics": [],
+      "detail": {
+        "code": "BX",
+        "name": "Blackstone",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "C": {
       "symbol": "C",
       "name": "Citigroup",
@@ -56626,6 +57453,19 @@
         "topicCount": 1
       }
     },
+    "CAH": {
+      "symbol": "CAH",
+      "name": "Cardinal Health",
+      "topics": [],
+      "detail": {
+        "code": "CAH",
+        "name": "Cardinal Health",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "CAMT": {
       "symbol": "CAMT",
       "name": "Camtek",
@@ -56634,7 +57474,21 @@
         "code": "CAMT",
         "name": "Camtek",
         "topics": [
+          "us-glass-core-substrate",
           "us-wafer-fab-equipment"
+        ],
+        "topicCount": 2
+      }
+    },
+    "CARR": {
+      "symbol": "CARR",
+      "name": "Carrier Global",
+      "topics": [],
+      "detail": {
+        "code": "CARR",
+        "name": "Carrier Global",
+        "topics": [
+          "us-datacenter-cooling"
         ],
         "topicCount": 1
       }
@@ -56661,6 +57515,32 @@
         "name": "Chubb",
         "topics": [
           "us-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CBOE": {
+      "symbol": "CBOE",
+      "name": "Cboe Global Markets",
+      "topics": [],
+      "detail": {
+        "code": "CBOE",
+        "name": "Cboe Global Markets",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CBT": {
+      "symbol": "CBT",
+      "name": "Cabot",
+      "topics": [],
+      "detail": {
+        "code": "CBT",
+        "name": "Cabot",
+        "topics": [
+          "us-chemicals-materials"
         ],
         "topicCount": 1
       }
@@ -56717,6 +57597,32 @@
         "topicCount": 1
       }
     },
+    "CDW": {
+      "symbol": "CDW",
+      "name": "CDW",
+      "topics": [],
+      "detail": {
+        "code": "CDW",
+        "name": "CDW",
+        "topics": [
+          "us-ic-distribution"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CE": {
+      "symbol": "CE",
+      "name": "Celanese",
+      "topics": [],
+      "detail": {
+        "code": "CE",
+        "name": "Celanese",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
     "CEG": {
       "symbol": "CEG",
       "name": "Constellation Energy",
@@ -56725,11 +57631,63 @@
         "code": "CEG",
         "name": "Constellation Energy",
         "topics": [
-          "us-ai-power-cooling",
           "us-datacenter-reit",
-          "us-nuclear-smr"
+          "us-nuclear-smr",
+          "us-power-utilities-ipp"
         ],
         "topicCount": 3
+      }
+    },
+    "CENX": {
+      "symbol": "CENX",
+      "name": "世紀鋁業",
+      "topics": [],
+      "detail": {
+        "code": "CENX",
+        "name": "世紀鋁業",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CERT": {
+      "symbol": "CERT",
+      "name": "Certara",
+      "topics": [],
+      "detail": {
+        "code": "CERT",
+        "name": "Certara",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CEVA": {
+      "symbol": "CEVA",
+      "name": "Ceva",
+      "topics": [],
+      "detail": {
+        "code": "CEVA",
+        "name": "Ceva",
+        "topics": [
+          "us-fpga-edge-ai"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CG": {
+      "symbol": "CG",
+      "name": "Carlyle Group",
+      "topics": [],
+      "detail": {
+        "code": "CG",
+        "name": "Carlyle Group",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
       }
     },
     "CGNX": {
@@ -56810,6 +57768,19 @@
         "topicCount": 1
       }
     },
+    "CI": {
+      "symbol": "CI",
+      "name": "Cigna",
+      "topics": [],
+      "detail": {
+        "code": "CI",
+        "name": "Cigna",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "CIEN": {
       "symbol": "CIEN",
       "name": "Ciena",
@@ -56819,6 +57790,45 @@
         "name": "Ciena",
         "topics": [
           "us-optical-communication"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CIFR": {
+      "symbol": "CIFR",
+      "name": "Cipher Digital",
+      "topics": [],
+      "detail": {
+        "code": "CIFR",
+        "name": "Cipher Digital",
+        "topics": [
+          "us-neocloud"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CL": {
+      "symbol": "CL",
+      "name": "高露潔",
+      "topics": [],
+      "detail": {
+        "code": "CL",
+        "name": "高露潔",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CLF": {
+      "symbol": "CLF",
+      "name": "Cleveland-Cliffs",
+      "topics": [],
+      "detail": {
+        "code": "CLF",
+        "name": "Cleveland-Cliffs",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -56850,6 +57860,19 @@
         "topicCount": 1
       }
     },
+    "CMC": {
+      "symbol": "CMC",
+      "name": "商業金屬",
+      "topics": [],
+      "detail": {
+        "code": "CMC",
+        "name": "商業金屬",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "CMCSA": {
       "symbol": "CMCSA",
       "name": "Comcast",
@@ -56859,6 +57882,19 @@
         "name": "Comcast",
         "topics": [
           "us-telecom"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CME": {
+      "symbol": "CME",
+      "name": "CME Group",
+      "topics": [],
+      "detail": {
+        "code": "CME",
+        "name": "CME Group",
+        "topics": [
+          "us-exchanges-data"
         ],
         "topicCount": 1
       }
@@ -56876,6 +57912,19 @@
         "topicCount": 1
       }
     },
+    "CNC": {
+      "symbol": "CNC",
+      "name": "Centene",
+      "topics": [],
+      "detail": {
+        "code": "CNC",
+        "name": "Centene",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "CNH": {
       "symbol": "CNH",
       "name": "CNH Industrial",
@@ -56885,6 +57934,32 @@
         "name": "CNH Industrial",
         "topics": [
           "us-heavy-machinery"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CNM": {
+      "symbol": "CNM",
+      "name": "Core & Main",
+      "topics": [],
+      "detail": {
+        "code": "CNM",
+        "name": "Core & Main",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CNXC": {
+      "symbol": "CNXC",
+      "name": "Concentrix",
+      "topics": [],
+      "detail": {
+        "code": "CNXC",
+        "name": "Concentrix",
+        "topics": [
+          "us-it-services"
         ],
         "topicCount": 1
       }
@@ -56956,6 +58031,19 @@
         "topicCount": 1
       }
     },
+    "COR": {
+      "symbol": "COR",
+      "name": "Cencora",
+      "topics": [],
+      "detail": {
+        "code": "COR",
+        "name": "Cencora",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "CORZ": {
       "symbol": "CORZ",
       "name": "Core Scientific",
@@ -56964,10 +58052,9 @@
         "code": "CORZ",
         "name": "Core Scientific",
         "topics": [
-          "us-crypto-bitcoin",
-          "us-datacenter-reit"
+          "us-neocloud"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "COST": {
@@ -57011,6 +58098,19 @@
         "topicCount": 2
       }
     },
+    "CRL": {
+      "symbol": "CRL",
+      "name": "Charles River Laboratories",
+      "topics": [],
+      "detail": {
+        "code": "CRL",
+        "name": "Charles River Laboratories",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
     "CRM": {
       "symbol": "CRM",
       "name": "Salesforce",
@@ -57020,6 +58120,19 @@
         "name": "Salesforce",
         "topics": [
           "us-cloud-ai-software"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CRS": {
+      "symbol": "CRS",
+      "name": "卡本特科技",
+      "topics": [],
+      "detail": {
+        "code": "CRS",
+        "name": "卡本特科技",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -57071,8 +58184,8 @@
         "code": "CRWV",
         "name": "CoreWeave",
         "topics": [
-          "us-ai-server-cloud",
-          "us-datacenter-reit"
+          "us-datacenter-reit",
+          "us-neocloud"
         ],
         "topicCount": 2
       }
@@ -57091,6 +58204,19 @@
         "topicCount": 2
       }
     },
+    "CSTM": {
+      "symbol": "CSTM",
+      "name": "Constellium",
+      "topics": [],
+      "detail": {
+        "code": "CSTM",
+        "name": "Constellium",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "CSX": {
       "symbol": "CSX",
       "name": "CSX 運輸",
@@ -57104,6 +58230,32 @@
         "topicCount": 1
       }
     },
+    "CTS": {
+      "symbol": "CTS",
+      "name": "CTS Corporation",
+      "topics": [],
+      "detail": {
+        "code": "CTS",
+        "name": "CTS Corporation",
+        "topics": [
+          "us-passive-components"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CTSH": {
+      "symbol": "CTSH",
+      "name": "Cognizant",
+      "topics": [],
+      "detail": {
+        "code": "CTSH",
+        "name": "Cognizant",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "CVLT": {
       "symbol": "CVLT",
       "name": "Commvault",
@@ -57113,6 +58265,19 @@
         "name": "Commvault",
         "topics": [
           "us-cybersecurity"
+        ],
+        "topicCount": 1
+      }
+    },
+    "CVS": {
+      "symbol": "CVS",
+      "name": "CVS Health",
+      "topics": [],
+      "detail": {
+        "code": "CVS",
+        "name": "CVS Health",
+        "topics": [
+          "us-health-insurance"
         ],
         "topicCount": 1
       }
@@ -57143,6 +58308,32 @@
         "topicCount": 1
       }
     },
+    "CWT": {
+      "symbol": "CWT",
+      "name": "California Water Service",
+      "topics": [],
+      "detail": {
+        "code": "CWT",
+        "name": "California Water Service",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
+      }
+    },
+    "D": {
+      "symbol": "D",
+      "name": "Dominion Energy",
+      "topics": [],
+      "detail": {
+        "code": "D",
+        "name": "Dominion Energy",
+        "topics": [
+          "us-power-utilities-ipp"
+        ],
+        "topicCount": 1
+      }
+    },
     "DAL": {
       "symbol": "DAL",
       "name": "達美航空",
@@ -57164,7 +58355,21 @@
         "code": "DD",
         "name": "DuPont",
         "topics": [
+          "us-chemicals-materials",
           "us-semiconductor-materials"
+        ],
+        "topicCount": 2
+      }
+    },
+    "DDOG": {
+      "symbol": "DDOG",
+      "name": "Datadog",
+      "topics": [],
+      "detail": {
+        "code": "DDOG",
+        "name": "Datadog",
+        "topics": [
+          "us-data-platform"
         ],
         "topicCount": 1
       }
@@ -57230,7 +58435,7 @@
         "code": "DHR",
         "name": "Danaher",
         "topics": [
-          "us-glp1-obesity"
+          "us-lifescience-cro"
         ],
         "topicCount": 1
       }
@@ -57300,6 +58505,58 @@
         "topicCount": 1
       }
     },
+    "DOV": {
+      "symbol": "DOV",
+      "name": "Dover",
+      "topics": [],
+      "detail": {
+        "code": "DOV",
+        "name": "Dover",
+        "topics": [
+          "us-datacenter-cooling"
+        ],
+        "topicCount": 1
+      }
+    },
+    "DOW": {
+      "symbol": "DOW",
+      "name": "Dow",
+      "topics": [],
+      "detail": {
+        "code": "DOW",
+        "name": "Dow",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "DT": {
+      "symbol": "DT",
+      "name": "Dynatrace",
+      "topics": [],
+      "detail": {
+        "code": "DT",
+        "name": "Dynatrace",
+        "topics": [
+          "us-data-platform"
+        ],
+        "topicCount": 1
+      }
+    },
+    "DTM": {
+      "symbol": "DTM",
+      "name": "DT Midstream",
+      "topics": [],
+      "detail": {
+        "code": "DTM",
+        "name": "DT Midstream",
+        "topics": [
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
     "DUK": {
       "symbol": "DUK",
       "name": "Duke Energy",
@@ -57308,9 +58565,10 @@
         "code": "DUK",
         "name": "Duke Energy",
         "topics": [
-          "us-nuclear-smr"
+          "us-nuclear-smr",
+          "us-power-utilities-ipp"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "DV": {
@@ -57326,6 +58584,19 @@
         "topicCount": 1
       }
     },
+    "DXC": {
+      "symbol": "DXC",
+      "name": "DXC Technology",
+      "topics": [],
+      "detail": {
+        "code": "DXC",
+        "name": "DXC Technology",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "DXCM": {
       "symbol": "DXCM",
       "name": "DexCom",
@@ -57336,6 +58607,33 @@
         "topics": [
           "us-glp1-obesity",
           "us-medical-devices"
+        ],
+        "topicCount": 2
+      }
+    },
+    "DY": {
+      "symbol": "DY",
+      "name": "Dycom Industries",
+      "topics": [],
+      "detail": {
+        "code": "DY",
+        "name": "Dycom Industries",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ECL": {
+      "symbol": "ECL",
+      "name": "Ecolab",
+      "topics": [],
+      "detail": {
+        "code": "ECL",
+        "name": "Ecolab",
+        "topics": [
+          "us-chemicals-materials",
+          "us-water-infrastructure"
         ],
         "topicCount": 2
       }
@@ -57362,6 +58660,84 @@
         "name": "Everest Group",
         "topics": [
           "us-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EHC": {
+      "symbol": "EHC",
+      "name": "Encompass Health",
+      "topics": [],
+      "detail": {
+        "code": "EHC",
+        "name": "Encompass Health",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EL": {
+      "symbol": "EL",
+      "name": "雅詩蘭黛",
+      "topics": [],
+      "detail": {
+        "code": "EL",
+        "name": "雅詩蘭黛",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ELF": {
+      "symbol": "ELF",
+      "name": "e.l.f. Beauty",
+      "topics": [],
+      "detail": {
+        "code": "ELF",
+        "name": "e.l.f. Beauty",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ELV": {
+      "symbol": "ELV",
+      "name": "Elevance Health",
+      "topics": [],
+      "detail": {
+        "code": "ELV",
+        "name": "Elevance Health",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EME": {
+      "symbol": "EME",
+      "name": "EMCOR Group",
+      "topics": [],
+      "detail": {
+        "code": "EME",
+        "name": "EMCOR Group",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EMN": {
+      "symbol": "EMN",
+      "name": "Eastman Chemical",
+      "topics": [],
+      "detail": {
+        "code": "EMN",
+        "name": "Eastman Chemical",
+        "topics": [
+          "us-chemicals-materials"
         ],
         "topicCount": 1
       }
@@ -57402,9 +58778,10 @@
         "name": "Entegris",
         "topics": [
           "us-advanced-packaging",
+          "us-glass-core-substrate",
           "us-semiconductor-materials"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "EOG": {
@@ -57416,6 +58793,32 @@
         "name": "EOG Resources",
         "topics": [
           "us-oil-gas"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EPAM": {
+      "symbol": "EPAM",
+      "name": "EPAM Systems",
+      "topics": [],
+      "detail": {
+        "code": "EPAM",
+        "name": "EPAM Systems",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EPD": {
+      "symbol": "EPD",
+      "name": "Enterprise Products",
+      "topics": [],
+      "detail": {
+        "code": "EPD",
+        "name": "Enterprise Products",
+        "topics": [
+          "us-lng-midstream"
         ],
         "topicCount": 1
       }
@@ -57446,6 +58849,32 @@
         "topicCount": 1
       }
     },
+    "ESTC": {
+      "symbol": "ESTC",
+      "name": "Elastic",
+      "topics": [],
+      "detail": {
+        "code": "ESTC",
+        "name": "Elastic",
+        "topics": [
+          "us-data-platform"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ET": {
+      "symbol": "ET",
+      "name": "Energy Transfer",
+      "topics": [],
+      "detail": {
+        "code": "ET",
+        "name": "Energy Transfer",
+        "topics": [
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
     "ETN": {
       "symbol": "ETN",
       "name": "Eaton",
@@ -57455,9 +58884,10 @@
         "name": "Eaton",
         "topics": [
           "us-ai-power-cooling",
+          "us-datacenter-cooling",
           "us-smart-grid-energy"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "ETR": {
@@ -57468,9 +58898,10 @@
         "code": "ETR",
         "name": "Entergy",
         "topics": [
-          "us-nuclear-smr"
+          "us-nuclear-smr",
+          "us-power-utilities-ipp"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "EVGO": {
@@ -57482,6 +58913,32 @@
         "name": "EVgo",
         "topics": [
           "us-ev-autonomous"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EXC": {
+      "symbol": "EXC",
+      "name": "Exelon",
+      "topics": [],
+      "detail": {
+        "code": "EXC",
+        "name": "Exelon",
+        "topics": [
+          "us-power-utilities-ipp"
+        ],
+        "topicCount": 1
+      }
+    },
+    "EXLS": {
+      "symbol": "EXLS",
+      "name": "ExlService",
+      "topics": [],
+      "detail": {
+        "code": "EXLS",
+        "name": "ExlService",
+        "topics": [
+          "us-it-services"
         ],
         "topicCount": 1
       }
@@ -57534,6 +58991,32 @@
         "name": "Fate Therapeutics",
         "topics": [
           "us-biotech-ai"
+        ],
+        "topicCount": 1
+      }
+    },
+    "FCX": {
+      "symbol": "FCX",
+      "name": "自由港麥克莫蘭",
+      "topics": [],
+      "detail": {
+        "code": "FCX",
+        "name": "自由港麥克莫蘭",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
+    "FDS": {
+      "symbol": "FDS",
+      "name": "FactSet",
+      "topics": [],
+      "detail": {
+        "code": "FDS",
+        "name": "FactSet",
+        "topics": [
+          "us-exchanges-data"
         ],
         "topicCount": 1
       }
@@ -57616,6 +59099,19 @@
         "topicCount": 1
       }
     },
+    "FIX": {
+      "symbol": "FIX",
+      "name": "Comfort Systems USA",
+      "topics": [],
+      "detail": {
+        "code": "FIX",
+        "name": "Comfort Systems USA",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
     "FLEX": {
       "symbol": "FLEX",
       "name": "Flex",
@@ -57643,6 +59139,19 @@
         "topicCount": 1
       }
     },
+    "FLNG": {
+      "symbol": "FLNG",
+      "name": "Flex LNG",
+      "topics": [],
+      "detail": {
+        "code": "FLNG",
+        "name": "Flex LNG",
+        "topics": [
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
     "FORM": {
       "symbol": "FORM",
       "name": "FormFactor",
@@ -57652,6 +59161,19 @@
         "name": "FormFactor",
         "topics": [
           "us-semi-test-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "FSK": {
+      "symbol": "FSK",
+      "name": "FS KKR Capital",
+      "topics": [],
+      "detail": {
+        "code": "FSK",
+        "name": "FS KKR Capital",
+        "topics": [
+          "us-alternative-assets"
         ],
         "topicCount": 1
       }
@@ -57704,6 +59226,58 @@
         "name": "Fortinet",
         "topics": [
           "us-cybersecurity"
+        ],
+        "topicCount": 1
+      }
+    },
+    "FTRE": {
+      "symbol": "FTRE",
+      "name": "Fortrea",
+      "topics": [],
+      "detail": {
+        "code": "FTRE",
+        "name": "Fortrea",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
+    "FUL": {
+      "symbol": "FUL",
+      "name": "H.B. Fuller",
+      "topics": [],
+      "detail": {
+        "code": "FUL",
+        "name": "H.B. Fuller",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "G": {
+      "symbol": "G",
+      "name": "Genpact",
+      "topics": [],
+      "detail": {
+        "code": "G",
+        "name": "Genpact",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
+    "GCMG": {
+      "symbol": "GCMG",
+      "name": "GCM Grosvenor",
+      "topics": [],
+      "detail": {
+        "code": "GCMG",
+        "name": "GCM Grosvenor",
+        "topics": [
+          "us-alternative-assets"
         ],
         "topicCount": 1
       }
@@ -57770,11 +59344,10 @@
         "code": "GEV",
         "name": "GE Vernova",
         "topics": [
-          "us-ai-power-cooling",
           "us-nuclear-smr",
           "us-smart-grid-energy"
         ],
-        "topicCount": 3
+        "topicCount": 2
       }
     },
     "GFS": {
@@ -57816,6 +59389,45 @@
         "topicCount": 1
       }
     },
+    "GIS": {
+      "symbol": "GIS",
+      "name": "通用磨坊",
+      "topics": [],
+      "detail": {
+        "code": "GIS",
+        "name": "通用磨坊",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "GLNG": {
+      "symbol": "GLNG",
+      "name": "Golar LNG",
+      "topics": [],
+      "detail": {
+        "code": "GLNG",
+        "name": "Golar LNG",
+        "topics": [
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
+    "GLOB": {
+      "symbol": "GLOB",
+      "name": "Globant",
+      "topics": [],
+      "detail": {
+        "code": "GLOB",
+        "name": "Globant",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "GLW": {
       "symbol": "GLW",
       "name": "Corning",
@@ -57824,9 +59436,10 @@
         "code": "GLW",
         "name": "Corning",
         "topics": [
+          "us-glass-core-substrate",
           "us-wafer-fab-equipment"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "GOOG": {
@@ -57910,6 +59523,32 @@
         "topicCount": 1
       }
     },
+    "GTLB": {
+      "symbol": "GTLB",
+      "name": "GitLab",
+      "topics": [],
+      "detail": {
+        "code": "GTLB",
+        "name": "GitLab",
+        "topics": [
+          "us-data-platform"
+        ],
+        "topicCount": 1
+      }
+    },
+    "GVA": {
+      "symbol": "GVA",
+      "name": "Granite Construction",
+      "topics": [],
+      "detail": {
+        "code": "GVA",
+        "name": "Granite Construction",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
     "GXO": {
       "symbol": "GXO",
       "name": "GXO Logistics",
@@ -57932,6 +59571,32 @@
         "name": "Halliburton",
         "topics": [
           "us-oil-gas"
+        ],
+        "topicCount": 1
+      }
+    },
+    "HBM": {
+      "symbol": "HBM",
+      "name": "Hudbay Minerals",
+      "topics": [],
+      "detail": {
+        "code": "HBM",
+        "name": "Hudbay Minerals",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
+    "HCA": {
+      "symbol": "HCA",
+      "name": "HCA Healthcare",
+      "topics": [],
+      "detail": {
+        "code": "HCA",
+        "name": "HCA Healthcare",
+        "topics": [
+          "us-health-insurance"
         ],
         "topicCount": 1
       }
@@ -58009,6 +59674,19 @@
         "topicCount": 1
       }
     },
+    "HLNE": {
+      "symbol": "HLNE",
+      "name": "Hamilton Lane",
+      "topics": [],
+      "detail": {
+        "code": "HLNE",
+        "name": "Hamilton Lane",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "HOOD": {
       "symbol": "HOOD",
       "name": "Robinhood Markets",
@@ -58017,9 +59695,10 @@
         "code": "HOOD",
         "name": "Robinhood Markets",
         "topics": [
-          "us-crypto-bitcoin"
+          "us-crypto-bitcoin",
+          "us-exchanges-data"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "HPE": {
@@ -58062,6 +59741,32 @@
         "topicCount": 1
       }
     },
+    "HSY": {
+      "symbol": "HSY",
+      "name": "好時",
+      "topics": [],
+      "detail": {
+        "code": "HSY",
+        "name": "好時",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "HTO": {
+      "symbol": "HTO",
+      "name": "H2O America",
+      "topics": [],
+      "detail": {
+        "code": "HTO",
+        "name": "H2O America",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
+      }
+    },
     "HUBB": {
       "symbol": "HUBB",
       "name": "Hubbell",
@@ -58071,6 +59776,45 @@
         "name": "Hubbell",
         "topics": [
           "us-smart-grid-energy"
+        ],
+        "topicCount": 1
+      }
+    },
+    "HUBS": {
+      "symbol": "HUBS",
+      "name": "HubSpot",
+      "topics": [],
+      "detail": {
+        "code": "HUBS",
+        "name": "HubSpot",
+        "topics": [
+          "us-cloud-ai-software"
+        ],
+        "topicCount": 1
+      }
+    },
+    "HUM": {
+      "symbol": "HUM",
+      "name": "Humana",
+      "topics": [],
+      "detail": {
+        "code": "HUM",
+        "name": "Humana",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "HUT": {
+      "symbol": "HUT",
+      "name": "Hut 8",
+      "topics": [],
+      "detail": {
+        "code": "HUT",
+        "name": "Hut 8",
+        "topics": [
+          "us-neocloud"
         ],
         "topicCount": 1
       }
@@ -58101,6 +59845,19 @@
         "topicCount": 1
       }
     },
+    "IBKR": {
+      "symbol": "IBKR",
+      "name": "Interactive Brokers",
+      "topics": [],
+      "detail": {
+        "code": "IBKR",
+        "name": "Interactive Brokers",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
+      }
+    },
     "IBM": {
       "symbol": "IBM",
       "name": "International Business Machines",
@@ -58109,7 +59866,47 @@
         "code": "IBM",
         "name": "International Business Machines",
         "topics": [
+          "us-it-services",
           "us-quantum-computing"
+        ],
+        "topicCount": 2
+      }
+    },
+    "ICE": {
+      "symbol": "ICE",
+      "name": "Intercontinental Exchange",
+      "topics": [],
+      "detail": {
+        "code": "ICE",
+        "name": "Intercontinental Exchange",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
+      }
+    },
+    "ICLR": {
+      "symbol": "ICLR",
+      "name": "ICON plc",
+      "topics": [],
+      "detail": {
+        "code": "ICLR",
+        "name": "ICON plc",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
+    "IESC": {
+      "symbol": "IESC",
+      "name": "IES Holdings",
+      "topics": [],
+      "detail": {
+        "code": "IESC",
+        "name": "IES Holdings",
+        "topics": [
+          "us-datacenter-construction"
         ],
         "topicCount": 1
       }
@@ -58140,6 +59937,19 @@
         "topicCount": 1
       }
     },
+    "INFY": {
+      "symbol": "INFY",
+      "name": "Infosys",
+      "topics": [],
+      "detail": {
+        "code": "INFY",
+        "name": "Infosys",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "INTC": {
       "symbol": "INTC",
       "name": "Intel",
@@ -58151,9 +59961,23 @@
           "us-ai-pc-devices",
           "us-cpu-agentic-ai",
           "us-foundry",
+          "us-glass-core-substrate",
           "us-gpu-ai-chip"
         ],
-        "topicCount": 4
+        "topicCount": 5
+      }
+    },
+    "INTU": {
+      "symbol": "INTU",
+      "name": "Intuit",
+      "topics": [],
+      "detail": {
+        "code": "INTU",
+        "name": "Intuit",
+        "topics": [
+          "us-cloud-ai-software"
+        ],
+        "topicCount": 1
       }
     },
     "INVH": {
@@ -58195,6 +60019,19 @@
         "topicCount": 1
       }
     },
+    "IQV": {
+      "symbol": "IQV",
+      "name": "IQVIA",
+      "topics": [],
+      "detail": {
+        "code": "IQV",
+        "name": "IQVIA",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
     "IRDM": {
       "symbol": "IRDM",
       "name": "Iridium Communications",
@@ -58216,7 +60053,7 @@
         "code": "IREN",
         "name": "IREN",
         "topics": [
-          "us-ai-server-cloud"
+          "us-neocloud"
         ],
         "topicCount": 1
       }
@@ -58261,6 +60098,19 @@
         "topicCount": 1
       }
     },
+    "J": {
+      "symbol": "J",
+      "name": "Jacobs Solutions",
+      "topics": [],
+      "detail": {
+        "code": "J",
+        "name": "Jacobs Solutions",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
     "JBHT": {
       "symbol": "JBHT",
       "name": "亨特運輸",
@@ -58297,6 +60147,19 @@
         "name": "捷藍航空",
         "topics": [
           "us-airlines"
+        ],
+        "topicCount": 1
+      }
+    },
+    "JCI": {
+      "symbol": "JCI",
+      "name": "Johnson Controls",
+      "topics": [],
+      "detail": {
+        "code": "JCI",
+        "name": "Johnson Controls",
+        "topics": [
+          "us-datacenter-cooling"
         ],
         "topicCount": 1
       }
@@ -58340,6 +60203,19 @@
         "topicCount": 1
       }
     },
+    "KALU": {
+      "symbol": "KALU",
+      "name": "凱撒鋁業",
+      "topics": [],
+      "detail": {
+        "code": "KALU",
+        "name": "凱撒鋁業",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "KBH": {
       "symbol": "KBH",
       "name": "KB Home",
@@ -58353,6 +60229,19 @@
         "topicCount": 1
       }
     },
+    "KD": {
+      "symbol": "KD",
+      "name": "Kyndryl",
+      "topics": [],
+      "detail": {
+        "code": "KD",
+        "name": "Kyndryl",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "KEX": {
       "symbol": "KEX",
       "name": "柯比海運",
@@ -58362,6 +60251,32 @@
         "name": "柯比海運",
         "topics": [
           "us-freight-logistics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "KHC": {
+      "symbol": "KHC",
+      "name": "卡夫亨氏",
+      "topics": [],
+      "detail": {
+        "code": "KHC",
+        "name": "卡夫亨氏",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "KKR": {
+      "symbol": "KKR",
+      "name": "KKR",
+      "topics": [],
+      "detail": {
+        "code": "KKR",
+        "name": "KKR",
+        "topics": [
+          "us-alternative-assets"
         ],
         "topicCount": 1
       }
@@ -58392,6 +60307,19 @@
         "topicCount": 1
       }
     },
+    "KMB": {
+      "symbol": "KMB",
+      "name": "金百利克拉克",
+      "topics": [],
+      "detail": {
+        "code": "KMB",
+        "name": "金百利克拉克",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
     "KMI": {
       "symbol": "KMI",
       "name": "Kinder Morgan",
@@ -58400,7 +60328,20 @@
         "code": "KMI",
         "name": "Kinder Morgan",
         "topics": [
-          "us-oil-gas"
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
+    "KN": {
+      "symbol": "KN",
+      "name": "Knowles",
+      "topics": [],
+      "detail": {
+        "code": "KN",
+        "name": "Knowles",
+        "topics": [
+          "us-passive-components"
         ],
         "topicCount": 1
       }
@@ -58414,6 +60355,19 @@
         "name": "騎士斯威夫特",
         "topics": [
           "us-freight-logistics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "KO": {
+      "symbol": "KO",
+      "name": "可口可樂",
+      "topics": [],
+      "detail": {
+        "code": "KO",
+        "name": "可口可樂",
+        "topics": [
+          "us-consumer-staples"
         ],
         "topicCount": 1
       }
@@ -58492,9 +60446,10 @@
         "code": "LFUS",
         "name": "Littelfuse",
         "topics": [
-          "us-industrial-auto-semi"
+          "us-industrial-auto-semi",
+          "us-passive-components"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "LHX": {
@@ -58519,9 +60474,10 @@
         "code": "LIN",
         "name": "Linde",
         "topics": [
+          "us-chemicals-materials",
           "us-semiconductor-materials"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "LITE": {
@@ -58574,7 +60530,7 @@
         "code": "LNG",
         "name": "Cheniere Energy",
         "topics": [
-          "us-oil-gas"
+          "us-lng-midstream"
         ],
         "topicCount": 1
       }
@@ -58614,6 +60570,19 @@
         "name": "Lam Research",
         "topics": [
           "us-wafer-fab-equipment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "LSCC": {
+      "symbol": "LSCC",
+      "name": "Lattice Semiconductor",
+      "topics": [],
+      "detail": {
+        "code": "LSCC",
+        "name": "Lattice Semiconductor",
+        "topics": [
+          "us-fpga-edge-ai"
         ],
         "topicCount": 1
       }
@@ -58671,6 +60640,19 @@
         "topicCount": 1
       }
     },
+    "LYB": {
+      "symbol": "LYB",
+      "name": "LyondellBasell",
+      "topics": [],
+      "detail": {
+        "code": "LYB",
+        "name": "LyondellBasell",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
     "MA": {
       "symbol": "MA",
       "name": "Mastercard",
@@ -58680,6 +60662,19 @@
         "name": "Mastercard",
         "topics": [
           "us-fintech-payments"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MAIN": {
+      "symbol": "MAIN",
+      "name": "Main Street Capital",
+      "topics": [],
+      "detail": {
+        "code": "MAIN",
+        "name": "Main Street Capital",
+        "topics": [
+          "us-alternative-assets"
         ],
         "topicCount": 1
       }
@@ -58731,7 +60726,34 @@
         "code": "MCHP",
         "name": "Microchip Technology",
         "topics": [
+          "us-fpga-edge-ai",
           "us-industrial-auto-semi"
+        ],
+        "topicCount": 2
+      }
+    },
+    "MCK": {
+      "symbol": "MCK",
+      "name": "McKesson",
+      "topics": [],
+      "detail": {
+        "code": "MCK",
+        "name": "McKesson",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MCO": {
+      "symbol": "MCO",
+      "name": "Moody's",
+      "topics": [],
+      "detail": {
+        "code": "MCO",
+        "name": "Moody's",
+        "topics": [
+          "us-exchanges-data"
         ],
         "topicCount": 1
       }
@@ -58744,7 +60766,20 @@
         "code": "MDB",
         "name": "MongoDB",
         "topics": [
-          "us-cloud-ai-software"
+          "us-data-platform"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MDLZ": {
+      "symbol": "MDLZ",
+      "name": "億滋",
+      "topics": [],
+      "detail": {
+        "code": "MDLZ",
+        "name": "億滋",
+        "topics": [
+          "us-consumer-staples"
         ],
         "topicCount": 1
       }
@@ -58758,6 +60793,19 @@
         "name": "Medtronic",
         "topics": [
           "us-medical-devices"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MEDP": {
+      "symbol": "MEDP",
+      "name": "Medpace",
+      "topics": [],
+      "detail": {
+        "code": "MEDP",
+        "name": "Medpace",
+        "topics": [
+          "us-lifescience-cro"
         ],
         "topicCount": 1
       }
@@ -58818,6 +60866,32 @@
         "topicCount": 1
       }
     },
+    "MKSI": {
+      "symbol": "MKSI",
+      "name": "MKS Instruments",
+      "topics": [],
+      "detail": {
+        "code": "MKSI",
+        "name": "MKS Instruments",
+        "topics": [
+          "us-glass-core-substrate"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MLI": {
+      "symbol": "MLI",
+      "name": "Mueller Industries",
+      "topics": [],
+      "detail": {
+        "code": "MLI",
+        "name": "Mueller Industries",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "MLM": {
       "symbol": "MLM",
       "name": "Martin Marietta Materials",
@@ -58827,6 +60901,71 @@
         "name": "Martin Marietta Materials",
         "topics": [
           "us-housing"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MNST": {
+      "symbol": "MNST",
+      "name": "怪物飲料",
+      "topics": [],
+      "detail": {
+        "code": "MNST",
+        "name": "怪物飲料",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MO": {
+      "symbol": "MO",
+      "name": "奧馳亞",
+      "topics": [],
+      "detail": {
+        "code": "MO",
+        "name": "奧馳亞",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MOD": {
+      "symbol": "MOD",
+      "name": "Modine Manufacturing",
+      "topics": [],
+      "detail": {
+        "code": "MOD",
+        "name": "Modine Manufacturing",
+        "topics": [
+          "us-datacenter-cooling"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MOH": {
+      "symbol": "MOH",
+      "name": "Molina Healthcare",
+      "topics": [],
+      "detail": {
+        "code": "MOH",
+        "name": "Molina Healthcare",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MORN": {
+      "symbol": "MORN",
+      "name": "Morningstar",
+      "topics": [],
+      "detail": {
+        "code": "MORN",
+        "name": "Morningstar",
+        "topics": [
+          "us-exchanges-data"
         ],
         "topicCount": 1
       }
@@ -58853,6 +60992,19 @@
         "name": "Marathon Petroleum",
         "topics": [
           "us-oil-gas"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MPLX": {
+      "symbol": "MPLX",
+      "name": "MPLX",
+      "topics": [],
+      "detail": {
+        "code": "MPLX",
+        "name": "MPLX",
+        "topics": [
+          "us-lng-midstream"
         ],
         "topicCount": 1
       }
@@ -58912,6 +61064,19 @@
         "topicCount": 1
       }
     },
+    "MSCI": {
+      "symbol": "MSCI",
+      "name": "MSCI",
+      "topics": [],
+      "detail": {
+        "code": "MSCI",
+        "name": "MSCI",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
+      }
+    },
     "MSFT": {
       "symbol": "MSFT",
       "name": "Microsoft",
@@ -58954,6 +61119,19 @@
         "topicCount": 1
       }
     },
+    "MTD": {
+      "symbol": "MTD",
+      "name": "Mettler-Toledo",
+      "topics": [],
+      "detail": {
+        "code": "MTD",
+        "name": "Mettler-Toledo",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
     "MTSI": {
       "symbol": "MTSI",
       "name": "MACOM",
@@ -58962,7 +61140,21 @@
         "code": "MTSI",
         "name": "MACOM",
         "topics": [
+          "us-rf-frontend",
           "us-sic-gan-power"
+        ],
+        "topicCount": 2
+      }
+    },
+    "MTUS": {
+      "symbol": "MTUS",
+      "name": "Metallus",
+      "topics": [],
+      "detail": {
+        "code": "MTUS",
+        "name": "Metallus",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -58975,9 +61167,10 @@
         "code": "MTZ",
         "name": "MasTec",
         "topics": [
+          "us-datacenter-construction",
           "us-smart-grid-energy"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "MU": {
@@ -58989,6 +61182,19 @@
         "name": "Micron Technology",
         "topics": [
           "us-memory-storage"
+        ],
+        "topicCount": 1
+      }
+    },
+    "MWA": {
+      "symbol": "MWA",
+      "name": "Mueller Water Products",
+      "topics": [],
+      "detail": {
+        "code": "MWA",
+        "name": "Mueller Water Products",
+        "topics": [
+          "us-water-infrastructure"
         ],
         "topicCount": 1
       }
@@ -59014,9 +61220,10 @@
         "code": "MYRG",
         "name": "MYR Group",
         "topics": [
+          "us-datacenter-construction",
           "us-smart-grid-energy"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "NB": {
@@ -59040,10 +61247,23 @@
         "code": "NBIS",
         "name": "Nebius Group",
         "topics": [
-          "us-ai-server-cloud",
-          "us-datacenter-reit"
+          "us-datacenter-reit",
+          "us-neocloud"
         ],
         "topicCount": 2
+      }
+    },
+    "NDAQ": {
+      "symbol": "NDAQ",
+      "name": "Nasdaq",
+      "topics": [],
+      "detail": {
+        "code": "NDAQ",
+        "name": "Nasdaq",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
       }
     },
     "NEE": {
@@ -59055,9 +61275,10 @@
         "name": "NextEra",
         "topics": [
           "us-nuclear-smr",
+          "us-power-utilities-ipp",
           "us-solar-clean-energy"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "NET": {
@@ -59069,6 +61290,19 @@
         "name": "Cloudflare",
         "topics": [
           "us-cybersecurity"
+        ],
+        "topicCount": 1
+      }
+    },
+    "NEXT": {
+      "symbol": "NEXT",
+      "name": "NextDecade",
+      "topics": [],
+      "detail": {
+        "code": "NEXT",
+        "name": "NextDecade",
+        "topics": [
+          "us-lng-midstream"
         ],
         "topicCount": 1
       }
@@ -59135,9 +61369,10 @@
         "code": "NRG",
         "name": "NRG Energy",
         "topics": [
-          "us-datacenter-reit"
+          "us-datacenter-reit",
+          "us-power-utilities-ipp"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "NSC": {
@@ -59149,6 +61384,19 @@
         "name": "諾福克南方",
         "topics": [
           "us-freight-logistics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "NSIT": {
+      "symbol": "NSIT",
+      "name": "Insight Enterprises",
+      "topics": [],
+      "detail": {
+        "code": "NSIT",
+        "name": "Insight Enterprises",
+        "topics": [
+          "us-ic-distribution"
         ],
         "topicCount": 1
       }
@@ -59188,6 +61436,19 @@
         "name": "Nu Holdings",
         "topics": [
           "us-fintech-payments"
+        ],
+        "topicCount": 1
+      }
+    },
+    "NUE": {
+      "symbol": "NUE",
+      "name": "紐柯鋼鐵",
+      "topics": [],
+      "detail": {
+        "code": "NUE",
+        "name": "紐柯鋼鐵",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -59245,9 +61506,10 @@
         "code": "NVT",
         "name": "nVent Electric",
         "topics": [
-          "us-ai-power-cooling"
+          "us-ai-power-cooling",
+          "us-datacenter-cooling"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "NVTS": {
@@ -59259,6 +61521,19 @@
         "name": "Navitas",
         "topics": [
           "us-sic-gan-power"
+        ],
+        "topicCount": 1
+      }
+    },
+    "NWPX": {
+      "symbol": "NWPX",
+      "name": "NWPX Infrastructure",
+      "topics": [],
+      "detail": {
+        "code": "NWPX",
+        "name": "NWPX Infrastructure",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -59289,6 +61564,19 @@
         "topicCount": 1
       }
     },
+    "OBDC": {
+      "symbol": "OBDC",
+      "name": "Blue Owl Capital Corporation",
+      "topics": [],
+      "detail": {
+        "code": "OBDC",
+        "name": "Blue Owl Capital Corporation",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "ODFL": {
       "symbol": "ODFL",
       "name": "老道明貨運",
@@ -59302,6 +61590,19 @@
         "topicCount": 1
       }
     },
+    "OKE": {
+      "symbol": "OKE",
+      "name": "ONEOK",
+      "topics": [],
+      "detail": {
+        "code": "OKE",
+        "name": "ONEOK",
+        "topics": [
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
     "OKLO": {
       "symbol": "OKLO",
       "name": "Oklo",
@@ -59310,10 +61611,9 @@
         "code": "OKLO",
         "name": "Oklo",
         "topics": [
-          "us-ai-power-cooling",
           "us-nuclear-smr"
         ],
-        "topicCount": 2
+        "topicCount": 1
       }
     },
     "OKTA": {
@@ -59325,6 +61625,19 @@
         "name": "Okta",
         "topics": [
           "us-cybersecurity"
+        ],
+        "topicCount": 1
+      }
+    },
+    "OLN": {
+      "symbol": "OLN",
+      "name": "Olin",
+      "topics": [],
+      "detail": {
+        "code": "OLN",
+        "name": "Olin",
+        "topics": [
+          "us-chemicals-materials"
         ],
         "topicCount": 1
       }
@@ -59366,7 +61679,21 @@
         "code": "ONTO",
         "name": "Onto Innovation",
         "topics": [
+          "us-glass-core-substrate",
           "us-wafer-fab-equipment"
+        ],
+        "topicCount": 2
+      }
+    },
+    "OPCH": {
+      "symbol": "OPCH",
+      "name": "Option Care Health",
+      "topics": [],
+      "detail": {
+        "code": "OPCH",
+        "name": "Option Care Health",
+        "topics": [
+          "us-health-insurance"
         ],
         "topicCount": 1
       }
@@ -59411,6 +61738,19 @@
         "topicCount": 2
       }
     },
+    "OWL": {
+      "symbol": "OWL",
+      "name": "Blue Owl Capital",
+      "topics": [],
+      "detail": {
+        "code": "OWL",
+        "name": "Blue Owl Capital",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
     "OXY": {
       "symbol": "OXY",
       "name": "Occidental Petroleum",
@@ -59437,6 +61777,19 @@
         "topicCount": 1
       }
     },
+    "PAYC": {
+      "symbol": "PAYC",
+      "name": "Paycom",
+      "topics": [],
+      "detail": {
+        "code": "PAYC",
+        "name": "Paycom",
+        "topics": [
+          "us-cloud-ai-software"
+        ],
+        "topicCount": 1
+      }
+    },
     "PCAR": {
       "symbol": "PCAR",
       "name": "PACCAR",
@@ -59446,6 +61799,19 @@
         "name": "PACCAR",
         "topics": [
           "us-heavy-machinery"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PCTY": {
+      "symbol": "PCTY",
+      "name": "Paylocity",
+      "topics": [],
+      "detail": {
+        "code": "PCTY",
+        "name": "Paylocity",
+        "topics": [
+          "us-cloud-ai-software"
         ],
         "topicCount": 1
       }
@@ -59463,6 +61829,32 @@
         "topicCount": 1
       }
     },
+    "PEG": {
+      "symbol": "PEG",
+      "name": "PSEG",
+      "topics": [],
+      "detail": {
+        "code": "PEG",
+        "name": "PSEG",
+        "topics": [
+          "us-power-utilities-ipp"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PEP": {
+      "symbol": "PEP",
+      "name": "百事",
+      "topics": [],
+      "detail": {
+        "code": "PEP",
+        "name": "百事",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
     "PFE": {
       "symbol": "PFE",
       "name": "輝瑞",
@@ -59472,6 +61864,19 @@
         "name": "輝瑞",
         "topics": [
           "us-big-pharma"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PG": {
+      "symbol": "PG",
+      "name": "寶僑",
+      "topics": [],
+      "detail": {
+        "code": "PG",
+        "name": "寶僑",
+        "topics": [
+          "us-consumer-staples"
         ],
         "topicCount": 1
       }
@@ -59562,7 +61967,7 @@
         "code": "PLTR",
         "name": "Palantir Technologies",
         "topics": [
-          "us-cloud-ai-software",
+          "us-data-platform",
           "us-defense-dronetech"
         ],
         "topicCount": 2
@@ -59577,6 +61982,32 @@
         "name": "Plexus",
         "topics": [
           "us-pcb-ems"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PM": {
+      "symbol": "PM",
+      "name": "菲利普莫里斯",
+      "topics": [],
+      "detail": {
+        "code": "PM",
+        "name": "菲利普莫里斯",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PNR": {
+      "symbol": "PNR",
+      "name": "Pentair",
+      "topics": [],
+      "detail": {
+        "code": "PNR",
+        "name": "Pentair",
+        "topics": [
+          "us-water-infrastructure"
         ],
         "topicCount": 1
       }
@@ -59607,6 +62038,19 @@
         "topicCount": 1
       }
     },
+    "PPG": {
+      "symbol": "PPG",
+      "name": "PPG Industries",
+      "topics": [],
+      "detail": {
+        "code": "PPG",
+        "name": "PPG Industries",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
     "PPTA": {
       "symbol": "PPTA",
       "name": "Perpetua Resources",
@@ -59616,6 +62060,19 @@
         "name": "Perpetua Resources",
         "topics": [
           "us-critical-minerals"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PRIM": {
+      "symbol": "PRIM",
+      "name": "Primoris Services",
+      "topics": [],
+      "detail": {
+        "code": "PRIM",
+        "name": "Primoris Services",
+        "topics": [
+          "us-datacenter-construction"
         ],
         "topicCount": 1
       }
@@ -59642,6 +62099,19 @@
         "name": "Prudential Financial",
         "topics": [
           "us-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
+    "PRVA": {
+      "symbol": "PRVA",
+      "name": "Privia Health",
+      "topics": [],
+      "detail": {
+        "code": "PRVA",
+        "name": "Privia Health",
+        "topics": [
+          "us-health-insurance"
         ],
         "topicCount": 1
       }
@@ -59693,9 +62163,10 @@
         "code": "PWR",
         "name": "Quanta Services",
         "topics": [
+          "us-datacenter-construction",
           "us-smart-grid-energy"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "PYPL": {
@@ -59736,9 +62207,23 @@
           "us-cpu-agentic-ai",
           "us-ev-autonomous",
           "us-gpu-ai-chip",
-          "us-humanoid-robotics"
+          "us-humanoid-robotics",
+          "us-rf-frontend"
         ],
-        "topicCount": 5
+        "topicCount": 6
+      }
+    },
+    "QRVO": {
+      "symbol": "QRVO",
+      "name": "Qorvo",
+      "topics": [],
+      "detail": {
+        "code": "QRVO",
+        "name": "Qorvo",
+        "topics": [
+          "us-rf-frontend"
+        ],
+        "topicCount": 1
       }
     },
     "QS": {
@@ -59854,6 +62339,32 @@
         "name": "再生元",
         "topics": [
           "us-big-pharma"
+        ],
+        "topicCount": 1
+      }
+    },
+    "RELL": {
+      "symbol": "RELL",
+      "name": "Richardson Electronics",
+      "topics": [],
+      "detail": {
+        "code": "RELL",
+        "name": "Richardson Electronics",
+        "topics": [
+          "us-ic-distribution"
+        ],
+        "topicCount": 1
+      }
+    },
+    "RGEN": {
+      "symbol": "RGEN",
+      "name": "Repligen",
+      "topics": [],
+      "detail": {
+        "code": "RGEN",
+        "name": "Repligen",
+        "topics": [
+          "us-lifescience-cro"
         ],
         "topicCount": 1
       }
@@ -59997,9 +62508,10 @@
         "code": "ROG",
         "name": "Rogers",
         "topics": [
+          "us-passive-components",
           "us-semiconductor-materials"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "ROK": {
@@ -60025,6 +62537,32 @@
         "name": "Ross Stores",
         "topics": [
           "us-retail-channel"
+        ],
+        "topicCount": 1
+      }
+    },
+    "RPM": {
+      "symbol": "RPM",
+      "name": "RPM International",
+      "topics": [],
+      "detail": {
+        "code": "RPM",
+        "name": "RPM International",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "RS": {
+      "symbol": "RS",
+      "name": "Reliance",
+      "topics": [],
+      "detail": {
+        "code": "RS",
+        "name": "Reliance",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -60057,6 +62595,19 @@
         "topicCount": 1
       }
     },
+    "RVTY": {
+      "symbol": "RVTY",
+      "name": "Revvity",
+      "topics": [],
+      "detail": {
+        "code": "RVTY",
+        "name": "Revvity",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
     "RXRX": {
       "symbol": "RXRX",
       "name": "Recursion Pharmaceuticals",
@@ -60066,6 +62617,19 @@
         "name": "Recursion Pharmaceuticals",
         "topics": [
           "us-biotech-ai"
+        ],
+        "topicCount": 1
+      }
+    },
+    "RYZ": {
+      "symbol": "RYZ",
+      "name": "Ryerson",
+      "topics": [],
+      "detail": {
+        "code": "RYZ",
+        "name": "Ryerson",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -60175,6 +62739,19 @@
         "topicCount": 1
       }
     },
+    "SCCO": {
+      "symbol": "SCCO",
+      "name": "南方銅業",
+      "topics": [],
+      "detail": {
+        "code": "SCCO",
+        "name": "南方銅業",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "SCHW": {
       "symbol": "SCHW",
       "name": "Charles Schwab",
@@ -60184,6 +62761,32 @@
         "name": "Charles Schwab",
         "topics": [
           "us-banking"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SCL": {
+      "symbol": "SCL",
+      "name": "Stepan",
+      "topics": [],
+      "detail": {
+        "code": "SCL",
+        "name": "Stepan",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SCSC": {
+      "symbol": "SCSC",
+      "name": "ScanSource",
+      "topics": [],
+      "detail": {
+        "code": "SCSC",
+        "name": "ScanSource",
+        "topics": [
+          "us-ic-distribution"
         ],
         "topicCount": 1
       }
@@ -60235,9 +62838,10 @@
         "code": "SHW",
         "name": "The Sherwin-Williams Company",
         "topics": [
+          "us-chemicals-materials",
           "us-housing"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "SIEGY": {
@@ -60249,6 +62853,19 @@
         "name": "Siemens Aktiengesellschaft",
         "topics": [
           "us-eda"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SITM": {
+      "symbol": "SITM",
+      "name": "SiTime",
+      "topics": [],
+      "detail": {
+        "code": "SITM",
+        "name": "SiTime",
+        "topics": [
+          "us-passive-components"
         ],
         "topicCount": 1
       }
@@ -60275,6 +62892,19 @@
         "name": "天西航空",
         "topics": [
           "us-airlines"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SLAB": {
+      "symbol": "SLAB",
+      "name": "Silicon Labs",
+      "topics": [],
+      "detail": {
+        "code": "SLAB",
+        "name": "Silicon Labs",
+        "topics": [
+          "us-rf-frontend"
         ],
         "topicCount": 1
       }
@@ -60319,6 +62949,19 @@
         "topicCount": 1
       }
     },
+    "SMTC": {
+      "symbol": "SMTC",
+      "name": "Semtech",
+      "topics": [],
+      "detail": {
+        "code": "SMTC",
+        "name": "Semtech",
+        "topics": [
+          "us-rf-frontend"
+        ],
+        "topicCount": 1
+      }
+    },
     "SNAP": {
       "symbol": "SNAP",
       "name": "Snap",
@@ -60345,6 +62988,19 @@
         "topicCount": 1
       }
     },
+    "SNEX": {
+      "symbol": "SNEX",
+      "name": "StoneX Group",
+      "topics": [],
+      "detail": {
+        "code": "SNEX",
+        "name": "StoneX Group",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
+      }
+    },
     "SNOW": {
       "symbol": "SNOW",
       "name": "Snowflake",
@@ -60353,7 +63009,7 @@
         "code": "SNOW",
         "name": "Snowflake",
         "topics": [
-          "us-cloud-ai-software"
+          "us-data-platform"
         ],
         "topicCount": 1
       }
@@ -60371,6 +63027,19 @@
         "topicCount": 1
       }
     },
+    "SNX": {
+      "symbol": "SNX",
+      "name": "TD SYNNEX",
+      "topics": [],
+      "detail": {
+        "code": "SNX",
+        "name": "TD SYNNEX",
+        "topics": [
+          "us-ic-distribution"
+        ],
+        "topicCount": 1
+      }
+    },
     "SNY": {
       "symbol": "SNY",
       "name": "賽諾菲",
@@ -60380,6 +63049,19 @@
         "name": "賽諾菲",
         "topics": [
           "us-big-pharma"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SO": {
+      "symbol": "SO",
+      "name": "Southern Company",
+      "topics": [],
+      "detail": {
+        "code": "SO",
+        "name": "Southern Company",
+        "topics": [
+          "us-power-utilities-ipp"
         ],
         "topicCount": 1
       }
@@ -60423,6 +63105,19 @@
         "topicCount": 1
       }
     },
+    "SPGI": {
+      "symbol": "SPGI",
+      "name": "S&P Global",
+      "topics": [],
+      "detail": {
+        "code": "SPGI",
+        "name": "S&P Global",
+        "topics": [
+          "us-exchanges-data"
+        ],
+        "topicCount": 1
+      }
+    },
     "SPIR": {
       "symbol": "SPIR",
       "name": "Spire Global",
@@ -60432,6 +63127,45 @@
         "name": "Spire Global",
         "topics": [
           "us-space-satellite"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SPXC": {
+      "symbol": "SPXC",
+      "name": "SPX Technologies",
+      "topics": [],
+      "detail": {
+        "code": "SPXC",
+        "name": "SPX Technologies",
+        "topics": [
+          "us-datacenter-cooling"
+        ],
+        "topicCount": 1
+      }
+    },
+    "STEP": {
+      "symbol": "STEP",
+      "name": "StepStone Group",
+      "topics": [],
+      "detail": {
+        "code": "STEP",
+        "name": "StepStone Group",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
+    "STLD": {
+      "symbol": "STLD",
+      "name": "鋼動力",
+      "topics": [],
+      "detail": {
+        "code": "STLD",
+        "name": "鋼動力",
+        "topics": [
+          "us-steel-base-metals"
         ],
         "topicCount": 1
       }
@@ -60452,6 +63186,19 @@
         "topicCount": 4
       }
     },
+    "STRL": {
+      "symbol": "STRL",
+      "name": "Sterling Infrastructure",
+      "topics": [],
+      "detail": {
+        "code": "STRL",
+        "name": "Sterling Infrastructure",
+        "topics": [
+          "us-datacenter-construction"
+        ],
+        "topicCount": 1
+      }
+    },
     "STT": {
       "symbol": "STT",
       "name": "State Street",
@@ -60465,6 +63212,20 @@
         "topicCount": 1
       }
     },
+    "STVN": {
+      "symbol": "STVN",
+      "name": "Stevanato Group",
+      "topics": [],
+      "detail": {
+        "code": "STVN",
+        "name": "Stevanato Group",
+        "topics": [
+          "us-glp1-obesity",
+          "us-lifescience-cro"
+        ],
+        "topicCount": 2
+      }
+    },
     "STX": {
       "symbol": "STX",
       "name": "Seagate Technology",
@@ -60474,6 +63235,32 @@
         "name": "Seagate Technology",
         "topics": [
           "us-memory-storage"
+        ],
+        "topicCount": 1
+      }
+    },
+    "STZ": {
+      "symbol": "STZ",
+      "name": "星座品牌",
+      "topics": [],
+      "detail": {
+        "code": "STZ",
+        "name": "星座品牌",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
+    "SWKS": {
+      "symbol": "SWKS",
+      "name": "Skyworks",
+      "topics": [],
+      "detail": {
+        "code": "SWKS",
+        "name": "Skyworks",
+        "topics": [
+          "us-rf-frontend"
         ],
         "topicCount": 1
       }
@@ -60517,6 +63304,19 @@
         "topicCount": 1
       }
     },
+    "TAP": {
+      "symbol": "TAP",
+      "name": "莫森康勝",
+      "topics": [],
+      "detail": {
+        "code": "TAP",
+        "name": "莫森康勝",
+        "topics": [
+          "us-consumer-staples"
+        ],
+        "topicCount": 1
+      }
+    },
     "TBCH": {
       "symbol": "TBCH",
       "name": "Turtle Beach",
@@ -60526,6 +63326,19 @@
         "name": "Turtle Beach",
         "topics": [
           "us-gaming"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TDC": {
+      "symbol": "TDC",
+      "name": "Teradata",
+      "topics": [],
+      "detail": {
+        "code": "TDC",
+        "name": "Teradata",
+        "topics": [
+          "us-data-platform"
         ],
         "topicCount": 1
       }
@@ -60552,6 +63365,19 @@
         "name": "Teladoc Health",
         "topics": [
           "us-glp1-obesity"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TEAM": {
+      "symbol": "TEAM",
+      "name": "Atlassian",
+      "topics": [],
+      "detail": {
+        "code": "TEAM",
+        "name": "Atlassian",
+        "topics": [
+          "us-cloud-ai-software"
         ],
         "topicCount": 1
       }
@@ -60622,6 +63448,19 @@
         "topicCount": 1
       }
     },
+    "THC": {
+      "symbol": "THC",
+      "name": "Tenet Healthcare",
+      "topics": [],
+      "detail": {
+        "code": "THC",
+        "name": "Tenet Healthcare",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "TITN": {
       "symbol": "TITN",
       "name": "Titan Machinery",
@@ -60648,6 +63487,19 @@
         "topicCount": 1
       }
     },
+    "TLN": {
+      "symbol": "TLN",
+      "name": "Talen Energy",
+      "topics": [],
+      "detail": {
+        "code": "TLN",
+        "name": "Talen Energy",
+        "topics": [
+          "us-power-utilities-ipp"
+        ],
+        "topicCount": 1
+      }
+    },
     "TMHC": {
       "symbol": "TMHC",
       "name": "Taylor Morrison Home",
@@ -60669,7 +63521,7 @@
         "code": "TMO",
         "name": "Thermo Fisher Scientific",
         "topics": [
-          "us-glp1-obesity"
+          "us-lifescience-cro"
         ],
         "topicCount": 1
       }
@@ -60696,6 +63548,32 @@
         "name": "Toll Brothers",
         "topics": [
           "us-housing"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TPG": {
+      "symbol": "TPG",
+      "name": "TPG",
+      "topics": [],
+      "detail": {
+        "code": "TPG",
+        "name": "TPG",
+        "topics": [
+          "us-alternative-assets"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TRGP": {
+      "symbol": "TRGP",
+      "name": "Targa Resources",
+      "topics": [],
+      "detail": {
+        "code": "TRGP",
+        "name": "Targa Resources",
+        "topics": [
+          "us-lng-midstream"
         ],
         "topicCount": 1
       }
@@ -60740,6 +63618,19 @@
         "topicCount": 2
       }
     },
+    "TT": {
+      "symbol": "TT",
+      "name": "Trane Technologies",
+      "topics": [],
+      "detail": {
+        "code": "TT",
+        "name": "Trane Technologies",
+        "topics": [
+          "us-datacenter-cooling"
+        ],
+        "topicCount": 1
+      }
+    },
     "TTD": {
       "symbol": "TTD",
       "name": "The Trade Desk",
@@ -60749,6 +63640,19 @@
         "name": "The Trade Desk",
         "topics": [
           "us-adtech-digital-media"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TTEK": {
+      "symbol": "TTEK",
+      "name": "Tetra Tech",
+      "topics": [],
+      "detail": {
+        "code": "TTEK",
+        "name": "Tetra Tech",
+        "topics": [
+          "us-water-infrastructure"
         ],
         "topicCount": 1
       }
@@ -60775,6 +63679,19 @@
         "name": "Take-Two",
         "topics": [
           "us-gaming"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TW": {
+      "symbol": "TW",
+      "name": "Tradeweb Markets",
+      "topics": [],
+      "detail": {
+        "code": "TW",
+        "name": "Tradeweb Markets",
+        "topics": [
+          "us-exchanges-data"
         ],
         "topicCount": 1
       }
@@ -60816,6 +63733,19 @@
         "name": "Textron",
         "topics": [
           "us-defense-dronetech"
+        ],
+        "topicCount": 1
+      }
+    },
+    "TYL": {
+      "symbol": "TYL",
+      "name": "Tyler Technologies",
+      "topics": [],
+      "detail": {
+        "code": "TYL",
+        "name": "Tyler Technologies",
+        "topics": [
+          "us-cloud-ai-software"
         ],
         "topicCount": 1
       }
@@ -60885,6 +63815,19 @@
         "topicCount": 1
       }
     },
+    "UHS": {
+      "symbol": "UHS",
+      "name": "Universal Health Services",
+      "topics": [],
+      "detail": {
+        "code": "UHS",
+        "name": "Universal Health Services",
+        "topics": [
+          "us-health-insurance"
+        ],
+        "topicCount": 1
+      }
+    },
     "ULCC": {
       "symbol": "ULCC",
       "name": "邊疆航空",
@@ -60907,6 +63850,19 @@
         "name": "Ulta Beauty",
         "topics": [
           "us-retail-channel"
+        ],
+        "topicCount": 1
+      }
+    },
+    "UNH": {
+      "symbol": "UNH",
+      "name": "聯合健康",
+      "topics": [],
+      "detail": {
+        "code": "UNH",
+        "name": "聯合健康",
+        "topics": [
+          "us-health-insurance"
         ],
         "topicCount": 1
       }
@@ -61016,6 +63972,19 @@
         "topicCount": 1
       }
     },
+    "VEEV": {
+      "symbol": "VEEV",
+      "name": "Veeva Systems",
+      "topics": [],
+      "detail": {
+        "code": "VEEV",
+        "name": "Veeva Systems",
+        "topics": [
+          "us-cloud-ai-software"
+        ],
+        "topicCount": 1
+      }
+    },
     "VG": {
       "symbol": "VG",
       "name": "Venture Global",
@@ -61024,7 +63993,7 @@
         "code": "VG",
         "name": "Venture Global",
         "topics": [
-          "us-oil-gas"
+          "us-lng-midstream"
         ],
         "topicCount": 1
       }
@@ -61038,6 +64007,32 @@
         "name": "Viavi Solutions",
         "topics": [
           "us-optical-communication"
+        ],
+        "topicCount": 1
+      }
+    },
+    "VICR": {
+      "symbol": "VICR",
+      "name": "Vicor",
+      "topics": [],
+      "detail": {
+        "code": "VICR",
+        "name": "Vicor",
+        "topics": [
+          "us-passive-components"
+        ],
+        "topicCount": 1
+      }
+    },
+    "VIRT": {
+      "symbol": "VIRT",
+      "name": "Virtu Financial",
+      "topics": [],
+      "detail": {
+        "code": "VIRT",
+        "name": "Virtu Financial",
+        "topics": [
+          "us-exchanges-data"
         ],
         "topicCount": 1
       }
@@ -61068,6 +64063,19 @@
         "topicCount": 1
       }
     },
+    "VLTO": {
+      "symbol": "VLTO",
+      "name": "Veralto",
+      "topics": [],
+      "detail": {
+        "code": "VLTO",
+        "name": "Veralto",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
+      }
+    },
     "VMC": {
       "symbol": "VMC",
       "name": "Vulcan Materials Company",
@@ -61081,6 +64089,19 @@
         "topicCount": 1
       }
     },
+    "VMI": {
+      "symbol": "VMI",
+      "name": "Valmont",
+      "topics": [],
+      "detail": {
+        "code": "VMI",
+        "name": "Valmont",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "VRT": {
       "symbol": "VRT",
       "name": "Vertiv Holdings Co",
@@ -61089,9 +64110,10 @@
         "code": "VRT",
         "name": "Vertiv Holdings Co",
         "topics": [
-          "us-ai-power-cooling"
+          "us-ai-power-cooling",
+          "us-datacenter-cooling"
         ],
-        "topicCount": 1
+        "topicCount": 2
       }
     },
     "VRTX": {
@@ -61129,9 +64151,10 @@
         "name": "Vishay Intertechnology",
         "topics": [
           "us-industrial-auto-semi",
+          "us-passive-components",
           "us-power-management"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "VST": {
@@ -61143,9 +64166,10 @@
         "name": "Vistra",
         "topics": [
           "us-datacenter-reit",
-          "us-nuclear-smr"
+          "us-nuclear-smr",
+          "us-power-utilities-ipp"
         ],
-        "topicCount": 2
+        "topicCount": 3
       }
     },
     "VZ": {
@@ -61174,6 +64198,19 @@
         "topicCount": 1
       }
     },
+    "WAT": {
+      "symbol": "WAT",
+      "name": "Waters",
+      "topics": [],
+      "detail": {
+        "code": "WAT",
+        "name": "Waters",
+        "topics": [
+          "us-lifescience-cro"
+        ],
+        "topicCount": 1
+      }
+    },
     "WBD": {
       "symbol": "WBD",
       "name": "Warner Bros",
@@ -61183,6 +64220,19 @@
         "name": "Warner Bros",
         "topics": [
           "us-streaming-entertainment"
+        ],
+        "topicCount": 1
+      }
+    },
+    "WCC": {
+      "symbol": "WCC",
+      "name": "WESCO",
+      "topics": [],
+      "detail": {
+        "code": "WCC",
+        "name": "WESCO",
+        "topics": [
+          "us-ic-distribution"
         ],
         "topicCount": 1
       }
@@ -61226,6 +64276,19 @@
         "topicCount": 1
       }
     },
+    "WIT": {
+      "symbol": "WIT",
+      "name": "Wipro",
+      "topics": [],
+      "detail": {
+        "code": "WIT",
+        "name": "Wipro",
+        "topics": [
+          "us-it-services"
+        ],
+        "topicCount": 1
+      }
+    },
     "WLFC": {
       "symbol": "WLFC",
       "name": "Willis Lease",
@@ -61239,6 +64302,19 @@
         "topicCount": 1
       }
     },
+    "WLK": {
+      "symbol": "WLK",
+      "name": "Westlake",
+      "topics": [],
+      "detail": {
+        "code": "WLK",
+        "name": "Westlake",
+        "topics": [
+          "us-chemicals-materials"
+        ],
+        "topicCount": 1
+      }
+    },
     "WMB": {
       "symbol": "WMB",
       "name": "Williams Companies",
@@ -61247,7 +64323,20 @@
         "code": "WMB",
         "name": "Williams Companies",
         "topics": [
-          "us-oil-gas"
+          "us-lng-midstream"
+        ],
+        "topicCount": 1
+      }
+    },
+    "WMS": {
+      "symbol": "WMS",
+      "name": "Advanced Drainage Systems",
+      "topics": [],
+      "detail": {
+        "code": "WMS",
+        "name": "Advanced Drainage Systems",
+        "topics": [
+          "us-water-infrastructure"
         ],
         "topicCount": 1
       }
@@ -61280,6 +64369,19 @@
         "topicCount": 3
       }
     },
+    "WS": {
+      "symbol": "WS",
+      "name": "沃辛頓鋼鐵",
+      "topics": [],
+      "detail": {
+        "code": "WS",
+        "name": "沃辛頓鋼鐵",
+        "topics": [
+          "us-steel-base-metals"
+        ],
+        "topicCount": 1
+      }
+    },
     "WST": {
       "symbol": "WST",
       "name": "West Pharmaceutical Services",
@@ -61288,7 +64390,34 @@
         "code": "WST",
         "name": "West Pharmaceutical Services",
         "topics": [
-          "us-glp1-obesity"
+          "us-glp1-obesity",
+          "us-lifescience-cro"
+        ],
+        "topicCount": 2
+      }
+    },
+    "WTS": {
+      "symbol": "WTS",
+      "name": "Watts Water Technologies",
+      "topics": [],
+      "detail": {
+        "code": "WTS",
+        "name": "Watts Water Technologies",
+        "topics": [
+          "us-water-infrastructure"
+        ],
+        "topicCount": 1
+      }
+    },
+    "WULF": {
+      "symbol": "WULF",
+      "name": "TeraWulf",
+      "topics": [],
+      "detail": {
+        "code": "WULF",
+        "name": "TeraWulf",
+        "topics": [
+          "us-neocloud"
         ],
         "topicCount": 1
       }
@@ -61302,6 +64431,19 @@
         "name": "Weyerhaeuser Company",
         "topics": [
           "us-housing"
+        ],
+        "topicCount": 1
+      }
+    },
+    "XEL": {
+      "symbol": "XEL",
+      "name": "Xcel Energy",
+      "topics": [],
+      "detail": {
+        "code": "XEL",
+        "name": "Xcel Energy",
+        "topics": [
+          "us-power-utilities-ipp"
         ],
         "topicCount": 1
       }
@@ -61328,6 +64470,19 @@
         "name": "XPO",
         "topics": [
           "us-freight-logistics"
+        ],
+        "topicCount": 1
+      }
+    },
+    "XYL": {
+      "symbol": "XYL",
+      "name": "Xylem",
+      "topics": [],
+      "detail": {
+        "code": "XYL",
+        "name": "Xylem",
+        "topics": [
+          "us-water-infrastructure"
         ],
         "topicCount": 1
       }

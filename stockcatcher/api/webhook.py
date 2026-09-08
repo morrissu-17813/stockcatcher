@@ -23,6 +23,13 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+# 🚨 蘇蘇新增：引入 TDCC 籌碼大戶分析引擎
+from services.tdcc_service import (
+    get_tdcc_top20_diff,
+    get_single_stock_tdcc,
+    build_tdcc_top20_flex,
+    generate_stock_tdcc_flex
+)
  
 # 引入 Bibi Agent
 from services.bibi_agent import ask_bibi_agent
@@ -220,13 +227,15 @@ def parse_user_intent(raw_msg: str) -> str:
    dashboard_keywords = ["視覺儀表板", "儀表板", "開啟liff", "選股地圖"]
    # 🎯 [新增] SMC 網格查詢關鍵字
    smc_keywords = ["smc金蛋蛋", "金蛋蛋網格"]
- 
+   tdcc_rank_keywords = ["大戶排行", "大戶籌碼", "tdcc排行"]
    if any(k in clean_msg for k in warrant_keywords): return "INTENT_WARRANT_3K"
    if any(k in clean_msg for k in volume_3k_keywords): return "INTENT_VOLUME_3K"
    if any(k in clean_msg for k in tide_keywords): return "INTENT_TIDE_HEATMAP"
    if any(k in clean_msg for k in dashboard_keywords): return "INTENT_DASHBOARD"
    # 🚨 [修正 2] 補上缺失的路由判斷！這行才是真正啟動金蛋蛋查詢的鑰匙
-   if any(k in clean_msg for k in smc_keywords): return "INTENT_SMC_GRID"  
+   if any(k in clean_msg for k in smc_keywords): return "INTENT_SMC_GRID" 
+   # 🚨 蘇蘇新增：註冊 TDCC 路由
+   if any(k in clean_msg for k in tdcc_rank_keywords): return "INTENT_TDCC_RANK" 
      
    return "INTENT_UNKNOWN"
  
@@ -783,7 +792,8 @@ def handle_message(event):
  
    match_fast_cmd = re.match(r'(?i)^#分析\s*(.+)?', user_msg)
    match_natural = re.match(r'(?i)^(?:hi\s*[,，]?\s*)?比鼻', user_msg)
- 
+   # 🚨 蘇蘇新增：加入正則攔截 @籌碼 指令 (限定4位數字)
+   match_tdcc_cmd = re.match(r'(?i)^@籌碼\s*(\d{4})', user_msg)
    # ------------------------------------------
    # 處理路徑 A: 快速指令 (#分析)
    # ------------------------------------------
@@ -806,7 +816,39 @@ def handle_message(event):
                )
            )
        return
- 
+   # ------------------------------------------
+   # 🚨 蘇蘇新增處理路徑 A-2: 查詢個股大戶籌碼 X 光機 (@籌碼 2330)
+   # ------------------------------------------
+   elif match_tdcc_cmd:
+       stock_symbol = match_tdcc_cmd.group(1)
+       show_bot_loading(user_id=user_id, seconds=5)
+       
+       try:
+           stock_data = get_single_stock_tdcc(supabase, stock_symbol)
+           if stock_data:
+               flex_dict = generate_stock_tdcc_flex(stock_data)
+               reply_flex = FlexContainer.from_dict(flex_dict)
+               with ApiClient(configuration) as api_client:
+                   line_bot_api = MessagingApi(api_client)
+                   line_bot_api.reply_message(
+                       ReplyMessageRequest(
+                           reply_token=event.reply_token,
+                           messages=[FlexMessage(alt_text=f"{stock_symbol} 籌碼 X 光機", contents=reply_flex)]
+                       )
+                   )
+           else:
+               with ApiClient(configuration) as api_client:
+                   line_bot_api = MessagingApi(api_client)
+                   line_bot_api.reply_message(
+                       ReplyMessageRequest(
+                           reply_token=event.reply_token,
+                           messages=[TextMessage(text=f"⚠️ 找不到代號 {stock_symbol} 的近期籌碼資料。")]
+                       )
+                   )
+       except Exception as e:
+           print(f"❌ [個股籌碼查詢錯誤] {e}")
+           print(traceback.format_exc())
+       return
    # ------------------------------------------
    # 處理路徑 B: 自然對話 (呼叫比鼻)
    # ------------------------------------------
@@ -879,8 +921,29 @@ def handle_message(event):
         print("👉 [DEBUG] 觸發 SMC 金蛋蛋查詢...")
         show_bot_loading(user_id=user_id, seconds=5)
         # 呼叫強大的查詢與封裝引擎，直接取得 Flex 卡片
-        reply_flex = fetch_smc_grid_flex()        
-
+        reply_flex = fetch_smc_grid_flex() 
+               
+   # 🚨 蘇蘇新增：觸發 TDCC 大戶排行查詢邏輯
+   elif action_intent == "INTENT_TDCC_RANK":
+       print("👉 [DEBUG] 觸發 TDCC 大戶排行查詢...")
+       show_bot_loading(user_id=user_id, seconds=5)
+       try:
+           parsed_data = get_tdcc_top20_diff(supabase)
+           if parsed_data:
+               reply_flex = FlexContainer.from_dict(build_tdcc_top20_flex(parsed_data))
+           else:
+               with ApiClient(configuration) as api_client:
+                   line_bot_api = MessagingApi(api_client)
+                   line_bot_api.reply_message(
+                       ReplyMessageRequest(
+                           reply_token=event.reply_token,
+                           messages=[TextMessage(text="⚠️ 目前資料庫中 TDCC 歷史資料不足。")]
+                       )
+                   )
+               return 
+       except Exception as e:
+           print(f"❌ [TDCC 查詢錯誤] {e}")
+           print(traceback.format_exc())
    elif action_intent == "INTENT_DASHBOARD":
         pass
  

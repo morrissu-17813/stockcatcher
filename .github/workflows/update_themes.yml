@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # 安裝新的映射腳本所需的依賴套件
-          pip install requests urllib3 supabase
+          pip install requests urllib3 supabase pandas
 
       - name: 🚀 Run Concept Stock Mapper and Update Supabase
         env:
