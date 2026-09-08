@@ -20,7 +20,7 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
             
         for row in response.data:
             sym = row.get("symbol")
-            name = row.get("stock_name")
+            name = row.get("name")
             if sym and name and sym not in real_names:
                 real_names[sym] = str(name).strip()
                 
@@ -179,7 +179,7 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
         if diff_4w < 0: return "#5CB85C"
         return "#888888"                  
 
-    sort_title = "歷史數據累積中 (依 400張佔比排序)" if is_fallback else "依 4 週 400張增幅排序"
+    sort_title = "歷史數據累積中" if is_fallback else "依 4 週 400張增幅排序"
 
     flex_msg = {
         "type": "bubble", "size": "mega",
