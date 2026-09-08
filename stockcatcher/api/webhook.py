@@ -792,8 +792,8 @@ def handle_message(event):
  
    match_fast_cmd = re.match(r'(?i)^#分析\s*(.+)?', user_msg)
    match_natural = re.match(r'(?i)^(?:hi\s*[,，]?\s*)?比鼻', user_msg)
-   # 🚨 蘇蘇新增：加入正則攔截 @籌碼 指令 (限定4位數字)
-   match_tdcc_cmd = re.match(r'(?i)^@籌碼\s*(\d{4})', user_msg)
+   # 🚨 蘇蘇新增：加入正則攔截 @大戶籌碼 指令 (限定4位數字)
+   match_tdcc_cmd = re.match(r'(?i)^@大戶籌碼\s*(\d{4})', user_msg)
    # ------------------------------------------
    # 處理路徑 A: 快速指令 (#分析)
    # ------------------------------------------
@@ -817,7 +817,7 @@ def handle_message(event):
            )
        return
    # ------------------------------------------
-   # 🚨 蘇蘇新增處理路徑 A-2: 查詢個股大戶籌碼 X 光機 (@籌碼 2330)
+   # 🚨 蘇蘇新增處理路徑 A-2: 查詢個股大戶籌碼 X 光機 (@大戶籌碼 2330)
    # ------------------------------------------
    elif match_tdcc_cmd:
        stock_symbol = match_tdcc_cmd.group(1)
