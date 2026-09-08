@@ -1,39 +1,58 @@
 from typing import Dict, Any, Optional, List
 from supabase import Client
 
-# 💡 實務架構建議：此處的股票名稱與現價，未來應透過 JOIN 你的「個股基本資料表」與「即時報價 API」來取得。
-# 目前以快取字典作為防呆與展示用途。
-MOCK_STOCK_NAMES = {
-    "2330": "台積電", "2317": "鴻海", "2454": "聯發科", 
-    "3231": "緯創", "2382": "廣達"
-}
+# ==========================================
+# 🔍 0. 共用輔助層：真實股名查詢
+# ==========================================
+def get_real_stock_names(supabase: Client, symbols: list) -> dict:
+    """從資料庫中批次查詢真實的股票名稱"""
+    if not symbols:
+        return {}
+    
+    unique_symbols = list(set(symbols))
+    real_names = {}
+    
+    try:
+        response = supabase.table("theme_stocks") \
+            .select("symbol, stock_name") \
+            .in_("symbol", unique_symbols) \
+            .execute()
+            
+        for row in response.data:
+            sym = row.get("symbol")
+            name = row.get("stock_name")
+            if sym and name and sym not in real_names:
+                real_names[sym] = str(name).strip()
+                
+    except Exception as e:
+        print(f"⚠️ [股名查詢警告] 無法取得真實股名: {e}")
+        
+    return real_names
 
 # ==========================================
-# 📊 1. 資料運算層 (Data Logic - 原生 Python 實作)
+# 📊 1. 資料運算層 (具備冷啟動容錯機制)
 # ==========================================
-
 def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
-    """
-    從 Supabase 抓取 TDCC 資料，計算 1W 與 4W 差值，並回傳 Top 20 增持排行。
-    採用原生 Dict 進行時間序列對齊，時間複雜度為 O(N)。
-    """
-    # 1. 取得最近 5 週的交易資料日期 (確保有足夠跨度計算 4W 差值)
+    """從 Supabase 抓取 TDCC 資料，計算差值排行 (具備降級容錯)"""
     date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).execute()
     unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)
     
-    if len(unique_dates) < 5:
+    # 🚨 修正：即使只有 1 週資料也不拋棄，照常運行
+    if len(unique_dates) == 0:
         return None 
         
-    t0_date, t1_date, t4_date = unique_dates[0], unique_dates[1], unique_dates[4]
+    t0_date = unique_dates[0]
+    # 智慧降級：如果歷史資料不夠，就拿最舊的一天來頂替
+    t1_date = unique_dates[1] if len(unique_dates) >= 2 else t0_date
+    t4_date = unique_dates[4] if len(unique_dates) >= 5 else unique_dates[-1]
 
-    # 2. 撈取這三個目標日期的所有資料
     data_res = supabase.table("tdcc_history").select("*").in_("date", [t0_date, t1_date, t4_date]).execute()
     records = data_res.data
 
     if not records:
         return None
 
-    # 3. 核心重構：利用原生字典進行樞紐轉換 (Pivot)
+    # 利用原生字典進行樞紐轉換
     stock_map = {}
     for row in records:
         sym = row["symbol"]
@@ -47,66 +66,65 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
             "ratio_1000k": float(row.get("ratio_1000k", 0) or 0)
         }
 
-    # 4. 計算差值與過濾
+    target_symbols = list(stock_map.keys())
+    real_stock_names = get_real_stock_names(supabase, target_symbols)
+
     results = []
     for symbol, dates_data in stock_map.items():
-        # 若最新一期 (t0) 查無資料，代表該股票可能已下市或資料缺失，直接跳過
         if t0_date not in dates_data:
             continue
             
         r400_t0 = dates_data[t0_date]["ratio_400k"]
         r1000_t0 = dates_data[t0_date]["ratio_1000k"]
 
-        # 取得歷史資料，若無歷史資料則視為 0 (新上市櫃)
-        r400_t1 = dates_data.get(t1_date, {}).get("ratio_400k", 0)
-        r1000_t1 = dates_data.get(t1_date, {}).get("ratio_1000k", 0)
-        r400_t4 = dates_data.get(t4_date, {}).get("ratio_400k", 0)
-        r1000_t4 = dates_data.get(t4_date, {}).get("ratio_1000k", 0)
+        r400_t1 = dates_data.get(t1_date, {}).get("ratio_400k", r400_t0)
+        r1000_t1 = dates_data.get(t1_date, {}).get("ratio_1000k", r1000_t0)
+        r400_t4 = dates_data.get(t4_date, {}).get("ratio_400k", r400_t0)
+        r1000_t4 = dates_data.get(t4_date, {}).get("ratio_1000k", r1000_t0)
 
         diff_400_1w = round(r400_t0 - r400_t1, 2)
         diff_400_4w = round(r400_t0 - r400_t4, 2)
         diff_1000_1w = round(r1000_t0 - r1000_t1, 2)
         diff_1000_4w = round(r1000_t0 - r1000_t4, 2)
 
-        # 濾除毫無變化的靜止標的，減少無效 Payload
         if diff_400_4w == 0 and diff_1000_4w == 0:
             continue
 
         results.append({
             "symbol": symbol,
-            "name": MOCK_STOCK_NAMES.get(symbol, ""), 
+            "name": real_stock_names.get(symbol, "未知股名"), 
             "diff_400_1w": diff_400_1w,
             "diff_400_4w": diff_400_4w,
             "diff_1000_1w": diff_1000_1w,
             "diff_1000_4w": diff_1000_4w
         })
 
-    # 5. 依照 400張大戶 4週增幅 進行降冪排序，取 Top 20
     top_20 = sorted(results, key=lambda x: x["diff_400_4w"], reverse=True)[:20]
-    
     return {"date": t0_date, "data": top_20}
 
 
 def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, Any]]:
-    """
-    查詢單一股票的 TDCC 籌碼變化，精準返回 1W, 2W, 4W 的差值。
-    """
+    """查詢單一股票 TDCC 變化 (具備降級容錯)"""
     date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).execute()
     unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)
     
-    if len(unique_dates) < 5: 
+    if len(unique_dates) == 0: 
         return None
         
-    target_dates = [unique_dates[0], unique_dates[1], unique_dates[2], unique_dates[4]]
-    t0, t1, t2, t4 = target_dates
+    t0 = unique_dates[0]
+    t1 = unique_dates[1] if len(unique_dates) >= 2 else t0
+    t2 = unique_dates[2] if len(unique_dates) >= 3 else t1
+    t4 = unique_dates[4] if len(unique_dates) >= 5 else unique_dates[-1]
+
+    target_dates = list(set([t0, t1, t2, t4]))
 
     data_res = supabase.table("tdcc_history").select("*").eq("symbol", symbol).in_("date", target_dates).execute()
     records = data_res.data
     
-    if not records or len(records) < 2: 
+    # 🚨 修正：哪怕只有一筆資料，也要允許渲染
+    if not records: 
         return None
 
-    # 利用原生字典進行跨期對齊
     date_map = {}
     for row in records:
         date_map[row["date"]] = {
@@ -114,13 +132,19 @@ def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, A
             "ratio_1000k": float(row.get("ratio_1000k", 0) or 0)
         }
 
+    # 如果歷史日期沒資料，以最新的資料頂替 (讓相減結果自動歸零)
     def get_ratio(d_str: str, key: str) -> float:
+        if d_str not in date_map:
+            return date_map.get(t0, {}).get(key, 0.0)
         return date_map.get(d_str, {}).get(key, 0.0)
+
+    real_stock_names = get_real_stock_names(supabase, [symbol])
+    stock_name = real_stock_names.get(symbol, "未知股名")
 
     return {
         "sid": symbol,
-        "name": MOCK_STOCK_NAMES.get(symbol, ""), 
-        "price": 0.0, # 預留欄位供未來即時報價串接
+        "name": stock_name, 
+        "price": 0.0,
         "tdcc": {
             "1w": {
                 "holders_400": round(get_ratio(t0, "ratio_400k") - get_ratio(t1, "ratio_400k"), 2),
@@ -137,16 +161,11 @@ def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, A
         }
     }
 
-
 # ==========================================
 # 🎨 2. 視圖渲染層 (Flex Message Builders)
 # ==========================================
 
 def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    產出大戶增持 TOP 排行的 Flex Message。
-    自動處理正負號格式與台股紅綠視覺。
-    """
     latest_date = parsed_data["date"]
     formatted_date = f"{latest_date[:4]}/{latest_date[4:6]}/{latest_date[6:]}"
     top_stocks = parsed_data["data"]
@@ -157,8 +176,8 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
         return f"{s_1w} / {s_4w}"
 
     def get_color_by_trend(diff_4w: float) -> str:
-        if diff_4w > 0: return "#D9534F"  # 偏多紅
-        if diff_4w < 0: return "#5CB85C"  # 偏空綠
+        if diff_4w > 0: return "#D9534F"
+        if diff_4w < 0: return "#5CB85C"
         return "#888888"                  
 
     flex_msg = {
@@ -188,7 +207,6 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
 
     rows_container = {"type": "box", "layout": "vertical", "margin": "xs", "contents": []}
     
-    # ⚠️ 系統限制防護：僅呈現前 15 筆，避免 LINE Payload 大小超限導致 HTTP 400 錯誤
     for stock in top_stocks[:15]:
         str_400 = format_diff_str(stock["diff_400_1w"], stock["diff_400_4w"])
         str_1000 = format_diff_str(stock["diff_1000_1w"], stock["diff_1000_4w"])
@@ -204,14 +222,18 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
         }
         rows_container["contents"].append(row)
 
+    # 🚨 若無資料 (例如剛上線第一週，差值皆為 0 被濾掉)，補上提示訊息
+    if not rows_container["contents"]:
+        rows_container["contents"].append({
+            "type": "text", "text": "⚠️ 資料庫正在累積歷史數據，需等待次週排程後方可顯示增減排行。",
+            "color": "#888888", "size": "xs", "align": "center", "margin": "md", "wrap": True
+        })
+
     flex_msg["body"]["contents"].append(rows_container)
     return flex_msg
 
 
 def generate_stock_tdcc_flex(stock_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    產出單一個股籌碼 X 光機 (1W, 2W, 4W) 的 Flex Message。
-    """
     sid = stock_data.get("sid", "")
     name = stock_data.get("name", "")
     price = stock_data.get("price", 0.0)
