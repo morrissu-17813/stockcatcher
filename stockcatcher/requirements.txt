@@ -10,7 +10,8 @@ line-bot-sdk>=3.0.0
 supabase>=2.0.0
 # 🚀 關鍵更新：Google 最新的 GenAI SDK
 google-genai>=0.1.0
-
+# 在你原有的 fastapi, line-bot-sdk, supabase 等依賴下方加入：
+pandas
 # --- 環境變數與工具 ---
 python-dotenv>=1.0.0
 python-dateutil>=2.8.2
