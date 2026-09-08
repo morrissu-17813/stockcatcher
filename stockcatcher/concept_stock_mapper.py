@@ -219,6 +219,48 @@ def sync_to_supabase(mapped_data: dict):
 
     logging.info(f"✅ Supabase 同步完成！共更新 {len(topics_with_stocks)} 個主題，寫入 {total_inserted} 筆個股關聯。") 
 
+def sync_stock_info_master(supabase: Client):
+    """從 FinMind 取得全台上市櫃股票名單，並進行嚴格去重後寫入資料庫"""
+    url = "https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockInfo"
+    
+    try:
+        logging.info("🚀 正在同步全台上市櫃股票總表...")
+        res = requests.get(url, timeout=30)
+        res.raise_for_status()
+        data = res.json().get("data", [])
+        
+        # 💡 蘇蘇架構優化：使用 Dict 進行 O(N) 記憶體內去重 (Deduplication)
+        # 以 symbol 為 Key，確保送往資料庫的 batch 中絕對不會有重複的主鍵
+        unique_records_map = {}
+        
+        for item in data:
+            symbol = item.get("stock_id", "").strip()
+            # 嚴格過濾：僅限 twse(上市)/tpex(上櫃)，且代號長度恰好為 4 碼
+            if item.get("type") in ["twse", "tpex"] and len(symbol) == 4:
+                # 若遇到重複的 symbol，新的 name 會自動覆蓋舊的，達到去重效果
+                unique_records_map[symbol] = {
+                    "symbol": symbol,
+                    "name": item.get("stock_name", "").strip()
+                }
+        
+        # 將去重後的字典 values 轉換回陣列
+        records = list(unique_records_map.values())
+        
+        if records:
+            batch_size = 1000
+            total_inserted = 0
+            
+            # 批次 Upsert，此時 records 已保證 100% 無重複主鍵
+            for i in range(0, len(records), batch_size):
+                batch = records[i:i+batch_size]
+                supabase.table("stock_info").upsert(batch).execute()
+                total_inserted += len(batch)
+                
+            logging.info(f"✅ 成功清洗並更新 {total_inserted} 檔股票基本資料至 stock_info！")
+            
+    except Exception as e:
+        logging.error(f"❌ 股票總表同步失敗: {e}")
+
 # ==========================================
 # 資料庫寫入層 (TDCC 集保大戶資料同步)
 # ==========================================
@@ -310,30 +352,46 @@ def sync_tdcc_data():
         logging.error(f"❌ TDCC 資料處理或寫入資料庫時發生錯誤: {e}")
            
 def main():
-    # print("=========================================")
-    # print("  概念股與個股資料對應暨同步工具")
-    # print("=========================================\n")
+    print("=========================================")
+    print("  概念股與個股資料對應暨同步工具")
+    print("=========================================\n")
 
-    # topics_raw = fetch_data(TOPIC_INDEX_URL)
-    # companies_raw = fetch_data(COMPANIES_INDEX_URL)
+    # 1. 統一在主程式建立 Supabase 連線 (確保環境變數已正確載入)
+    supabase_url = "https://iatlchzzjkjaetorvvil.supabase.co"
+    supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdGxjaHp6amtqYWV0b3J2dmlsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NjAzMDQzMywiZXhwIjoyMTAxNjA2NDMzfQ.FckTSOyIo_QCocrgfaGd9mHV2wXRJxSeC5955936hSQ"
+           
+    if not supabase_url or not supabase_key:
+        print("❌ 致命錯誤：找不到 Supabase 環境變數，請確認 .env 或 GitHub Secrets 設定。")
+        return
+        
+    supabase_client: Client = create_client(supabase_url, supabase_key)
+     
+    topics_raw = fetch_data(TOPIC_INDEX_URL)
+    companies_raw = fetch_data(COMPANIES_INDEX_URL)
 
-    # if topics_raw and companies_raw:
-    #     # 1. 資料處理與對應
-    #     mapped_data = process_mapping(topics_raw, companies_raw)
+    if topics_raw and companies_raw:
+        # 1. 資料處理與對應
+        mapped_data = process_mapping(topics_raw, companies_raw)
         
-    #     # 2. 儲存至本地 JSON 檔
-    #     save_json(mapped_data, "concept_stocks_mapped.json")
+        # 2. 儲存至本地 JSON 檔
+        save_json(mapped_data, "concept_stocks_mapped.json")
         
-    #     # 3. 同步至 Supabase 資料庫 (概念股)
-    #     sync_to_supabase(mapped_data)
-    # else:
-    #     print("❌ 概念股資料下載失敗，跳過概念股同步。")
+        # 3. 同步至 Supabase 資料庫 (概念股)
+        sync_to_supabase(mapped_data)
+    else:
+        print("❌ 概念股資料下載失敗，跳過概念股同步。")
     # ==========================================
     # 💡 蘇蘇新增：4. 執行 TDCC 大戶籌碼同步
     # ==========================================
     print("\n=========================================")
     print("  TDCC 集保大戶籌碼同步")
     print("=========================================\n")
+        
+    # 新增：確保股名總表是最新的
+    sync_stock_info_master(supabase_client)
+       
+    
+    # 原有的 TDCC 同步
     sync_tdcc_data()
     
 if __name__ == "__main__":

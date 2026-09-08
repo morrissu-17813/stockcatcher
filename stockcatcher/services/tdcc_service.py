@@ -13,8 +13,8 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
     real_names = {}
     
     try:
-        response = supabase.table("theme_stocks") \
-            .select("symbol, stock_name") \
+        response = supabase.table("stock_info") \
+            .select("symbol, name") \
             .in_("symbol", unique_symbols) \
             .execute()
             
@@ -186,7 +186,7 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
         "header": {
             "type": "box", "layout": "vertical", "backgroundColor": "#1A2A3A", "paddingAll": "md",
             "contents": [
-                {"type": "text", "text": "📊 大戶千張 / 400張籌碼變化 TOP 排行", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+                {"type": "text", "text": "📊 大戶千張 / 400張籌碼變化 TOP 20", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
                 {"type": "text", "text": f"基準日期: {formatted_date} ({sort_title})", "color": "#CCCCCC", "size": "xxs", "margin": "xs"}
             ]
         },
@@ -272,7 +272,7 @@ def generate_stock_tdcc_flex(stock_data: Dict[str, Any]) -> Dict[str, Any]:
         "header": {
             "type": "box", "layout": "vertical", "backgroundColor": "#1A2A3A", "paddingAll": "md",
             "contents": [
-                {"type": "text", "text": "📊 個股籌碼 X 光機", "color": "#38BDF8", "weight": "bold", "size": "sm"},
+                {"type": "text", "text": "📊 個股籌碼", "color": "#E2E8F0", "weight": "bold", "size": "sm"},
                 {
                     "type": "box", "layout": "horizontal", "margin": "md", "alignItems": "center",
                     "contents": [
