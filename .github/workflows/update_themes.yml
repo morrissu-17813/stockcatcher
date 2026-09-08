@@ -3,8 +3,8 @@ name: Weekly Concept Stock Update
 
 on:
   schedule:
-    # 每個週六凌晨 02:00 (UTC+8) 執行 (Cron 是 UTC 時間，所以寫 18:00)
-    - cron: '0 18 * * 5'
+    # 每個週六早上 08:00 (UTC+8) 執行 (對應 UTC 時間為週六 00:00)
+    - cron: '0 0 * * 6'
   workflow_dispatch: # 允許在 GitHub 網頁上按按鈕手動觸發
 
 jobs:
