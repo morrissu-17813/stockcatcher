@@ -34,8 +34,15 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
 # ==========================================
 def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
     """從 Supabase 抓取 TDCC 資料，無歷史資料時自動降級排序"""
-    date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).execute()
-    unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)
+    
+    # 🚨 修正核心 1：透過 2330 當作日曆錨點，精準取得歷史日期，避開 1000 筆限制
+    date_res = supabase.table("tdcc_history").select("date").eq("symbol", "2330").order("date", desc=True).limit(5).execute()
+    unique_dates = [row["date"] for row in date_res.data]
+    
+    # 防呆：萬一 2330 異常，放大 limit 全表抓取
+    if not unique_dates:
+        date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).limit(5000).execute()
+        unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)[:5]
     
     if len(unique_dates) == 0:
         return None 
@@ -74,7 +81,6 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
         r400_t0 = dates_data[t0]["ratio_400k"]
         r1000_t0 = dates_data[t0]["ratio_1000k"]
 
-        # 💡 若無歷史資料，將差值設為 None
         diff_400_1w = round(r400_t0 - dates_data[t1]["ratio_400k"], 2) if t1 and t1 in dates_data else None
         diff_400_4w = round(r400_t0 - dates_data[t4]["ratio_400k"], 2) if t4 and t4 in dates_data else None
         diff_1000_1w = round(r1000_t0 - dates_data[t1]["ratio_1000k"], 2) if t1 and t1 in dates_data else None
@@ -83,14 +89,13 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
         results.append({
             "symbol": symbol,
             "name": real_stock_names.get(symbol, "未知股名"), 
-            "current_400k": r400_t0, # 儲存絕對值供降級排序使用
+            "current_400k": r400_t0, 
             "diff_400_1w": diff_400_1w,
             "diff_400_4w": diff_400_4w,
             "diff_1000_1w": diff_1000_1w,
             "diff_1000_4w": diff_1000_4w
         })
 
-    # 💡 降級排序邏輯：如果有 4 週差值，就用差值排；如果沒有，就用「目前的 400 張佔比」排
     results.sort(
         key=lambda x: x["diff_400_4w"] if x["diff_400_4w"] is not None else x["current_400k"], 
         reverse=True
@@ -101,8 +106,10 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
 
 def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, Any]]:
     """查詢單一股票 TDCC 變化，缺失資料回傳 None"""
-    date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).execute()
-    unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)
+    
+    # 🚨 修正核心 2：僅撈取目標股票的日期，避開 1000 筆限制
+    date_res = supabase.table("tdcc_history").select("date").eq("symbol", symbol).order("date", desc=True).limit(5).execute()
+    unique_dates = [row["date"] for row in date_res.data]
     
     if len(unique_dates) == 0: 
         return None
@@ -129,7 +136,6 @@ def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, A
     r400_t0 = date_map.get(t0, {}).get("ratio_400k", 0.0)
     r1000_t0 = date_map.get(t0, {}).get("ratio_1000k", 0.0)
 
-    # 安全相減函式
     def calc_diff(target_t: Optional[str], key: str, current_val: float) -> Optional[float]:
         if target_t and target_t in date_map:
             return round(current_val - date_map[target_t][key], 2)
@@ -167,7 +173,6 @@ def build_tdcc_top20_flex(parsed_data: Dict[str, Any]) -> Dict[str, Any]:
     top_stocks = parsed_data["data"]
     is_fallback = parsed_data.get("is_fallback", False)
 
-    # 💡 判斷是否為 None，如果是就輸出 -
     def format_diff_str(diff_1w: Optional[float], diff_4w: Optional[float]) -> str:
         s_1w = f"+{diff_1w:.2f}%" if diff_1w is not None and diff_1w > 0 else (f"{diff_1w:.2f}%" if diff_1w is not None else "-")
         s_4w = f"+{diff_4w:.2f}%" if diff_4w is not None and diff_4w > 0 else (f"{diff_4w:.2f}%" if diff_4w is not None else "-")
@@ -233,7 +238,6 @@ def generate_stock_tdcc_flex(stock_data: Dict[str, Any]) -> Dict[str, Any]:
     price = stock_data.get("price", 0.0)
     tdcc = stock_data.get("tdcc", {})
 
-    # 💡 判斷是否為 None，如果是就輸出 -
     def format_diff(val: Optional[float]) -> Dict[str, str]:
         if val is None: return {"text": "-", "color": "#888888"}
         if val > 0: return {"text": f"+{val:.2f}%", "color": "#D9534F"}
