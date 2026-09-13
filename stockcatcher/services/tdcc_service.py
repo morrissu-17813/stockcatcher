@@ -33,17 +33,21 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
 # 📊 1. 資料運算層 (無資料時以 None 代替，不報錯)
 # ==========================================
 def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
-    """從 Supabase 抓取全市場 TDCC 資料，實作分頁突破 1000 筆 API 上限"""
+    """從 Supabase 抓取全市場 TDCC 資料，實作分頁並加入 504 容錯機制"""
+    import logging
     
-    # 1. 取得日曆錨點 (只抓 2330 的日期，用來決定 t0, t1, t4 究竟是哪幾天)
-    date_res = supabase.table("tdcc_history").select("date").eq("symbol", "2330").order("date", desc=True).limit(5).execute()
-    unique_dates = [row["date"] for row in date_res.data]
-    
-    # 防呆：萬一 2330 異常，放大 limit 搜索日期
-    if not unique_dates:
-        date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).limit(5000).execute()
-        unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)[:5]
-    
+    # 1. 取得日曆錨點 (精準取得歷史日期)
+    try:
+        date_res = supabase.table("tdcc_history").select("date").eq("symbol", "2330").order("date", desc=True).limit(5).execute()
+        unique_dates = [row["date"] for row in date_res.data]
+        
+        if not unique_dates:
+            date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).limit(5000).execute()
+            unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)[:5]
+    except Exception as e:
+        logging.error(f"❌ [TDCC 日期查詢失敗] {e}")
+        return None
+
     if len(unique_dates) == 0:
         return None 
         
@@ -53,33 +57,38 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
 
     target_dates = [d for d in [t0, t1, t4] if d is not None]
     
-    # 2. 🚨 修正核心：實作分頁 (Pagination) 迴圈，把全市場 5000+ 筆資料完整抓回來
+    # 2. 🚨 分頁迴圈與容錯機制 (Pagination & Try-Catch)
     records = []
     page_size = 1000
     
     for d in target_dates:
         offset = 0
         while True:
-            # 使用 range() 進行分頁：0-999, 1000-1999...
-            res = supabase.table("tdcc_history") \
-                .select("*") \
-                .eq("date", d) \
-                .range(offset, offset + page_size - 1) \
-                .execute()
-            
-            batch_data = res.data
-            records.extend(batch_data)
-            
-            # 如果抓回來的資料小於 1000 筆，代表這一天的股票已經全部抓完了，換下一天
-            if len(batch_data) < page_size:
-                break
+            try:
+                # 使用 range() 進行分頁，減輕資料庫負載，避免 504 Gateway Timeout
+                res = supabase.table("tdcc_history") \
+                    .select("*") \
+                    .eq("date", d) \
+                    .range(offset, offset + page_size - 1) \
+                    .execute()
                 
-            offset += page_size
+                batch_data = res.data
+                records.extend(batch_data)
+                
+                if len(batch_data) < page_size:
+                    break
+                    
+                offset += page_size
+                
+            except Exception as e:
+                logging.error(f"❌ [TDCC 分頁查詢失敗] 日期: {d}, Offset: {offset}, 錯誤: {e}")
+                # 若發生逾時，跳出當前迴圈，保護系統不崩潰
+                break
 
     if not records:
         return None
 
-    # 3. 原生字典對齊與樞紐運算
+    # 3. 記憶體內對齊與樞紐運算
     stock_map = {}
     for row in records:
         sym = row["symbol"]
@@ -124,7 +133,6 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
     )
     
     return {"date": t0, "data": results[:20], "is_fallback": (t4 is None)}
-
 
 def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, Any]]:
     """查詢單一股票 TDCC 變化，缺失資料回傳 None"""
