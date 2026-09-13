@@ -118,7 +118,7 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
 
         results.append({
             "symbol": symbol,
-            "name": real_stock_names.get(symbol, "未知股名"), 
+            "name": "", # 先留空，稍後再查
             "current_400k": r400_t0, 
             "diff_400_1w": diff_400_1w,
             "diff_400_4w": diff_400_4w,
@@ -126,13 +126,27 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
             "diff_1000_4w": diff_1000_4w
         })
 
-    # 4. 降級排序邏輯
+    # 🚨 修正核心 1：動態降級排序。
+    # 優先用 4W 差值排 -> 沒有就用 1W 差值排 -> 都沒有才用絕對佔比排
     results.sort(
-        key=lambda x: x["diff_400_4w"] if x["diff_400_4w"] is not None else x["current_400k"], 
+        key=lambda x: (
+            x["diff_400_4w"] if x["diff_400_4w"] is not None else
+            (x["diff_400_1w"] if x["diff_400_1w"] is not None else x["current_400k"])
+        ), 
         reverse=True
     )
+
+    top_20 = results[:20]
+
+    # 🚨 修正核心 2：延遲查詢 (Lazy Loading)。
+    # 僅針對上榜的 20 檔股票進行名稱查詢，完全避開 1000 筆 API 上限！
+    top_symbols = [item["symbol"] for item in top_20]
+    real_stock_names = get_real_stock_names(supabase, top_symbols)
     
-    return {"date": t0, "data": results[:20], "is_fallback": (t4 is None)}
+    for item in top_20:
+        item["name"] = real_stock_names.get(item["symbol"], "未知股名")
+    
+    return {"date": t0, "data": top_20, "is_fallback": (t4 is None)}
 
 def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, Any]]:
     """查詢單一股票 TDCC 變化，缺失資料回傳 None"""
