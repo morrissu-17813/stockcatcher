@@ -111,14 +111,30 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
         r400_t0 = dates_data[t0]["ratio_400k"]
         r1000_t0 = dates_data[t0]["ratio_1000k"]
 
-        diff_400_1w = round(r400_t0 - dates_data[t1]["ratio_400k"], 2) if t1 and t1 in dates_data else None
-        diff_400_4w = round(r400_t0 - dates_data[t4]["ratio_400k"], 2) if t4 and t4 in dates_data else None
-        diff_1000_1w = round(r1000_t0 - dates_data[t1]["ratio_1000k"], 2) if t1 and t1 in dates_data else None
-        diff_1000_4w = round(r1000_t0 - dates_data[t4]["ratio_1000k"], 2) if t4 and t4 in dates_data else None
+        # 🚨 結構化優化：防禦性相減函式 (Defensive Subtraction)
+        def safe_diff(t_target: Optional[str], key: str, current_val: float) -> Optional[float]:
+            if not t_target or t_target not in dates_data:
+                return None
+                
+            hist_val = dates_data[t_target].get(key, 0.0)
+            
+            # 🛡️ 髒資料防護網：
+            # 如果歷史數據為 0.00%，但當前大戶佔比超過 5%，這在邏輯上極度不合理。
+            # 這代表上週的資料庫記錄損毀或寫入失敗，我們將其視為「無資料 (None)」以觸發降級顯示 '-'
+            if hist_val == 0.0 and current_val > 5.0:
+                return None
+                
+            return round(current_val - hist_val, 2)
+
+        # 改用防禦性函式計算差值
+        diff_400_1w = safe_diff(t1, "ratio_400k", r400_t0)
+        diff_400_4w = safe_diff(t4, "ratio_400k", r400_t0)
+        diff_1000_1w = safe_diff(t1, "ratio_1000k", r1000_t0)
+        diff_1000_4w = safe_diff(t4, "ratio_1000k", r1000_t0)
 
         results.append({
             "symbol": symbol,
-            "name": "", 
+            "name": "", # 維持延遲查詢
             "current_400k": r400_t0, 
             "diff_400_1w": diff_400_1w,
             "diff_400_4w": diff_400_4w,
