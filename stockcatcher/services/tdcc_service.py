@@ -33,13 +33,13 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
 # 📊 1. 資料運算層 (無資料時以 None 代替，不報錯)
 # ==========================================
 def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
-    """從 Supabase 抓取 TDCC 資料，無歷史資料時自動降級排序"""
+    """從 Supabase 抓取全市場 TDCC 資料，實作分頁突破 1000 筆 API 上限"""
     
-    # 🚨 修正核心 1：透過 2330 當作日曆錨點，精準取得歷史日期，避開 1000 筆限制
+    # 1. 取得日曆錨點 (只抓 2330 的日期，用來決定 t0, t1, t4 究竟是哪幾天)
     date_res = supabase.table("tdcc_history").select("date").eq("symbol", "2330").order("date", desc=True).limit(5).execute()
     unique_dates = [row["date"] for row in date_res.data]
     
-    # 防呆：萬一 2330 異常，放大 limit 全表抓取
+    # 防呆：萬一 2330 異常，放大 limit 搜索日期
     if not unique_dates:
         date_res = supabase.table("tdcc_history").select("date").order("date", desc=True).limit(5000).execute()
         unique_dates = sorted(list(set(row["date"] for row in date_res.data)), reverse=True)[:5]
@@ -51,14 +51,35 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
     t1 = unique_dates[1] if len(unique_dates) >= 2 else None
     t4 = unique_dates[4] if len(unique_dates) >= 5 else None
 
-    # 僅查詢有資料的日期
     target_dates = [d for d in [t0, t1, t4] if d is not None]
-    data_res = supabase.table("tdcc_history").select("*").in_("date", target_dates).execute()
-    records = data_res.data
+    
+    # 2. 🚨 修正核心：實作分頁 (Pagination) 迴圈，把全市場 5000+ 筆資料完整抓回來
+    records = []
+    page_size = 1000
+    
+    for d in target_dates:
+        offset = 0
+        while True:
+            # 使用 range() 進行分頁：0-999, 1000-1999...
+            res = supabase.table("tdcc_history") \
+                .select("*") \
+                .eq("date", d) \
+                .range(offset, offset + page_size - 1) \
+                .execute()
+            
+            batch_data = res.data
+            records.extend(batch_data)
+            
+            # 如果抓回來的資料小於 1000 筆，代表這一天的股票已經全部抓完了，換下一天
+            if len(batch_data) < page_size:
+                break
+                
+            offset += page_size
 
     if not records:
         return None
 
+    # 3. 原生字典對齊與樞紐運算
     stock_map = {}
     for row in records:
         sym = row["symbol"]
@@ -96,6 +117,7 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
             "diff_1000_4w": diff_1000_4w
         })
 
+    # 4. 降級排序邏輯
     results.sort(
         key=lambda x: x["diff_400_4w"] if x["diff_400_4w"] is not None else x["current_400k"], 
         reverse=True
