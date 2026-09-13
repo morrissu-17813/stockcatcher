@@ -1168,7 +1168,7 @@ def save_signal_to_supabase(category: str, stock_data: dict) -> None:
 # ==========================================
 # 🎯 SMC 網格同步模組 (精準 50 檔權證核心版)
 # ==========================================
-def sync_smc_grids_to_db():
+def sync_smc_grids_to_db(is_startup: bool = False):
     """
     [資料層] 批量同步 SMC 網格至 Supabase。
     🛡️ 策略聚焦：僅同步全市場前 50 大熱門權證對應現股（is_protected=True），
@@ -1182,7 +1182,8 @@ def sync_smc_grids_to_db():
     sync_start_iso = sync_start_time.isoformat()
     
     payload = []
-
+    display_sids = [] # 獨立收集有效的標的，供 TG 廣播使用
+    
     for sid, grid in smc_grid_map.items():
         info = stock_info_map.get(sid, {})
         
@@ -1228,6 +1229,60 @@ def sync_smc_grids_to_db():
         import traceback
         print(f"❌ [DB 寫入失敗] SMC 網格同步異常: {e}")
         print(traceback.format_exc())
+        return # 🚨 若 DB 寫入失敗，提早返回，不發送錯誤的快照
+    # ==========================================
+    # 🚀 Telegram 啟動快照廣播 (僅在 is_startup=True 觸發)
+    # ==========================================
+    if is_startup and display_sids:
+        print("📡 正在彙整 SMC 金蛋蛋網格資料並發送 TG 啟動快照...", flush=True)
+        time_str = sync_start_time.strftime('%Y-%m-%d %H:%M:%S')
+
+        tg_lines = [
+            "🚀 *SMC 金蛋蛋網格 (啟動快照)*",
+            f"⏰ `{time_str}`",
+            "━━━━━━━━━━━━━━━━━━━━",
+            "📊 *格式:* `股名 | MH-H | E-LL | PT | E-HH | MH-L`",
+            "━━━━━━━━━━━━━━━━━━━━"
+        ]
+        
+        for sid in display_sids:
+            grid = smc_grid_map[sid]
+            name = stock_info_map[sid].get("name", sid)
+            
+            # 使用 ` 包覆數據，產生等寬字體的整齊表格效果
+            tg_lines.append(
+                f"🔹 *{name}* `| {grid.get('mh_h', 0)} | {grid.get('egg_ll', 0)} | "
+                f"{grid.get('pt', 0)} | {grid.get('egg_hh', 0)} | {grid.get('mh_l', 0)}`"
+            )
+
+        tg_lines.append("━━━━━━━━━━━━━━━━━━━━")
+        tg_lines.append("✅ *系統啟動完畢，雷達監控中...*")
+
+        if getattr(Config, "TELEGRAM_TOKEN", None) and getattr(Config, "TELEGRAM_CHAT_ID", None):
+            try:
+                url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage"
+                msg = "\n".join(tg_lines)
+                
+                # 🛡️ 長度防禦：Telegram 單則訊息上限 4096 字元
+                if len(msg) > 4000:
+                    msg = msg[:4000] + "\n... (字數達上限，已截斷)"
+
+                res = standard_requests.post(
+                    url, 
+                    json={
+                        "chat_id": Config.TELEGRAM_CHAT_ID, 
+                        "text": msg, 
+                        "parse_mode": "Markdown"
+                    }, 
+                    timeout=10
+                )
+                
+                if res.status_code == 200:
+                    print(f"✅ 系統啟動快照 (TG 金蛋蛋網格) 發送完畢！(共 {len(display_sids)} 檔)")
+                else:
+                    print(f"⚠️ [Telegram] 啟動快照發送失敗: {res.text}")
+            except Exception as e:
+                print(f"❌ [Telegram] 啟動快照連線異常: {e}")
 
 def build_tianji_wall_block(grid: dict, current_price: float) -> list:
     """生成 Telegram 底部天機牆文字區塊"""
@@ -2087,8 +2142,11 @@ def main():
   print(f"✅ 初始化：上市 {l_count} 檔、上櫃 {o_count} 檔、權證主力(protected) {w_count} 檔。")
   # 🎯 SMC 擴充：在股池確立後，立刻印出這 200 檔的 SMC 網格日誌
   print_smc_grid_logs()
-  sync_smc_grids_to_db() # 👈 [新增] 盤前初始網格同步至 DB
-  perform_strategy_test()
+ 
+  sync_smc_grids_to_db(is_startup=True)  # 👈 [新增] 盤前初始網格同步至 DB
+  # perform_strategy_test()
+ 
+  
   recover_3k_data(list(stock_info_map.keys()))
   print("🚀 系統初始化完畢，準備進入監控模式...\n")
   time.sleep(0.5)
