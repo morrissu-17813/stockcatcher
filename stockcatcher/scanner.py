@@ -1193,6 +1193,10 @@ def sync_smc_grids_to_db(is_startup: bool = False):
             
         if grid.get("mh_h") and grid.get("status") != "suspended":
             name = info.get("name", sid)
+            # 🚨 致命遺漏：請務必在你本地的程式碼補上這一行！
+            # 沒有這一行，TG 的發送清單永遠會是空的
+            display_sids.append(sid)
+            
             payload.append({
                 "date": today_str,
                 "stock_id": str(sid),
@@ -1206,9 +1210,6 @@ def sync_smc_grids_to_db(is_startup: bool = False):
                 "status": grid.get("status"),
                 "updated_at": sync_start_iso 
             })
-
-    if not payload:
-        return
 
     BATCH_SIZE = 100
     try:
@@ -1229,61 +1230,86 @@ def sync_smc_grids_to_db(is_startup: bool = False):
         import traceback
         print(f"❌ [DB 寫入失敗] SMC 網格同步異常: {e}")
         print(traceback.format_exc())
-        return # 🚨 若 DB 寫入失敗，提早返回，不發送錯誤的快照
+    
     # ==========================================
-    # 🚀 Telegram 啟動快照廣播 (僅在 is_startup=True 觸發)
+    # 🚀 Telegram 啟動快照廣播 (防彈 HTML 版 + 空值保證發送)
     # ==========================================
-    if is_startup and display_sids:
-        print("📡 正在彙整 SMC 金蛋蛋網格資料並發送 TG 啟動快照...", flush=True)
+    if is_startup:
+        print("📡 準備發送 TG 啟動快照...", flush=True)
         time_str = sync_start_time.strftime('%Y-%m-%d %H:%M:%S')
 
         tg_lines = [
-            "🚀 *SMC 金蛋蛋網格 (啟動快照)*",
-            f"⏰ `{time_str}`",
-            "━━━━━━━━━━━━━━━━━━━━",
-            "📊 *格式:* `股名 | MH-H | E-LL | PT | E-HH | MH-L`",
-            "━━━━━━━━━━━━━━━━━━━━"
+            "🚀 <b>SMC 金蛋蛋網格 (啟動快照)</b>",
+            f"⏰ <code>{time_str}</code>",
+            "━━━━━━━━━━━━━"
         ]
         
-        for sid in display_sids:
-            grid = smc_grid_map[sid]
-            name = stock_info_map[sid].get("name", sid)
-            
-            # 使用 ` 包覆數據，產生等寬字體的整齊表格效果
-            tg_lines.append(
-                f"🔹 *{name}* `| {grid.get('mh_h', 0)} | {grid.get('egg_ll', 0)} | "
-                f"{grid.get('pt', 0)} | {grid.get('egg_hh', 0)} | {grid.get('mh_l', 0)}`"
-            )
+        if display_sids:
+            # 有標的時：正常顯示排版表格
+            tg_lines.append("📊 <code>股名 | MH-H | E-LL | PT | E-HH | MH-L</code>")
+            tg_lines.append("━━━━━━━━━━━━━")
+            for sid in display_sids:
+                grid = smc_grid_map[sid]
+                # 跳脫 HTML 敏感字元
+                name = str(stock_info_map[sid].get("name", sid)).replace("<", "&lt;").replace(">", "&gt;")
+                tg_lines.append(
+                    f"🔹 <b>{name}</b> <code>| {grid.get('mh_h', 0)} | {grid.get('egg_ll', 0)} | "
+                    f"{grid.get('pt', 0)} | {grid.get('egg_hh', 0)} | {grid.get('mh_l', 0)}</code>"
+                )
+        else:
+            # 🚨 週末或盤前無標的時：明確告知系統存活，但股池為空
+            tg_lines.append("⚠️ <b>目前股池無有效權證主力標的 (可能為週末或盤前無量)。</b>")
 
-        tg_lines.append("━━━━━━━━━━━━━━━━━━━━")
-        tg_lines.append("✅ *系統啟動完畢，雷達監控中...*")
+        tg_lines.append("━━━━━━━━━━━━━")
+        tg_lines.append("✅ <b>系統啟動完畢，雷達監控中...</b>")
 
         if getattr(Config, "TELEGRAM_TOKEN", None) and getattr(Config, "TELEGRAM_CHAT_ID", None):
             try:
                 url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendMessage"
-                msg = "\n".join(tg_lines)
                 
-                # 🛡️ 長度防禦：Telegram 單則訊息上限 4096 字元
-                if len(msg) > 4000:
-                    msg = msg[:4000] + "\n... (字數達上限，已截斷)"
+                # 🚨 蘇蘇架構升級：以「行」為單位的自動分段演算法
+                MAX_TG_LENGTH = 4000
+                message_chunks = []
+                current_chunk = ""
+                
+                for line in tg_lines:
+                    # 若當前區塊加上新的一行會超過字數上限，就先將當前區塊推入陣列，並重置
+                    if len(current_chunk) + len(line) + 1 > MAX_TG_LENGTH:
+                        message_chunks.append(current_chunk)
+                        current_chunk = line + "\n"
+                    else:
+                        current_chunk += line + "\n"
+                        
+                # 將最後一塊剩餘的訊息推入陣列
+                if current_chunk:
+                    message_chunks.append(current_chunk)
 
-                res = standard_requests.post(
-                    url, 
-                    json={
-                        "chat_id": Config.TELEGRAM_CHAT_ID, 
-                        "text": msg, 
-                        "parse_mode": "Markdown"
-                    }, 
-                    timeout=10
-                )
-                
-                if res.status_code == 200:
-                    print(f"✅ 系統啟動快照 (TG 金蛋蛋網格) 發送完畢！(共 {len(display_sids)} 檔)")
-                else:
-                    print(f"⚠️ [Telegram] 啟動快照發送失敗: {res.text}")
+                # 依序發送所有分段訊息
+                for idx, msg_chunk in enumerate(message_chunks, 1):
+                    res = standard_requests.post(
+                        url, 
+                        json={
+                            "chat_id": Config.TELEGRAM_CHAT_ID, 
+                            "text": msg_chunk.strip(), 
+                            "parse_mode": "HTML"
+                        }, 
+                        timeout=10
+                    )
+                    
+                    if res.status_code == 200:
+                        print(f"✅ 系統啟動快照 (TG 金蛋蛋網格) 第 {idx}/{len(message_chunks)} 頁 發送完畢！")
+                    else:
+                        print(f"⚠️ [Telegram] 啟動快照第 {idx} 頁 發送失敗 (HTTP {res.status_code}): {res.text}")
+                    
+                    # 🛡️ 防禦 API 限流：發送多則訊息時，加入微小延遲避免觸發 HTTP 429 Too Many Requests
+                    if idx < len(message_chunks):
+                        time.sleep(1.2)
+                        
             except Exception as e:
                 print(f"❌ [Telegram] 啟動快照連線異常: {e}")
-
+        else:
+            print("⚠️ [Telegram] 未設定 TELEGRAM_TOKEN 或 TELEGRAM_CHAT_ID，略過發送。")
+         
 def build_tianji_wall_block(grid: dict, current_price: float) -> list:
     """生成 Telegram 底部天機牆文字區塊"""
     if not grid or current_price <= 0: return []
