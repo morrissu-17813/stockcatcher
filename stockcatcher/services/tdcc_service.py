@@ -34,7 +34,8 @@ def get_real_stock_names(supabase: Client, symbols: list) -> dict:
 # 📊 1. 資料運算層 (實作嚴格過濾與分頁)
 # ==========================================
 def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
-    """從 Supabase 抓取全市場 TDCC 資料，實作分頁並加入雙層過濾機制"""
+    """從 Supabase 抓取全市場 TDCC 資料，修復分頁排序與全域降級邏輯"""
+    import logging
     
     # 1. 取得日曆錨點
     try:
@@ -57,7 +58,7 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
 
     target_dates = [d for d in [t0, t1, t4] if d is not None]
     
-    # 2. 分頁迴圈，突破 1000 筆限制
+    # 2. 🚨 修正核心 A：分頁必須加上 .order("symbol")，保證資料 100% 不漏抓
     records = []
     page_size = 1000
     
@@ -68,6 +69,7 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
                 res = supabase.table("tdcc_history") \
                     .select("*") \
                     .eq("date", d) \
+                    .order("symbol") \
                     .range(offset, offset + page_size - 1) \
                     .execute()
                 
@@ -90,7 +92,7 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
         sym = row["symbol"].strip()
         date_val = row["date"]
         
-        # 🚨 第一層過濾：非 4 碼純數字標的直接剃除 (排除 Y開頭、權證、指數)
+        # 第一層過濾：非 4 碼純數字標的直接剃除
         if not (sym.isdigit() and len(sym) == 4):
             continue
             
@@ -116,7 +118,7 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
 
         results.append({
             "symbol": symbol,
-            "name": "", # 延遲查詢
+            "name": "", 
             "current_400k": r400_t0, 
             "diff_400_1w": diff_400_1w,
             "diff_400_4w": diff_400_4w,
@@ -124,18 +126,17 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
             "diff_1000_4w": diff_1000_4w
         })
 
-    # 動態降級排序 (1. 用 4W差值排 -> 2. 用 1W差值排 -> 3. 用絕對佔比排)
-    results.sort(
-        key=lambda x: (
-            x["diff_400_4w"] if x["diff_400_4w"] is not None else
-            (x["diff_400_1w"] if x["diff_400_1w"] is not None else x["current_400k"])
-        ), 
-        reverse=True
-    )
+    # 4. 🚨 修正核心 B：全域一致的降級演算法
+    # 嚴格區分「差值」與「絕對佔比」，缺失資料者 (-999) 自動沉到底部
+    if t4 is not None:
+        results.sort(key=lambda x: x["diff_400_4w"] if x["diff_400_4w"] is not None else -999, reverse=True)
+    elif t1 is not None:
+        results.sort(key=lambda x: x["diff_400_1w"] if x["diff_400_1w"] is not None else -999, reverse=True)
+    else:
+        results.sort(key=lambda x: x["current_400k"], reverse=True)
     
-    # 🚨 第二層過濾：過濾已下市櫃殭屍股
-    # 抓取前 40 名進行驗證，確保濾掉下市股後仍有足夠的 20 檔可供顯示
-    candidate_symbols = [item["symbol"] for item in results[:40]]
+    # 5. 第二層過濾：擴大 Buffer 至 100 檔，確保過濾掉下市股後仍有足夠的 TOP 20
+    candidate_symbols = [item["symbol"] for item in results[:100]]
     real_stock_names = get_real_stock_names(supabase, candidate_symbols)
     
     final_top_20 = []
@@ -148,7 +149,6 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
             break
 
     return {"date": t0, "data": final_top_20, "is_fallback": (t4 is None)}
-
 
 def get_single_stock_tdcc(supabase: Client, symbol: str) -> Optional[Dict[str, Any]]:
     """查詢單一股票 TDCC 變化"""
