@@ -112,20 +112,25 @@ def get_tdcc_top20_diff(supabase: Client) -> Optional[Dict[str, Any]]:
         r1000_t0 = dates_data[t0]["ratio_1000k"]
 
         # 🚨 結構化優化：防禦性相減函式 (Defensive Subtraction)
+        # 🚨 結構化優化：防禦性相減函式 2.0 (攔截極端現值與異常波動)
         def safe_diff(t_target: Optional[str], key: str, current_val: float) -> Optional[float]:
             if not t_target or t_target not in dates_data:
                 return None
                 
             hist_val = dates_data[t_target].get(key, 0.0)
             
-            # 🛡️ 髒資料防護網：
-            # 如果歷史數據為 0.00%，但當前大戶佔比超過 5%，這在邏輯上極度不合理。
-            # 這代表上週的資料庫記錄損毀或寫入失敗，我們將其視為「無資料 (None)」以觸發降級顯示 '-'
+            # 1. 歷史無資料但現值極大
             if hist_val == 0.0 and current_val > 5.0:
                 return None
+            
+            diff = round(current_val - hist_val, 2)
+            
+            # 2. 絕對變動過大防護：單週/四週籌碼暴增或暴跌超過 30%，實務上不合理 (排除 API 異常或減資暫停交易)
+            # 3. 極端值防護：現值等於或超過 99.9% (異常鎖死)
+            if abs(diff) > 30.0 or current_val >= 99.9:
+                return None
                 
-            return round(current_val - hist_val, 2)
-
+            return diff
         # 改用防禦性函式計算差值
         diff_400_1w = safe_diff(t1, "ratio_400k", r400_t0)
         diff_400_4w = safe_diff(t4, "ratio_400k", r400_t0)
