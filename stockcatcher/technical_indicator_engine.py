@@ -39,6 +39,8 @@ KLINE_MIN_VOLUME_HISTORY = 5
 WARRANT_VOLUME_GROWTH_PERCENT = 20.0
 WARRANT_VOLUME_GROWTH_MINIMUM = 500
 WARRANT_POOL_QUOTA = 50
+TELEGRAM_ALERT_COOLDOWN_MINUTES = 30
+FAST_3K_MIN_VOLUME_RATIO = 5.0
 WARRANT_POOL_SNAPSHOT_FILE = os.path.join(
     os.path.dirname(__file__), "warrant_hot_pool_snapshot.json"
 )
@@ -114,21 +116,20 @@ def get_monitor_stop_at(started_at: Optional[datetime] = None) -> datetime:
 
 
 def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
-    """依 test_catchWarrant.py 判斷最後三根已收盤5分K的有效突破。"""
-    if len(bars) < KLINE_MIN_VOLUME_HISTORY + 3:
+    """判斷最後三根已收盤 5 分 K 的價格突破與第 3K 強量能。"""
+    if len(bars) < 23:
         return None
 
     first_bar, second_bar, third_bar = bars[-3:]
     previous_bars = bars[:-3][-20:]
-    if not previous_bars:
+    if len(previous_bars) < 20:
         return None
 
     breakout_price = max(float(first_bar["high"]), float(second_bar["high"]))
     previous_average_volume = sum(float(bar["volume"]) for bar in previous_bars) / len(previous_bars)
-    required_volume = max(
-        float(first_bar["volume"]),
-        float(second_bar["volume"]),
-        previous_average_volume * volume_multiplier,
+    required_volume = previous_average_volume * max(
+        volume_multiplier,
+        FAST_3K_MIN_VOLUME_RATIO,
     )
     third_close = float(third_bar["close"])
     third_volume = float(third_bar["volume"])
@@ -142,6 +143,7 @@ def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: 
         "volume": third_volume,
         "required_volume": required_volume,
         "volume_ratio": third_volume / previous_average_volume if previous_average_volume else 0.0,
+        "ma20": sum(float(bar["close"]) for bar in previous_bars) / len(previous_bars),
         "stop_price": min(float(first_bar["low"]), float(second_bar["low"]), float(third_bar["low"])),
     }
 
@@ -945,11 +947,11 @@ class TechnicalSignalEngine:
         insider: Optional[Dict[str, Any]] = None,
         effective_3k: Optional[Dict[str, Any]] = None,
         min_score: float = 60.0,
-        min_volume_ratio: float = 2.5,
+        min_volume_ratio: float = 2.2,
     ) -> Dict[str, Any]:
         """
         累積式觸發優先級：
-        - Tier 1 (基礎): 量能 >= 2.5x + 技術分數 >= 60 + 日線多頭型態優 -> 發送
+        - Tier 1 (基礎): 量能 >= 2.2x + 技術分數 >= 60 + 日線多頭型態優 -> 發送
         - Tier 2 (進階): Tier1 + 內部人買超存在 -> 直接發送
         - Tier 3 (終極): Tier2 + 大戶買超 >= 400張 + 連買(3天+) -> 直接發送
         """
@@ -981,7 +983,7 @@ class TechnicalSignalEngine:
         rsi14 = float(snapshot.get("rsi14", 0.0))
         macd_hist = float(snapshot.get("macd_hist", 0.0))
 
-        # Tier 1: 基礎條件 (量能 2.5x + 技術分數 >= 60 + 日線多頭型態優)
+        # Tier 1: 基礎條件 (量能 2.2x + 技術分數 >= 60 + 日線多頭型態優)
         volume_threshold = volume_ratio >= min_volume_ratio
         score_threshold = score >= min_score
         # 日線多頭型態優: 價格 > MA5 > MA20 OR 突破 OR RSI > 50 OR MACD > 0
@@ -1541,7 +1543,7 @@ class WarrantReverseMonitor:
                 prev_price = float(prev.get("price", 0.0))
                 diff_vol = total_vol - prev_vol
                 diff_amount = diff_vol * current_price * 1000
-                if diff_vol > 0 and diff_amount >= 3_000_000 and current_price >= prev_price:
+                if diff_vol > 0 and diff_amount >= 2_000_000 and current_price >= prev_price:
                     self.latest_quotes[sid]["is_warrant_surge"] = True
                     self.latest_quotes[sid]["surge_amount"] = diff_amount
                     triggered.append(
@@ -1588,6 +1590,7 @@ class WarrantTelegramAlertRunner:
         self.chip_layer = FundamentalChipDataLayer()
         self.warrant_pool_metadata: Dict[str, Dict[str, Any]] = {}
         self.sent_signals: set[str] = set()
+        self.last_alert_at: Dict[str, datetime] = {}
         self.last_effective_3k: Dict[str, Dict[str, Any]] = {}
 
     @staticmethod
@@ -1694,6 +1697,7 @@ class WarrantTelegramAlertRunner:
         grade: str,
         is_warrant_surge: bool,
         snapshot: Optional[Dict[str, Any]] = None,
+        alert_mode: str = "mis_confirmed",
     ) -> str:
         """建立權證量能＋有效3K的 Telegram 訊息。"""
         grade_badges = {"A": "🎯 A", "AA": "🔥 AA", "AAA": "🚀 AAA"}
@@ -1701,11 +1705,17 @@ class WarrantTelegramAlertRunner:
         volume_ratio = float(snapshot.get("volume_ratio", signal.get("volume_ratio", 0.0)))
         score = float(snapshot.get("score", 0.0))
         trend = str(snapshot.get("trend", "N/A"))
-        surge_reason = "權證急拉" if is_warrant_surge else "無權證急拉"
-        trigger_reason = (
-            f"量能{volume_ratio:.2f}x 、 技術分數{score:.1f}、"
-            f"{surge_reason}、{trend}"
-        )
+        surge_reason = "現股量能急增" if is_warrant_surge else "未偵測到現股量能急增"
+        if alert_mode == "fast_3k":
+            trigger_reason = (
+                f"有效3K突破、第3K量能{float(signal['volume_ratio']):.2f}x、"
+                f"現價站上5分K MA20（{float(signal['ma20']):.2f}）"
+            )
+        else:
+            trigger_reason = (
+                f"量能{volume_ratio:.2f}x 、 技術分數{score:.1f}、"
+                f"{surge_reason}、{trend}"
+            )
         message_lines = [
             "🚨 [訊號觸發]",
             f"🎯 *核心策略：* 🎫 [權證主力標的] 有效3K突破 {grade_badges[grade]}",
@@ -1714,7 +1724,7 @@ class WarrantTelegramAlertRunner:
             f"💰 *現價：* `{float(stock['price']):.2f}`",
             f"🎯 *觸發原因：* {trigger_reason}",
             f"📐 *3K收盤／突破價：* `{float(signal['close']):.2f}` / `{float(signal['breakout_price']):.2f}`",
-            f"📊 *3K量能：* `{float(signal['volume']):,.0f}`（均量 `{float(signal['volume_ratio']):.2f}x`）",
+            f"📊 *第3K量能：* `{float(signal['volume']):,.0f}張`（5分K均量的 `{float(signal['volume_ratio']):.2f}x`）",
             f"🎫 *認購量增：* `{int(stock.get('warrant_volume_change', 0)):+,}` "
             f"(`{float(stock.get('warrant_volume_growth_percent', 0.0)):+.1f}%`)",
             "━━━━━━━━━━━━",
@@ -1814,7 +1824,7 @@ class WarrantTelegramAlertRunner:
         if not hits:
             return []
 
-        symbols = [str(hit.get("sid", "")).strip() for hit in hits[:10]]
+        symbols = [str(hit.get("sid", "")).strip() for hit in hits[:20]]
         volume_multiplier = (
             OPENING_KLINE_VOLUME_MULTIPLIER
             if is_opening_noise_period()
@@ -1822,16 +1832,9 @@ class WarrantTelegramAlertRunner:
         )
         effective_3k_by_symbol = fetch_effective_3k_breakouts(symbols, volume_multiplier)
         self.last_effective_3k = effective_3k_by_symbol
-        try:
-            insider_data = FundamentalChipDataLayer.fetch_insider_buy_data(lookback_days=30)
-            institutional_data = FundamentalChipDataLayer.fetch_three_institutional_buy(lookback_days=30)
-            margin_data = FundamentalChipDataLayer.fetch_margin_buy(lookback_days=30)
-        except Exception as exc:
-            print(f"[籌碼資料] 本輪取得失敗: {exc}")
-            return []
 
         alerts: List[Dict[str, Any]] = []
-        for hit in hits[:10]:
+        for hit in hits[:20]:
             symbol = str(hit.get("sid", "")).strip()
             if not symbol:
                 continue
@@ -1839,8 +1842,16 @@ class WarrantTelegramAlertRunner:
             effective_3k = effective_3k_by_symbol.get(symbol)
             if not effective_3k:
                 continue
+            if float(hit.get("current_price", 0.0)) <= float(effective_3k["ma20"]):
+                continue
             signal_key = f"{symbol}:{effective_3k['bar_time']}"
             if signal_key in self.sent_signals:
+                continue
+            last_alert_at = self.last_alert_at.get(symbol)
+            if (
+                last_alert_at is not None
+                and get_taipei_now() - last_alert_at < timedelta(minutes=TELEGRAM_ALERT_COOLDOWN_MINUTES)
+            ):
                 continue
 
             try:
@@ -1854,28 +1865,9 @@ class WarrantTelegramAlertRunner:
                 float(snapshot.get("volume_ratio", 0.0)),
                 float(effective_3k.get("volume_ratio", 0.0)),
             )
-            try:
-                real_chip = self._fetch_real_chip_signal(
-                    symbol,
-                    insider=insider_data,
-                    three_inst=institutional_data,
-                    margin=margin_data,
-                )
-            except Exception as exc:
-                print(f"[籌碼資料] {symbol} 取得失敗: {exc}")
-                continue
-            chip = real_chip
-            insider = {
-                "net_buy": real_chip.get("insider_net_buy", 0.0),
-                "buy_count": real_chip.get("insider_buy_count", 0),
-                "buy_streak": real_chip.get("insider_buy_streak", 0),
-                "annotation": "買超" if real_chip.get("insider_net_buy", 0.0) > 0 else "無買超",
-            }
             decision = self.engine.evaluate_alert_triggers(
                 symbol,
                 snapshot=snapshot,
-                chip=chip,
-                insider=insider,
                 effective_3k=effective_3k,
             )
             if not decision["should_send"]:
@@ -1897,10 +1889,12 @@ class WarrantTelegramAlertRunner:
                     self.monitor.latest_quotes.get(symbol, {}).get("is_warrant_surge")
                 ),
                 snapshot=snapshot,
+                alert_mode="fast_3k",
             )
             payload = send_telegram_message(message, chat_id=self.chat_id, token=TELEGRAM_BOT_TOKEN)
             if payload.get("body", {}).get("ok"):
                 self.sent_signals.add(signal_key)
+                self.last_alert_at[symbol] = get_taipei_now()
             alerts.append({
                 "symbol": symbol,
                 "hit": hit,
@@ -1908,8 +1902,8 @@ class WarrantTelegramAlertRunner:
                 "warrant_grade": warrant_grade,
                 "warrant_volume_change": warrant_info.get("warrant_volume_change", 0),
                 "warrant_volume_growth_percent": warrant_info.get("warrant_volume_growth_percent", 0.0),
-                "chip_source": real_chip.get("source", ""),
-                "real_chip": real_chip,
+                "chip_source": "",
+                "real_chip": {},
                 "decision": decision,
                 "telegram": payload,
             })
