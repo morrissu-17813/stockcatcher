@@ -9,7 +9,9 @@ on:
   # (注意：GitHub Actions 使用 UTC 時間，UTC 06:30 = 台灣時間 14:30)
   # schedule:
   #   - cron: '30 6 * * 1-5' 
-
+  repository_dispatch:
+    types: [trigger-indicator-engine]
+    
 jobs:
   run-indicator-engine:
     runs-on: ubuntu-latest
