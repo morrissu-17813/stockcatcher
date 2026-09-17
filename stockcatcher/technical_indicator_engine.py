@@ -26,6 +26,7 @@ TAIPEI_TIMEZONE = timezone(timedelta(hours=8))
 MARKET_OPEN = datetime_time(9, 0)
 MARKET_CLOSE = datetime_time(13, 30)
 MONITOR_STOP_TIME = datetime_time(13, 35)
+TRADING_MINUTES_PER_DAY = 270
 FUBON_RANK_URL = "https://warrants.fbs.com.tw/want/data/getWRankResult.aspx"
 FUBON_RANK_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -102,6 +103,17 @@ def is_market_hours(now: Optional[datetime] = None) -> bool:
 def is_opening_noise_period(now: Optional[datetime] = None) -> bool:
     current = now or get_taipei_now()
     return current.weekday() < 5 and MARKET_OPEN <= current.time() < datetime_time(9, 15)
+
+
+def get_market_elapsed_minutes(now: Optional[datetime] = None) -> float:
+    """回傳當日自 09:00 起的盤中分鐘數，供今日量能年化預估使用。"""
+    current = now or get_taipei_now()
+    market_open_at = datetime.combine(current.date(), MARKET_OPEN, tzinfo=TAIPEI_TIMEZONE)
+    market_close_at = datetime.combine(current.date(), MARKET_CLOSE, tzinfo=TAIPEI_TIMEZONE)
+    if current <= market_open_at:
+        return 1.0
+    elapsed = (min(current, market_close_at) - market_open_at).total_seconds() / 60
+    return max(1.0, elapsed)
 
 
 def get_monitor_stop_at(started_at: Optional[datetime] = None) -> datetime:
@@ -1709,6 +1721,7 @@ class WarrantTelegramAlertRunner:
         if alert_mode == "fast_3k":
             trigger_reason = (
                 f"有效3K突破、第3K量能{float(signal['volume_ratio']):.2f}x、"
+                f"今日預估量比{volume_ratio:.2f}x、"
                 f"現價站上5分K MA20（{float(signal['ma20']):.2f}）"
             )
         else:
@@ -1725,6 +1738,7 @@ class WarrantTelegramAlertRunner:
             f"🎯 *觸發原因：* {trigger_reason}",
             f"📐 *3K收盤／突破價：* `{float(signal['close']):.2f}` / `{float(signal['breakout_price']):.2f}`",
             f"📊 *第3K量能：* `{float(signal['volume']):,.0f}張`（5分K均量的 `{float(signal['volume_ratio']):.2f}x`）",
+            f"📈 *今日預估量比：* `{volume_ratio:.2f}x`",
             f"🎫 *認購量增：* `{int(stock.get('warrant_volume_change', 0)):+,}` "
             f"(`{float(stock.get('warrant_volume_growth_percent', 0.0)):+.1f}%`)",
             "━━━━━━━━━━━━",
@@ -1808,10 +1822,20 @@ class WarrantTelegramAlertRunner:
         total_volume = _safe_cast(hit.get("total_vol"), float, 0.0)
         if last_price <= 0 or total_volume <= 0:
             raise ValueError(f"MIS 即時資料不完整: {symbol}")
+        estimated_daily_volume = (
+            total_volume * 1000 * TRADING_MINUTES_PER_DAY / get_market_elapsed_minutes()
+        )
+        previous_day_volume = float(signal.get("volume", 0.0))
+        estimated_volume_ratio = (
+            estimated_daily_volume / previous_day_volume if previous_day_volume > 0 else 0.0
+        )
         signal.update({
             "name": str(hit.get("name") or self.monitor.latest_quotes.get(symbol, {}).get("name") or symbol).strip(),
             "close": last_price,
             "volume": total_volume,
+            "previous_day_volume": previous_day_volume,
+            "estimated_daily_volume": estimated_daily_volume,
+            "estimated_volume_ratio": estimated_volume_ratio,
             "date": str(get_taipei_now()),
         })
         return signal
@@ -1861,10 +1885,7 @@ class WarrantTelegramAlertRunner:
                 continue
             snapshot["effective_3k"] = effective_3k
             snapshot["is_3k_breakout"] = True
-            snapshot["volume_ratio"] = max(
-                float(snapshot.get("volume_ratio", 0.0)),
-                float(effective_3k.get("volume_ratio", 0.0)),
-            )
+            snapshot["volume_ratio"] = float(snapshot.get("estimated_volume_ratio", 0.0))
             decision = self.engine.evaluate_alert_triggers(
                 symbol,
                 snapshot=snapshot,
