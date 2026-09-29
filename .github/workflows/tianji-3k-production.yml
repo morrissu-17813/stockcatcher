@@ -87,7 +87,8 @@ jobs:
           echo "Start time: $(date -u)"
           echo "Timezone  : Asia/Taipei"
           echo "=========================================="
-
+      
+          cd stockcatcher
           python -u -m tianji_3k
 
       - name: 📦 Upload Tianji runtime logs
