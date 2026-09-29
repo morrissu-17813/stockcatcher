@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-23",
+  "symbol": "3042",
+  "name": "晶技",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-23T00:00:00.000",
+  "previous_close": 198.0,
+  "k1_high": 187.5,
+  "k2_high": 187.5,
+  "breakout_level": 187.5,
+  "ma20": 182.05,
+  "ma60": 181.34166666666667,
+  "ma20_prev": 181.025,
+  "vma5_lots": 11876.9382,
+  "yesterday_volume_lots": 10365.783,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -1,0 +1,6 @@
+{"event_type":"PREMARKET_WATCHLIST","trade_date":"2026-09-28","symbols":["2436","3016","3167","3189","3653","6672","6933"],"pool_count":7,"source_data_dates":["2026-09-24T00:00:00.000"],"created_at":"2026-09-28T09:03:48.183552+08:00"}
+{"event_type":"PREMARKET_WATCHLIST_NOTIFICATION","trade_date":"2026-09-28","status":"SENT","telegram_message_id":17642,"created_at":"2026-09-28T09:03:49.704432+08:00"}
+{"event_type":"PREMARKET_WATCHLIST","trade_date":"2026-09-28","symbols":["2436","3016","3167","3189","3653","6672","6933"],"pool_count":7,"source_data_dates":["2026-09-24T00:00:00.000"],"created_at":"2026-09-28T20:41:45.487141+08:00"}
+{"event_type":"PREMARKET_WATCHLIST_NOTIFICATION","trade_date":"2026-09-28","status":"SENT","telegram_message_id":17643,"created_at":"2026-09-28T20:41:47.835512+08:00"}
+{"event_type":"PREMARKET_WATCHLIST","trade_date":"2026-09-28","symbols":["2436","3016","3167","3189","3653","6672","6933"],"pool_count":7,"source_data_dates":["2026-09-24T00:00:00.000"],"created_at":"2026-09-28T21:08:05.659183+08:00"}
+{"event_type":"PREMARKET_WATCHLIST_NOTIFICATION","trade_date":"2026-09-28","status":"SENT","telegram_message_id":17645,"created_at":"2026-09-28T21:08:17.002642+08:00"}

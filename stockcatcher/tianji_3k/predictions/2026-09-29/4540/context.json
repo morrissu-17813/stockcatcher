@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-29",
+  "symbol": "4540",
+  "name": "全球傳動",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-29T00:00:00.000",
+  "previous_close": 62.6,
+  "k1_high": 60.5,
+  "k2_high": 60.2,
+  "breakout_level": 60.5,
+  "ma20": 59.220000000000006,
+  "ma60": 56.931666666666665,
+  "ma20_prev": 59.1,
+  "vma5_lots": 1728.0288,
+  "yesterday_volume_lots": 1301.41,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

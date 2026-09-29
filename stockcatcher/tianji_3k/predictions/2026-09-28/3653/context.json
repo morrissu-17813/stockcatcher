@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-28",
+  "symbol": "3653",
+  "name": "健策",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-24T00:00:00.000",
+  "previous_close": 6920.0,
+  "k1_high": 6410.0,
+  "k2_high": 6050.0,
+  "breakout_level": 6410.0,
+  "ma20": 5782.0,
+  "ma60": 4627.833333333333,
+  "ma20_prev": 5718.25,
+  "vma5_lots": 1087.4959999999999,
+  "yesterday_volume_lots": 1525.519,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

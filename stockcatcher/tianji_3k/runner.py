@@ -1,0 +1,908 @@
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+import time
+from datetime import datetime, time as dtime, timezone, timedelta
+from pathlib import Path
+
+import requests
+
+from .data.config import (
+    BREAKOUT_BUFFER_PCT,
+    FUGLE_API_KEY,
+    MIS_INTERVAL_SECONDS,
+    VOLUME_THRESHOLD_LOTS,
+)
+from .data.stock_universe import StockUniverseProvider
+from .data.mis import MISProvider
+from .core.snapshot import build_snapshot
+from .core.state_machine import IntradayStateMachine
+from .core.volume_predictor import IntradayVolumePredictor
+from .core.prediction_score import IntradayPredictionScorer
+from .core.simulator import IntradaySimulator
+from .data.snapshot_filter import SnapshotUniverseFilter
+from .data.daily_refresh import DailyDataRefreshManager
+from .data.finmind_budget import FinMindRequestBudget
+from .data.finmind_initialization import ProductionCacheInitializer
+from .notification.gate import evaluate_intraday_notification
+from .notification.telegram import TelegramNotifier
+from .validation.prediction_ledger import PredictionLedger
+from .validation.prediction_chain import PredictionChain
+from .validation.recovery_ledger import RecoveryLedger
+from .core.recovery import RecoveryManager
+from .core.process_lock import SingleInstanceLock
+from .core.trading_session import TradingSession
+from .validation.daily_report import build_daily_report, write_daily_report
+from .validation.calibration_engine import PredictionCalibrationEngine
+
+TAIPEI = timezone(timedelta(hours=8))
+
+
+class TianjiProductionRunner:
+    """Production coordinator for the daily 3K round.
+
+    T-1 complete daily bars -> Stage 0~3 -> T-day watchlist -> MIS Radar
+    -> intraday prediction -> notification -> close validation.
+    """
+
+    def __init__(self, repo_root: Path | None = None, telegram: bool = True):
+        self.repo_root = (repo_root or Path(__file__).resolve().parents[1]).resolve()
+        self.tianji = self.repo_root / "tianji_3k"
+        self.cache = self.tianji / "cache"
+        self.daily_cache = self.cache / "daily"
+        self.pred_root = self.tianji / "predictions"
+        self.ledger = PredictionLedger(self.pred_root)
+        self.prediction_chain = PredictionChain(self.ledger)
+        self.recovery_ledger = RecoveryLedger(self.tianji / "validation" / "recovery_events")
+        self.recovery = RecoveryManager(self.pred_root / "runtime_checkpoint.json")
+        self.notifier = TelegramNotifier() if telegram else TelegramNotifier("", "")
+        self.states: dict[str, IntradayStateMachine] = {}
+        self.contexts: dict[str, dict] = {}
+        self.pool: list[dict] = []
+        self.events: list[dict] = []
+        self.notification_events: list[dict] = []
+        self.ground_truth: list[dict] = []
+        self.validation_rows: list[dict] = []
+        self.volume_predictor = IntradayVolumePredictor()
+        self.prediction_scorer = IntradayPredictionScorer()
+        self.mis_provider = None
+        self.session = TradingSession()
+        self.process_lock = SingleInstanceLock(self.pred_root / ".production.lock")
+        self._last_notification_retry_at = 0.0
+        self._gt_cutoff_recorded = False
+        self.trade_date: str | None = None
+        self._premarket_notified = False
+        self.runtime_state_path: Path | None = None
+        self.finmind_budget = FinMindRequestBudget(limit=580)
+        self.data_refresh = DailyDataRefreshManager(
+            self.daily_cache,
+            self.cache / "data_freshness.json",
+            budget=self.finmind_budget,
+        )
+        self.latest_completed_date: str | None = None
+
+    @staticmethod
+    def _today() -> str:
+        return datetime.now(TAIPEI).date().isoformat()
+
+    def _run_module(self, module, args):
+        cmd = [sys.executable, "-m", module, *args]
+        return subprocess.run(cmd, cwd=str(self.repo_root), check=True)
+
+    def _set_runtime_path(self):
+        if self.trade_date:
+            p = self.pred_root / str(self.trade_date) / "runtime_state.json"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            self.runtime_state_path = p
+
+    def _save_runtime_state(self):
+        if not self.runtime_state_path:
+            return
+        payload = {
+            "schema_version": "runtime-v2.1",
+            "trade_date": self.trade_date,
+            "premarket_notified": self._premarket_notified,
+            "states": {sid: sm.to_dict() for sid, sm in self.states.items()},
+            "updated_at": datetime.now(TAIPEI).isoformat(),
+        }
+        tmp = self.runtime_state_path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(self.runtime_state_path)
+        self.recovery.heartbeat("STATE_SAVED", success=True)
+
+    def _load_runtime_state(self):
+        self._set_runtime_path()
+        if not self.runtime_state_path or not self.runtime_state_path.exists():
+            return
+        try:
+            data = json.loads(self.runtime_state_path.read_text(encoding="utf-8"))
+            self._premarket_notified = bool(data.get("premarket_notified", False))
+            for sid, state in data.get("states", {}).items():
+                self.states[str(sid)] = IntradayStateMachine.from_dict(state)
+        except (OSError, ValueError, TypeError):
+            return
+
+    def _load_today_predictions(self):
+        if not self.trade_date:
+            return []
+        return list(self.ledger.iter_predictions(self.trade_date))
+
+    def build_premarket_pool(self, trade_date: str | None = None):
+        """Build a NEW trading-day watchlist from the latest completed daily data."""
+        self.trade_date = trade_date or self._today()
+        self.recovery.start(self.trade_date, "BUILD_PREMARKET_POOL")
+        self.recovery_ledger.append(self.trade_date, {"event_type":"RUN_START", "phase":"BUILD_PREMARKET_POOL", "at":datetime.now(TAIPEI).isoformat()})
+        self._set_runtime_path()
+        self.cache.mkdir(parents=True, exist_ok=True)
+        (self.cache / "reference").mkdir(parents=True, exist_ok=True)
+
+
+        s0j = self.cache / "stage0_production.json"
+        s0c = self.cache / "stage0_production.csv"
+        s1j = self.cache / "stage1_trend.json"
+        s1c = self.cache / "stage1_trend.csv"
+        stage2j = self.cache / "stage2_breakout.json"
+        stage3j = self.cache / "stage3_volume.json"
+        finalj = self.cache / "final_3k_pool.json"
+        pool_dir = self.cache / "pools"
+        pool_dir.mkdir(parents=True, exist_ok=True)
+        daily_pool = pool_dir / f"{self.trade_date}.json"
+
+        # Freshness MUST be checked before reusing an existing daily pool.
+        # Otherwise a pool generated earlier from stale K data could survive
+        # a restart and silently remain the day's watchlist.
+        freshness = self.data_refresh.refresh(self.trade_date)
+        self.latest_completed_date = freshness.latest_completed_date
+        official = self.data_refresh.refresh_official_daily(self.latest_completed_date)
+        print("=" * 72)
+        print("天機 3K DATA CONTEXT")
+        print("=" * 72)
+        print(f"Trade Date             : {self.trade_date}")
+        print(f"Latest Completed K     : {freshness.latest_completed_date}")
+        print(f"Cache Latest K         : {freshness.cache_latest_after}")
+        print("Data Source            : OFFICIAL TWSE/TPEx + CACHE + FINMIND(HISTORY ONLY)")
+        print(f"Official Daily         : {official['status']} TWSE={official.get('twse_rows',0):,} TPEx={official.get('tpex_rows',0):,} symbols={official.get('rows_written',0):,}")
+        print(f"Data Freshness         : {freshness.status}")
+        b = self.finmind_budget.snapshot()
+        print(f"FinMind Budget         : {b['used']}/{b['limit']} used (rolling 60m), remaining={b['remaining']}")
+        print("=" * 72)
+        if official["status"] != "READY":
+            raise RuntimeError("OFFICIAL_DAILY_SNAPSHOT_NOT_READY")
+
+        if daily_pool.exists():
+            existing_pool = json.loads(daily_pool.read_text(encoding="utf-8"))
+            existing_dates = {str(x.get("date") or x.get("latest_date") or "") for x in existing_pool if isinstance(x, dict)}
+            if existing_pool and existing_dates and existing_dates == {self.latest_completed_date}:
+                self.pool = existing_pool
+                self._load_pool_from_memory()
+                self._load_runtime_state()
+                if self.pool and self.notifier.enabled and not self._premarket_notified:
+                    result = self.notifier.send_premarket_watchlist(self.trade_date, self.pool)
+                    self._record_notification(
+                        event_type="PREMARKET_WATCHLIST_NOTIFICATION",
+                        status=result.get("status", "FAILED"),
+                        message_id=result.get("message_id"),
+                    )
+                    self._premarket_notified = result.get("status") == "SENT"
+                    self._save_runtime_state()
+                return self.pool
+            # Stale daily pool: do not reuse it. Rebuild from refreshed cache.
+            daily_pool.unlink(missing_ok=True)
+
+        from .tools.stage0_production import main as stage0_main
+        stage0_main([
+            "--repo-root", str(self.repo_root),
+            "--cache-dir", str(self.daily_cache),
+            "--volume-threshold", str(VOLUME_THRESHOLD_LOTS),
+            "--reference-cache", str(self.cache / "reference" / "stage0_reference.json"),
+            "--csv", str(s0c), "--json", str(s0j),
+        ])
+        stage0_payload = json.loads(s0j.read_text(encoding="utf-8"))
+        stage0_symbols = [str(x.get("symbol")) for x in stage0_payload if x.get("final_stage0_pass")]
+        initializer = ProductionCacheInitializer(
+            cache_dir=self.daily_cache,
+            checkpoint_path=self.cache / "production_cache_initialization_stage0.json",
+            budget=self.finmind_budget,
+            calendar=self.data_refresh.calendar,
+            provider=self.data_refresh.provider,
+            universe_provider=StockUniverseProvider(),
+            min_universe_symbols=0,
+        )
+        init_result = initializer.initialize(
+            self.trade_date,
+            bars_required=61,
+            resume=True,
+            wait_for_budget=False,
+            symbols=stage0_symbols,
+        )
+        print(f"History Initialization : status={init_result.status} requested={init_result.total_symbols:,} completed={init_result.completed_symbols:,} pending={init_result.pending_symbols:,} FinMind={init_result.requests_used}/580")
+        if init_result.status != "COMPLETE":
+            self.recovery_ledger.append(self.trade_date, {
+                "event_type": "HISTORY_INITIALIZATION_NOT_COMPLETE",
+                "status": init_result.status,
+                "pending": init_result.pending_symbols,
+                "message": init_result.message,
+                "at": datetime.now(TAIPEI).isoformat(),
+            })
+            raise RuntimeError(f"HISTORY_INITIALIZATION_{init_result.status}")
+        from .stage1.trend_engine import main as stage1_main
+        stage1_main([
+            "--stage0-json", str(s0j), "--cache-dir", str(self.daily_cache),
+            "--csv", str(s1c), "--json", str(s1j),
+        ])
+        self._run_module("tianji_3k.stage2.breakout_engine", [
+            "--stage1-json", str(s1j), "--cache-dir", str(self.daily_cache),
+            "--csv", str(self.cache / "stage2_breakout.csv"), "--json", str(stage2j),
+        ])
+        self._run_module("tianji_3k.stage3.volume_engine", [
+            "--stage2-json", str(stage2j), "--cache-dir", str(self.daily_cache),
+            "--csv", str(self.cache / "stage3_volume.csv"), "--json", str(stage3j),
+        ])
+        self._run_module("tianji_3k.core.final_pool", [
+            "--stage3-json", str(stage3j), "--stage2-json", str(stage2j),
+            "--output", str(finalj),
+        ])
+
+        pool = json.loads(finalj.read_text(encoding="utf-8"))
+        universe = {x["symbol"]: x for x in StockUniverseProvider().fetch()}
+        s1 = {str(x["symbol"]): x for x in json.loads(s1j.read_text(encoding="utf-8"))}
+        s0 = {str(x["symbol"]): x for x in json.loads(s0j.read_text(encoding="utf-8"))}
+
+        self.pool = []
+        self.contexts = {}
+        self.states = {}
+        self.events = []
+        self.notification_events = []
+        self.validation_rows = []
+        self._premarket_notified = False
+        self.runtime_state_path: Path | None = None
+
+        for x in pool:
+            sid = str(x["symbol"])
+            u = universe.get(sid, {})
+            t = s1.get(sid, {})
+            a = s0.get(sid, {})
+            item = {
+                **x,
+                "name": u.get("name") or t.get("name", ""),
+                "market": u.get("market", ""),
+                "industry": u.get("industry", ""),
+                "stage0": a,
+                "stage1": t,
+            }
+            self.pool.append(item)
+            context = {
+                "trade_date": self.trade_date,
+                "symbol": sid,
+                "name": item["name"],
+                "market": item["market"],
+                "industry": item.get("industry", ""),
+                "source_data_date": x.get("date") or x.get("latest_date") or self.latest_completed_date,
+                "previous_close": float(x.get("close") or 0),
+                "k1_high": float(x.get("k1_high") or 0),
+                "k2_high": float(x.get("k2_high") or 0),
+                "breakout_level": float(x.get("breakout_level") or 0),
+                "ma20": float(t.get("ma20") or 0),
+                "ma60": float(t.get("ma60") or 0),
+                "ma20_prev": float(t.get("ma20_prev") or 0),
+                "vma5_lots": float(x.get("stage3", {}).get("vma5_lots") or x.get("vma5_lots") or 0),
+                "yesterday_volume_lots": float(x.get("stage3", {}).get("yesterday_volume_lots") or x.get("yesterday_volume_lots") or 0),
+                "stage0_pass": True,
+                "stage1_pass": True,
+                "stage2_pass": True,
+                "stage3_pass": True,
+                "final_pool": True,
+            }
+            self.contexts[sid] = context
+            self.states[sid] = IntradayStateMachine()
+            self.ledger.write_context(context)
+
+        daily_pool.write_text(json.dumps(self.pool, ensure_ascii=False, indent=2), encoding="utf-8")
+        self._set_runtime_path()
+        self._record_premarket_event()
+        if self.pool and self.notifier.enabled and not self._premarket_notified:
+            result = self.notifier.send_premarket_watchlist(self.trade_date, self.pool)
+            self._record_notification(
+                event_type="PREMARKET_WATCHLIST_NOTIFICATION",
+                status=result.get("status", "FAILED"),
+                message_id=result.get("message_id"),
+            )
+            self._premarket_notified = result.get("status") == "SENT"
+        self._save_runtime_state()
+        return self.pool
+
+    def _record_premarket_event(self):
+        event = {
+            "event_type": "PREMARKET_WATCHLIST",
+            "trade_date": self.trade_date,
+            "symbols": [str(x.get("symbol")) for x in self.pool],
+            "pool_count": len(self.pool),
+            "source_data_dates": sorted({str(x.get("date") or x.get("latest_date") or self.latest_completed_date or "") for x in self.pool}),
+            "created_at": datetime.now(TAIPEI).isoformat(),
+        }
+        self.events.append(event)
+        self.ledger.append_daily_event(self.trade_date, event)
+
+    def _record_notification(self, event_type: str, status: str, message_id=None, **extra):
+        event = {
+            "event_type": event_type,
+            "trade_date": self.trade_date,
+            "status": status,
+            "telegram_message_id": message_id,
+            "created_at": datetime.now(TAIPEI).isoformat(),
+            **extra,
+        }
+        self.notification_events.append(event)
+        self.ledger.append_daily_event(self.trade_date, event)
+
+    def _radar_rows(self):
+        universe = {x["symbol"]: x for x in StockUniverseProvider().fetch()}
+        out = []
+        for x in self.pool:
+            sid = str(x["symbol"])
+            u = universe.get(sid, {})
+            out.append({
+                "symbol": sid,
+                "name": u.get("name", x.get("name", "")),
+                "market": u.get("market", x.get("market", "")),
+                "product_type": "COMMON_STOCK",
+                "status": "NORMAL",
+                "yesterday_volume_lots": float(
+                    x.get("stage3", {}).get("yesterday_volume_lots")
+                    or x.get("yesterday_volume_lots") or 0
+                ),
+            })
+        return out
+
+    def poll_once(self):
+        if not self.pool:
+            self._load_pool()
+        rows = self._radar_rows()
+        eligible, _ = SnapshotUniverseFilter(min_yesterday_volume_lots=0).filter_rows(rows)
+        info = {x["symbol"]: x for x in eligible}
+        resolver = lambda s: "otc" if info.get(s, {}).get("market") == "TPEx" else "tse"
+        if self.mis_provider is None:
+            self.mis_provider = MISProvider(info, resolver)
+        else:
+            self.mis_provider.stock_info_map = info
+            self.mis_provider.exchange_resolver = resolver
+        self.recovery.heartbeat("RADAR_FETCHING", success=True)
+        try:
+            raw = self.mis_provider.fetch_batch()
+        except Exception as exc:
+            err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+            self.recovery.heartbeat("RADAR_ERROR", success=False, error=err)
+            self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_ERROR", **err, "at":datetime.now(TAIPEI).isoformat()})
+            return 0
+
+        for sid, ctx in self.contexts.items():
+            r = raw.get(sid)
+            if not r:
+                continue
+            snap = build_snapshot(sid, r, ctx["name"], ctx["market"], "COMMON_STOCK")
+            sm = self.states.setdefault(sid, IntradayStateMachine())
+
+            # First confirm price breakout using two distinct MIS data identities.
+            triggered, reason = sm.evaluate(
+                snap, ctx["breakout_level"], 4.0, BREAKOUT_BUFFER_PCT
+            )
+            if reason == "DUPLICATE_SNAPSHOT":
+                continue
+            if not triggered:
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "RADAR_STATE",
+                    "observed_at": snap.observed_at,
+                    "state": sm.state.value,
+                    "reason": reason,
+                    "snapshot_id": snap.snapshot_id,
+                })
+                continue
+
+            projection = self.volume_predictor.project(
+                snap.cumulative_volume_lots,
+                datetime.fromisoformat(snap.observed_at),
+                ctx["vma5_lots"],
+            )
+            volume_ratio_ok = (
+                projection.projected_ratio is not None
+                and projection.projected_ratio >= 1.5
+            )
+            effective = snap.current_price >= ctx["breakout_level"] * (
+                1 + BREAKOUT_BUFFER_PCT / 100
+            )
+
+            trigger = {
+                **snap.to_dict(),
+                "k1_high": ctx["k1_high"],
+                "k2_high": ctx["k2_high"],
+                "breakout_level": ctx["breakout_level"],
+                "effective_breakout": effective,
+                "volume_prediction_pass": volume_ratio_ok,
+                "state": sm.state.value,
+                "confirmed_snapshots": sm.pending_count if sm.state.value == "BREAKOUT_PENDING" else 2,
+            }
+            vol = {
+                "cumulative_volume_lots": snap.cumulative_volume_lots,
+                "elapsed_minutes": projection.elapsed_minutes,
+                "projected_volume_lots": projection.projected_volume_lots,
+                "projected_ratio": projection.projected_ratio,
+                "baseline_start": projection.baseline_start,
+                "baseline_end": projection.baseline_end,
+                "vma5_lots": ctx["vma5_lots"],
+                "projection_ready": projection.ready,
+            }
+
+            # Price trigger without projected Stage-3 volume is retained as an audit event,
+            # but it is not promoted to an INTRADAY_3K_PREDICTION.
+            if not volume_ratio_ok:
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "BREAKOUT_PRICE_TRIGGER_REJECTED",
+                    "observed_at": snap.observed_at,
+                    "trigger_snapshot": trigger,
+                    "volume_snapshot": vol,
+                    "reason": "PROJECTED_VOLUME_RATIO_LT_1_5",
+                })
+                continue
+
+            score = self.prediction_scorer.score(
+                context=ctx,
+                current_price=snap.current_price,
+                up_pct=snap.up_pct,
+                projected_ratio=projection.projected_ratio,
+                effective_breakout=effective,
+                confirmed_snapshots=2,
+            )
+            trigger["prediction_score"] = score.total
+            trigger["prediction_score_breakdown"] = score.to_dict()
+            vol["prediction_score_volume_component"] = score.volume
+
+            gate = evaluate_intraday_notification(snap.up_pct).to_dict()
+            existing = self.ledger.find_prediction_by_snapshot(ctx["trade_date"], sid, snap.snapshot_id)
+            if existing is not None:
+                continue
+            event = self.ledger.create_prediction(ctx, trigger, vol, gate)
+            self.events.append(event)
+
+            if gate["should_send"] and self.notifier.enabled:
+                result = self.notifier.send_intraday_prediction(event)
+                self._record_notification(
+                    event_type="INTRADAY_3K_PREDICTION_NOTIFICATION",
+                    status=result.get("status", "FAILED"),
+                    message_id=result.get("message_id"),
+                    prediction_id=event["prediction_id"],
+                    symbol=sid,
+                    up_pct=snap.up_pct,
+                )
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "NOTIFICATION",
+                    "prediction_id": event["prediction_id"],
+                    "notification_status": result.get("status"),
+                    "telegram_message_id": result.get("message_id"),
+                    "sent_at": datetime.now(TAIPEI).isoformat(),
+                })
+            else:
+                status = "SUPPRESSED" if not gate["should_send"] else "DISABLED"
+                self._record_notification(
+                    event_type="INTRADAY_3K_PREDICTION_NOTIFICATION",
+                    status=status,
+                    prediction_id=event["prediction_id"],
+                    symbol=sid,
+                    suppression_reason=gate.get("suppression_reason"),
+                    up_pct=snap.up_pct,
+                )
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "NOTIFICATION",
+                    "prediction_id": event["prediction_id"],
+                    "notification_status": status,
+                    "suppression_reason": gate.get("suppression_reason"),
+                })
+            self._save_runtime_state()
+
+        self.recovery.heartbeat("RADAR_COMPLETE", success=True)
+        self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_COMPLETE", "snapshot_count":len(raw), "at":datetime.now(TAIPEI).isoformat()})
+        return len(raw)
+
+    def _load_pool_from_memory(self):
+        s1_path = self.cache / "stage1_trend.json"
+        s1 = json.loads(s1_path.read_text(encoding="utf-8")) if s1_path.exists() else []
+        s1 = {str(x["symbol"]): x for x in s1}
+        u = {x["symbol"]: x for x in StockUniverseProvider().fetch()}
+        self.contexts = {}
+        self.states = {}
+        self.events = self._load_today_predictions()
+        for x in self.pool:
+            sid = str(x["symbol"])
+            t = s1.get(sid, {})
+            self.contexts[sid] = {
+                "trade_date": self.trade_date, "symbol": sid,
+                "name": u.get(sid, {}).get("name", x.get("name", "")),
+                "market": u.get(sid, {}).get("market", x.get("market", "")),
+                "industry": u.get(sid, {}).get("industry", ""),
+                "source_data_date": x.get("date") or x.get("latest_date") or self.latest_completed_date,
+                "previous_close": float(x.get("close") or 0),
+                "k1_high": float(x.get("k1_high") or 0), "k2_high": float(x.get("k2_high") or 0),
+                "breakout_level": float(x.get("breakout_level") or 0),
+                "ma20": float(t.get("ma20") or 0), "ma60": float(t.get("ma60") or 0),
+                "ma20_prev": float(t.get("ma20_prev") or 0),
+                "vma5_lots": float(x.get("stage3", {}).get("vma5_lots") or x.get("vma5_lots") or 0),
+                "yesterday_volume_lots": float(x.get("stage3", {}).get("yesterday_volume_lots") or x.get("yesterday_volume_lots") or 0),
+                "stage0_pass": True, "stage1_pass": True, "stage2_pass": True, "stage3_pass": True, "final_pool": True,
+            }
+            self.states[sid] = IntradayStateMachine()
+            self.ledger.write_context(self.contexts[sid])
+        self._load_runtime_state()
+        # Reconstruct state from the durable ledger when the process died
+        # between a prediction/event write and the runtime checkpoint.
+        for sid in self.contexts:
+            sm = self.states.setdefault(sid, IntradayStateMachine())
+            events = self.ledger.events_for_symbol(self.trade_date, sid)
+            state_events = [e for e in events if e.get("event_type") == "RADAR_STATE"]
+            if state_events:
+                last = state_events[-1]
+                try:
+                    sm.state = sm.state.__class__(last.get("state", sm.state.value))
+                except ValueError:
+                    pass
+                sm.last_snapshot_id = str(last.get("snapshot_id") or sm.last_snapshot_id)
+            predictions = [e for e in events if e.get("event_type") == "INTRADAY_3K_PREDICTION"]
+            if predictions:
+                sm.state = sm.state.__class__.TRIGGERED
+                sm.trigger_count = max(sm.trigger_count, len(predictions))
+                last_pred = predictions[-1]
+                sm.last_snapshot_id = str(last_pred.get("trigger_snapshot", {}).get("snapshot_id") or sm.last_snapshot_id)
+                sm.last_data_identity = str(last_pred.get("trigger_snapshot", {}).get("data_identity") or sm.last_data_identity)
+                sm.last_trigger_price = float(last_pred.get("trigger_snapshot", {}).get("current_price") or sm.last_trigger_price or 0)
+
+    def reconcile_pending_notifications(self) -> int:
+        """Retry only predictions whose durable ledger lacks a successful send.
+
+        This closes the crash window: prediction is persisted first, Telegram second.
+        Restart can safely resend a prediction whose notification was never confirmed.
+        """
+        if not self.trade_date or not self.notifier.enabled:
+            return 0
+        resent = 0
+        for event in self.ledger.iter_predictions(self.trade_date):
+            sid = str(event.get("symbol"))
+            status = self.ledger.notification_status(self.trade_date, sid, event["prediction_id"])
+            if status in {"SENT", "SUPPRESSED"}:
+                continue
+            gate = event.get("notification", {})
+            if gate.get("should_send") is False:
+                continue
+            result = self.notifier.send_intraday_prediction(event)
+            self.ledger.append_event(self.trade_date, sid, {
+                "event_type":"NOTIFICATION",
+                "prediction_id":event["prediction_id"],
+                "notification_status":result.get("status", "FAILED"),
+                "telegram_message_id":result.get("message_id"),
+                "recovered":True,
+                "sent_at":datetime.now(TAIPEI).isoformat(),
+            })
+            self._record_notification(
+                event_type="INTRADAY_3K_PREDICTION_NOTIFICATION",
+                status=result.get("status", "FAILED"),
+                message_id=result.get("message_id"),
+                prediction_id=event["prediction_id"],
+                symbol=sid,
+                recovered=True,
+            )
+            if result.get("status") == "SENT":
+                resent += 1
+        return resent
+
+    def _load_pool(self):
+        self.trade_date = self._today()
+        self._set_runtime_path()
+        daily_pool = self.cache / "pools" / f"{self.trade_date}.json"
+        if not daily_pool.exists():
+            self.build_premarket_pool(self.trade_date)
+            return
+        self.pool = json.loads(daily_pool.read_text(encoding="utf-8"))
+        self._load_pool_from_memory()
+
+    def _fetch_ground_truth_for_symbol(self, sid: str, td: str, ctx: dict) -> dict | None:
+        if not FUGLE_API_KEY:
+            return None
+        try:
+            params = {"fields": "open,high,low,close,volume", "timeframe": "D"}
+            headers = {"X-API-KEY": FUGLE_API_KEY}
+            r = requests.get(
+                f"https://api.fugle.tw/marketdata/v1.0/stock/historical/candles/{sid}",
+                headers=headers, params=params, timeout=12,
+            )
+            r.raise_for_status()
+            payload = r.json()
+            data = payload.get("candles", payload.get("data", []))
+            rows = [x for x in data if x.get("date") and str(x["date"])[:10] <= td]
+            rows = sorted(rows, key=lambda x: str(x["date"]))
+            if len(rows) < 6:
+                return None
+            k0, k1, k2 = rows[-1], rows[-2], rows[-3]
+            gain = float(k0["close"]) / float(k1["close"]) - 1
+            vols = [float(x["volume"]) / 1000 for x in rows[-6:]]
+            vma5 = sum(vols[:-1]) / 5
+            vr = vols[-1] / vma5 if vma5 else 0
+            s2 = bool(
+                float(k0["close"]) > float(k0["open"])
+                and gain >= 0.04
+                and float(k0["high"]) > float(k1["high"])
+                and float(k0["high"]) > float(k2["high"])
+                and float(k0["close"]) > max(float(k1["high"]), float(k2["high"]))
+            )
+            s3 = bool(vma5 >= 1000 and vols[-1] > vols[-2] and vr >= 1.5)
+            return {
+                "trade_date": td,
+                "symbol": sid,
+                "close": float(k0["close"]),
+                "high": float(k0["high"]),
+                "low": float(k0["low"]),
+                "gain_pct": gain * 100,
+                "volume_lots": vols[-1],
+                "yesterday_volume_lots": vols[-2],
+                "vma5_lots": vma5,
+                "volume_ratio": vr,
+                "stage1_pass": bool(ctx["stage1_pass"]),
+                "stage2_pass": s2,
+                "stage3_pass": s3,
+                "ground_truth_3k": bool(ctx["stage1_pass"] and s2 and s3),
+                "validated_at": datetime.now(TAIPEI).isoformat(),
+            }
+        except Exception as exc:
+            self.ledger.append_event(td, sid, {
+                "event_type": "GROUND_TRUTH_ERROR",
+                "error_type": type(exc).__name__,
+                "message": str(exc)[:300],
+            })
+            return None
+
+    def ground_truth(self, trade_date: str | None = None):
+        td = trade_date or self.trade_date or self._today()
+        results = []
+        for sid, ctx in self.contexts.items():
+            gt = self._fetch_ground_truth_for_symbol(sid, td, ctx)
+            if gt is None:
+                continue
+            self.ledger.write_ground_truth(td, sid, gt)
+            results.append(gt)
+
+        self.ground_truth = results
+        gt_map = {str(x["symbol"]): x for x in results}
+        validation_rows = []
+        predictions = list(self.ledger.iter_predictions(td))
+        self.events = predictions
+        for event in predictions:
+            if event.get("event_type") != "INTRADAY_3K_PREDICTION":
+                continue
+            sid = str(event["symbol"])
+            gt = gt_map.get(sid)
+            row = (self.prediction_chain.validate_prediction(event, gt)
+                   if gt is not None else {
+                       "event_type": "PREDICTION_VALIDATION",
+                       "prediction_id": event["prediction_id"],
+                       "trade_date": td,
+                       "symbol": sid,
+                       "prediction_created_at": event.get("created_at"),
+                       "prediction_notification_status": event.get("notification_status"),
+                       "ground_truth_available": False,
+                       "ground_truth_3k": None,
+                       "validated_at": None,
+                   })
+            validation_rows.append(row)
+            if not self.ledger.has_event(td, sid, "PREDICTION_VALIDATION", "prediction_id", row["prediction_id"]):
+                self.ledger.append_event(td, sid, {
+                    "event_type": "PREDICTION_VALIDATION",
+                    **row,
+                })
+                self.ledger._append(self.ledger.validation_root / "master_prediction_validation_log.jsonl", row)
+
+        self.validation_rows = validation_rows
+        daily_events_path = self.ledger.validation_root / "daily_events" / f"{td}.jsonl"
+        durable_daily_events = self.ledger.read_jsonl(daily_events_path)
+        report_events = self.events + durable_daily_events
+        report = build_daily_report(td, self.pool, report_events, results, validation_rows)
+        write_daily_report(self.tianji / "validation", td, report)
+
+        # Quant validation is append-only/descriptive: update the historical
+        # calibration artifact after Ground Truth is durable. It never changes
+        # the prediction event or treats Score as a probability.
+        try:
+            calibration_engine = PredictionCalibrationEngine()
+            # Daily artifact for today's audit.
+            daily_calibration = calibration_engine.build_from_ledger(self.pred_root, td)
+            calibration_engine.write_report(
+                self.tianji / "validation" / f"score_calibration_{td}.json",
+                daily_calibration,
+            )
+            # Cumulative artifact is the source used for real calibration
+            # analysis; it intentionally spans all reconciled historical days.
+            calibration = calibration_engine.build_from_ledger(self.pred_root, None)
+            calibration_engine.write_report(
+                self.tianji / "validation" / "score_calibration.json", calibration
+            )
+            self.ledger.append_daily_event(td, {
+                "event_type": "PREDICTION_CALIBRATION_UPDATED",
+                "daily_matched_count": daily_calibration.get("matched_count", 0),
+                "daily_hit_count": daily_calibration.get("hit_count", 0),
+                "cumulative_matched_count": calibration.get("matched_count", 0),
+                "cumulative_hit_count": calibration.get("hit_count", 0),
+                "cumulative_empirical_hit_rate": calibration.get("empirical_hit_rate"),
+                "at": datetime.now(TAIPEI).isoformat(),
+            })
+        except Exception as exc:
+            self.ledger.append_daily_event(td, {
+                "event_type": "PREDICTION_CALIBRATION_ERROR",
+                "error_type": type(exc).__name__,
+                "message": str(exc)[:300],
+                "at": datetime.now(TAIPEI).isoformat(),
+            })
+
+        # Ground Truth Telegram is only sent for symbols that actually generated a prediction.
+        predicted_symbols = {str(e["symbol"]) for e in self.events if e.get("event_type") == "INTRADAY_3K_PREDICTION"}
+        for gt in results:
+            if str(gt["symbol"]) not in predicted_symbols or not self.notifier.enabled:
+                continue
+            if self.ledger.has_event(td, str(gt["symbol"]), "GROUND_TRUTH_NOTIFICATION"):
+                continue
+            result = self.notifier.send_ground_truth(gt)
+            gt_event = {
+                "event_type": "GROUND_TRUTH_NOTIFICATION",
+                "status": result.get("status", "FAILED"),
+                "telegram_message_id": result.get("message_id"),
+                "symbol": str(gt["symbol"]),
+                "ground_truth_3k": gt["ground_truth_3k"],
+                "sent_at": datetime.now(TAIPEI).isoformat(),
+            }
+            self.ledger.append_event(td, str(gt["symbol"]), gt_event)
+            self._record_notification(**gt_event)
+        return results
+
+    def run_forever(self):
+        """Run one complete trading-day production lifecycle.
+
+        The ledger is the source of truth; runtime_state/checkpoint are only
+        recovery aids. Every phase is idempotent so a restart resumes safely.
+        """
+        now = datetime.now(TAIPEI)
+        if not self.session.is_trading_candidate(now.date()):
+            print(f"TIANJI CLOSED | {now.date().isoformat()}")
+            return 0
+
+        self.process_lock.acquire()
+        try:
+            trade_date = now.date().isoformat()
+            self.trade_date = trade_date
+            self._set_runtime_path()
+            prior = self.recovery.status()
+            recovered = bool(
+                prior.get("trade_date") == trade_date
+                and not prior.get("clean_shutdown", False)
+                and (not prior.get("last_poll_at") or self.recovery.recovery_needed(stale_seconds=120))
+            )
+            self.recovery.start(trade_date, "STARTING")
+            if recovered:
+                self.recovery_ledger.append(trade_date, {
+                    "event_type": "RECOVERY_DETECTED",
+                    "checkpoint": self.recovery.status(),
+                    "at": datetime.now(TAIPEI).isoformat(),
+                })
+
+            gt_done = False
+            while True:
+                now = datetime.now(TAIPEI)
+                phase = self.session.phase(now)
+                if phase == "PREMARKET_WAIT":
+                    self.recovery.heartbeat("WAITING_PREMARKET", success=True)
+                    time.sleep(min(30, MIS_INTERVAL_SECONDS))
+                    continue
+                if phase == "PREMARKET":
+                    if not self.pool:
+                        self.build_premarket_pool(trade_date)
+                    else:
+                        self._load_runtime_state()
+                    time.sleep(min(30, MIS_INTERVAL_SECONDS))
+                    continue
+                if phase == "RADAR":
+                    if not self.pool:
+                        self.build_premarket_pool(trade_date)
+                    self._load_runtime_state()
+                    try:
+                        self.poll_once()
+                    except Exception as exc:
+                        err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+                        self.recovery.heartbeat("RADAR_FATAL_ERROR", success=False, error=err)
+                        self.recovery_ledger.append(trade_date, {"event_type": "RADAR_FATAL_ERROR", **err, "at": datetime.now(TAIPEI).isoformat()})
+                    now_ts = time.monotonic()
+                    if now_ts - self._last_notification_retry_at >= 60:
+                        self.reconcile_pending_notifications()
+                        self._last_notification_retry_at = now_ts
+                    time.sleep(MIS_INTERVAL_SECONDS)
+                    continue
+                if phase == "GROUND_TRUTH":
+                    if not self.pool:
+                        self._load_pool()
+                    # Ground truth can require several minutes after the bell to
+                    # become available from the data provider. Retry every 20s.
+                    if not gt_done:
+                        try:
+                            rows = self.ground_truth()
+                            gt_done = bool(rows)
+                        except Exception as exc:
+                            self.recovery.heartbeat("GROUND_TRUTH_ERROR", success=False, error={"error_type": type(exc).__name__, "message": str(exc)[:300]})
+                        if not gt_done:
+                            time.sleep(MIS_INTERVAL_SECONDS)
+                            continue
+                    time.sleep(5)
+                    continue
+                if phase == "STOP":
+                    if not gt_done:
+                        try:
+                            rows = self.ground_truth()
+                            gt_done = bool(rows)
+                        except Exception as exc:
+                            self.recovery_ledger.append(trade_date, {"event_type":"GROUND_TRUTH_CUTOFF_ERROR", "error_type":type(exc).__name__, "message":str(exc)[:300], "at":datetime.now(TAIPEI).isoformat()})
+                    if not gt_done and not self._gt_cutoff_recorded:
+                        self.ledger.append_daily_event(trade_date, {
+                            "event_type": "GROUND_TRUTH_CUTOFF_UNAVAILABLE",
+                            "cutoff": "13:35",
+                            "at": datetime.now(TAIPEI).isoformat(),
+                        })
+                        self._gt_cutoff_recorded = True
+                    self.recovery.mark_clean_shutdown()
+                    self.recovery_ledger.append(trade_date, {"event_type":"CLEAN_SHUTDOWN", "at":datetime.now(TAIPEI).isoformat()})
+                    return 0
+                time.sleep(MIS_INTERVAL_SECONDS)
+        finally:
+            self.process_lock.release()
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="天機 3K Production Runner")
+    ap.add_argument("--once", action="store_true", help="重新建立盤前觀察池")
+    ap.add_argument("--intraday-once", action="store_true", help="只執行一次 MIS Radar")
+    ap.add_argument("--ground-truth-once", action="store_true", help="只執行一次收盤驗證")
+    ap.add_argument("--run", action="store_true", help="完整交易日循環")
+    ap.add_argument("--recovery-status", action="store_true", help="顯示最近一次 runtime checkpoint")
+    ap.add_argument("--simulate", type=Path, help="離線重播 MIS snapshot JSON/JSONL")
+    ap.add_argument("--preflight", action="store_true", help="檢查 Production 環境與必要設定")
+    ap.add_argument("--breakout-level", type=float, help="--simulate 使用的突破價位")
+    ap.add_argument("--no-telegram", action="store_true")
+    ap.add_argument("--repo-root")
+    a = ap.parse_args(argv)
+    r = TianjiProductionRunner(
+        Path(a.repo_root).resolve() if a.repo_root else None,
+        telegram=not a.no_telegram,
+    )
+    if a.preflight:
+        from .tools.preflight import run_preflight
+        result = run_preflight(Path(a.repo_root).resolve() if a.repo_root else None)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result.get("ok") else 2
+    if a.recovery_status:
+        print(json.dumps(r.recovery.status(), ensure_ascii=False, indent=2))
+    elif a.simulate:
+        if a.breakout_level is None:
+            ap.error("--simulate 必須搭配 --breakout-level")
+        rows = IntradaySimulator.load(a.simulate)
+        sim = IntradaySimulator({str(rows[0]["symbol"]): a.breakout_level} if rows else {}, BREAKOUT_BUFFER_PCT)
+        result = sim.run(rows)
+        print(json.dumps({"processed":result.processed,"triggers":result.triggers,"reasons":result.reasons,"states":result.states}, ensure_ascii=False, indent=2))
+    elif a.intraday_once:
+        r._load_pool()
+        print(f"RADAR snapshots={r.poll_once()}")
+    elif a.ground_truth_once:
+        r._load_pool()
+        print(f"GROUND_TRUTH rows={len(r.ground_truth())}")
+    elif a.run:
+        r.run_forever()
+    else:
+        r.build_premarket_pool()
+        print(f"PREMARKET_WATCHLIST size={len(r.pool)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

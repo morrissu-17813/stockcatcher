@@ -1,0 +1,282 @@
+[
+  {
+    "symbol": "2399",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 47.3,
+    "close": 49.2,
+    "high": 49.95,
+    "k1_high": 47.3,
+    "k2_high": 48.4,
+    "gain_pct": 4.016913319238924,
+    "breakout_level": 48.4,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "2399",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 9457.571,
+      "yesterday_volume_lots": 1726.908,
+      "vma5_lots": 6170.567,
+      "volume_ratio": 1.5326907559710476,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  },
+  {
+    "symbol": "2436",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 71.8,
+    "close": 75.9,
+    "high": 76.5,
+    "k1_high": 72.4,
+    "k2_high": 71.5,
+    "gain_pct": 4.834254143646399,
+    "breakout_level": 72.4,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "2436",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 12261.097,
+      "yesterday_volume_lots": 8606.455,
+      "vma5_lots": 6530.9624,
+      "volume_ratio": 1.8773798177126237,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  },
+  {
+    "symbol": "3016",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 165.0,
+    "close": 172.5,
+    "high": 176.0,
+    "k1_high": 160.0,
+    "k2_high": 145.5,
+    "gain_pct": 7.8125,
+    "breakout_level": 160.0,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "3016",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 75400.142,
+      "yesterday_volume_lots": 49083.815,
+      "vma5_lots": 26944.176,
+      "volume_ratio": 2.798383665546128,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  },
+  {
+    "symbol": "4540",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 60.2,
+    "close": 62.6,
+    "high": 62.7,
+    "k1_high": 60.5,
+    "k2_high": 60.2,
+    "gain_pct": 4.333333333333345,
+    "breakout_level": 60.5,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "4540",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 5084.83,
+      "yesterday_volume_lots": 1301.41,
+      "vma5_lots": 1728.0288,
+      "volume_ratio": 2.9425609110218534,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  },
+  {
+    "symbol": "4906",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 37.65,
+    "close": 40.2,
+    "high": 40.8,
+    "k1_high": 38.0,
+    "k2_high": 39.35,
+    "gain_pct": 6.772908366533881,
+    "breakout_level": 39.35,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "4906",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 13404.59,
+      "yesterday_volume_lots": 2374.151,
+      "vma5_lots": 8310.9226,
+      "volume_ratio": 1.6128883212075638,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  },
+  {
+    "symbol": "6505",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 90.0,
+    "close": 94.3,
+    "high": 95.5,
+    "k1_high": 88.7,
+    "k2_high": 88.5,
+    "gain_pct": 8.142201834862384,
+    "breakout_level": 88.7,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "6505",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 40587.92,
+      "yesterday_volume_lots": 10807.153,
+      "vma5_lots": 15780.63,
+      "volume_ratio": 2.5720088488228923,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  },
+  {
+    "symbol": "6533",
+    "date": "2026-09-29T00:00:00.000",
+    "k0_date": "2026-09-29",
+    "k1_date": "2026-09-24",
+    "k2_date": "2026-09-23",
+    "open": 272.5,
+    "close": 303.5,
+    "high": 303.5,
+    "k1_high": 276.0,
+    "k2_high": 264.0,
+    "gain_pct": 9.96376811594204,
+    "breakout_level": 276.0,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "6533",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-09-29T00:00:00.000",
+      "volume_lots": 11054.299,
+      "yesterday_volume_lots": 6688.397,
+      "vma5_lots": 3913.6385999999998,
+      "volume_ratio": 2.8245579446196185,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  }
+]

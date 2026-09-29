@@ -1,0 +1,18 @@
+{
+  "trade_date": "2026-09-18",
+  "symbol": "4714",
+  "name": "永捷",
+  "market": "TPEx",
+  "previous_close": 12.1,
+  "k1_high": 11.8,
+  "k2_high": 11.7,
+  "breakout_level": 11.8,
+  "ma20": 11.145,
+  "ma60": 11.078,
+  "ma20_prev": 11.0775,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

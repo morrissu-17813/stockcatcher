@@ -1,0 +1,18 @@
+{
+  "trade_date": "2026-09-18",
+  "symbol": "2221",
+  "name": "大甲",
+  "market": "TPEx",
+  "previous_close": 127.5,
+  "k1_high": 116.0,
+  "k2_high": 105.5,
+  "breakout_level": 116.0,
+  "ma20": 88.135,
+  "ma60": 62.2375,
+  "ma20_prev": 84.64,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

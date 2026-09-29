@@ -1,0 +1,55 @@
+{
+  "trade_date": "2026-09-29",
+  "latest_completed_date": "2026-09-29",
+  "cache_latest_before": "2026-09-24",
+  "cache_latest_after": "2026-09-24",
+  "symbols_requested": 0,
+  "symbols_refreshed": 0,
+  "symbols_failed": 0,
+  "rows_fetched": 0,
+  "status": "READY",
+  "reason": "calendar_bootstrapped; symbol refresh deferred until Stage 0 candidates",
+  "calendar_rows": 6936,
+  "history_repairs": 0,
+  "history_failures": 0,
+  "provider_stats": {
+    "cache_hits": 0,
+    "cache_partial": 0,
+    "cache_misses": 0,
+    "cache_invalid": 0,
+    "finmind_fallbacks": 0,
+    "finmind_failures": 0,
+    "finmind_rows_fetched": 0,
+    "cache_updates": 0,
+    "last_source": null,
+    "last_ranges": [],
+    "finmind_budget": {
+      "limit": 580,
+      "window_seconds": 3600,
+      "used": 1,
+      "remaining": 579,
+      "total_reserved": 1,
+      "total_blocked": 0,
+      "total_failures": 0,
+      "circuit_open": false
+    },
+    "cache_dir": "C:\\Users\\m2994\\Desktop\\stockcatcher\\stockcatcher\\tianji_3k\\cache\\daily"
+  },
+  "finmind_budget": {
+    "limit": 580,
+    "window_seconds": 3600,
+    "used": 1,
+    "remaining": 579,
+    "total_reserved": 1,
+    "total_blocked": 0,
+    "total_failures": 0,
+    "circuit_open": false
+  },
+  "calendar": {
+    "source": "finmind",
+    "fetched_at": "2026-09-29T23:44:34.533116+08:00",
+    "rows": 6936,
+    "min_date": "1999-01-05",
+    "max_date": "2026-12-31"
+  }
+}

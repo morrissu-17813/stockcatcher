@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-29",
+  "symbol": "2436",
+  "name": "偉詮電",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-29T00:00:00.000",
+  "previous_close": 75.9,
+  "k1_high": 72.4,
+  "k2_high": 71.5,
+  "breakout_level": 72.4,
+  "ma20": 68.465,
+  "ma60": 64.94,
+  "ma20_prev": 68.045,
+  "vma5_lots": 6530.9624,
+  "yesterday_volume_lots": 8606.455,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

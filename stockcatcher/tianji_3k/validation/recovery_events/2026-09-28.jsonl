@@ -1,0 +1,5 @@
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-09-28T00:41:46.134415+08:00"}
+{"event_type":"HISTORY_INITIALIZATION_NOT_COMPLETE","status":"PAUSED_BUDGET","requested":311,"completed":242,"pending":69,"requests_used":580,"message":"FinMind rolling safety budget reached; checkpoint saved before resume.","at":"2026-09-28T00:46:44.888262+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-09-28T09:00:18.468044+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-09-28T20:41:19.448852+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-09-28T21:07:15.414303+08:00"}

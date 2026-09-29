@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-29",
+  "symbol": "6505",
+  "name": "台塑化",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-29T00:00:00.000",
+  "previous_close": 94.3,
+  "k1_high": 88.7,
+  "k2_high": 88.5,
+  "breakout_level": 88.7,
+  "ma20": 83.175,
+  "ma60": 75.475,
+  "ma20_prev": 82.03,
+  "vma5_lots": 15780.63,
+  "yesterday_volume_lots": 10807.153,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-23",
+  "symbol": "4770",
+  "name": "上品",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-23T00:00:00.000",
+  "previous_close": 275.0,
+  "k1_high": 255.5,
+  "k2_high": 255.5,
+  "breakout_level": 255.5,
+  "ma20": 228.125,
+  "ma60": 220.80833333333334,
+  "ma20_prev": 224.675,
+  "vma5_lots": 1453.5216,
+  "yesterday_volume_lots": 2133.247,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

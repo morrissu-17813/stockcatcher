@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-28",
+  "symbol": "6672",
+  "name": "騰輝電子-KY",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-24T00:00:00.000",
+  "previous_close": 337.5,
+  "k1_high": 310.0,
+  "k2_high": 315.0,
+  "breakout_level": 315.0,
+  "ma20": 294.625,
+  "ma60": 267.96666666666664,
+  "ma20_prev": 291.825,
+  "vma5_lots": 5857.6112,
+  "yesterday_volume_lots": 3276.768,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

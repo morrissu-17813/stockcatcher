@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-23",
+  "symbol": "3016",
+  "name": "嘉晶",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-23T00:00:00.000",
+  "previous_close": 145.5,
+  "k1_high": 119.0,
+  "k2_high": 119.0,
+  "breakout_level": 119.0,
+  "ma20": 107.08,
+  "ma60": 106.925,
+  "ma20_prev": 104.80499999999999,
+  "vma5_lots": 18251.052600000003,
+  "yesterday_volume_lots": 11658.641,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-28",
+  "symbol": "6933",
+  "name": "AMAX-KY",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-24T00:00:00.000",
+  "previous_close": 385.0,
+  "k1_high": 350.0,
+  "k2_high": 330.5,
+  "breakout_level": 350.0,
+  "ma20": 319.975,
+  "ma60": 221.25833333333333,
+  "ma20_prev": 312.55,
+  "vma5_lots": 2131.6326,
+  "yesterday_volume_lots": 1318.689,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

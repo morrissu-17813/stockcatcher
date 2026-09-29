@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-28",
+  "symbol": "3189",
+  "name": "景碩",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-24T00:00:00.000",
+  "previous_close": 962.0,
+  "k1_high": 922.0,
+  "k2_high": 909.0,
+  "breakout_level": 922.0,
+  "ma20": 838.05,
+  "ma60": 802.2333333333333,
+  "ma20_prev": 835.65,
+  "vma5_lots": 23258.5852,
+  "yesterday_volume_lots": 29744.187,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -1,0 +1,17 @@
+﻿checks,first_fail,latest_date,pass,symbol,unknown,vma5_lots,volume_lots,volume_ratio,yesterday_volume_lots
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,2399,False,6170.567,9457.571,1.5326907559710476,1726.908
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,2436,False,6530.9624,12261.097,1.8773798177126237,8606.455
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,3016,False,26944.176,75400.142,2.798383665546128,49083.815
+"{'vma5_ge_1000': False, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",vma5_ge_1000,2026-09-29T00:00:00.000,False,3021,False,895.3796,1253.253,1.3996890257495256,1664.52
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-09-29T00:00:00.000,False,3066,False,3383.6663999999996,2779.985,0.8215895633210178,2127.36
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-09-29T00:00:00.000,False,3094,False,18173.1556,10028.323,0.5518206755462987,22755.44
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': True}",today_gt_yesterday,2026-09-29T00:00:00.000,False,3518,False,2116.314,5608.941,2.6503349691964426,7183.649
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-09-29T00:00:00.000,False,4174,False,2655.1387999999997,1519.951,0.5724563250704634,3332.269
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,4540,False,1728.0288,5084.83,2.9425609110218534,1301.41
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,4906,False,8310.9226,13404.59,1.6128883212075638,2374.151
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-09-29T00:00:00.000,False,6133,False,7244.8466,9954.159,1.3739640808957916,2307.472
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-09-29T00:00:00.000,False,6456,False,15849.941200000001,18926.798,1.1941241775710814,14497.011
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,6505,False,15780.63,40587.92,2.5720088488228923,10807.153
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-09-29T00:00:00.000,True,6533,False,3913.6385999999998,11054.299,2.8245579446196185,6688.397
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-09-29T00:00:00.000,False,6706,False,8324.868,4511.914,0.5419802452122964,2291.537
+"{'vma5_ge_1000': False, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",vma5_ge_1000,2026-09-29T00:00:00.000,False,6925,False,588.9026,2039.484,3.4631940833679455,1451.122
