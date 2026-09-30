@@ -89,7 +89,7 @@ jobs:
           echo "=========================================="
       
           cd stockcatcher
-          python -u -m tianji_3k
+          python -u -m tianji_3k --run
 
       - name: 📦 Upload Tianji runtime logs
         if: always()
