@@ -97,9 +97,9 @@ jobs:
         with:
           name: tianji-3k-runtime-${{ github.run_id }}
           path: |
-            tianji_3k/logs/**
-            tianji_3k/predictions/**
-            tianji_3k/validation/**
-            tianji_3k/cache/**
+            stockcatcher/tianji_3k/logs/**
+            stockcatcher/tianji_3k/predictions/**
+            stockcatcher/tianji_3k/validation/**
+            stockcatcher/tianji_3k/cache/**
           if-no-files-found: ignore
           retention-days: 14
