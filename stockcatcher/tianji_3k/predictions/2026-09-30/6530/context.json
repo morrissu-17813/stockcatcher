@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "6530",
+  "name": "創威",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 104.5,
+  "k1_high": 100.5,
+  "k2_high": 100.5,
+  "breakout_level": 100.5,
+  "ma20": 97.42,
+  "ma60": 84.68833333333333,
+  "ma20_prev": 96.6,
+  "vma5_lots": 1733.3288,
+  "yesterday_volume_lots": 1020.778,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

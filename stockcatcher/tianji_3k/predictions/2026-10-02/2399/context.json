@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-02",
+  "symbol": "2399",
+  "name": "映泰",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-01T00:00:00.000",
+  "previous_close": 51.3,
+  "k1_high": 50.0,
+  "k2_high": 49.95,
+  "breakout_level": 50.0,
+  "ma20": 47.167500000000004,
+  "ma60": 43.87166666666667,
+  "ma20_prev": 46.910000000000004,
+  "vma5_lots": 5150.7506,
+  "yesterday_volume_lots": 4266.57,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

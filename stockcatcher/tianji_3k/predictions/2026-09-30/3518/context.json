@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "3518",
+  "name": "柏騰",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 41.1,
+  "k1_high": 37.4,
+  "k2_high": 35.65,
+  "breakout_level": 37.4,
+  "ma20": 31.6675,
+  "ma60": 29.090833333333332,
+  "ma20_prev": 31.04,
+  "vma5_lots": 3155.1132000000002,
+  "yesterday_volume_lots": 5608.941,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

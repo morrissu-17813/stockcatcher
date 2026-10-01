@@ -154,18 +154,23 @@ def test_wait_for_budget_auto_resumes_after_rolling_window(tmp_path, monkeypatch
     assert provider.calls == ["1001", "1002", "1003"]
 
 
-def test_error_is_checkpointed_before_propagation(tmp_path):
+def test_error_retries_three_times_then_skips_and_continues(tmp_path):
     class FailingProvider(BudgetedProvider):
         def get_daily(self, symbol, start, end):
             self.calls.append(symbol)
             raise RuntimeError("simulated network failure")
 
-    budget = FinMindRequestBudget(limit=2)
+    budget = FinMindRequestBudget(limit=50)
     init = make_initializer(tmp_path, budget, FailingProvider(budget))
-    with pytest.raises(RuntimeError, match="simulated network failure"):
-        init.initialize("2026-09-25", bars_required=3, wait_for_budget=False)
+    result = init.initialize("2026-09-25", bars_required=3, wait_for_budget=False)
+
+    assert result.status == "COMPLETE_WITH_SKIPS"
+    assert result.completed_symbols == 0
+    assert result.pending_symbols == 0
+    assert len(result.message) > 0
 
     payload = json.loads((tmp_path / "production_cache_initialization.json").read_text(encoding="utf-8"))
-    assert payload["status"] == "PAUSED_ERROR"
-    assert payload["current_symbol"] == "1001"
-    assert payload["pending_symbols"][0] == "1001"
+    assert payload["status"] == "COMPLETE_WITH_SKIPS"
+    assert payload["skipped_symbols"] == ["1001", "1002", "1003"]
+    assert len(payload["symbol_failures"]) == 9
+    assert payload["symbol_failures"][-1]["attempt"] == 3

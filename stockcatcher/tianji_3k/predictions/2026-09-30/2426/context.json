@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "2426",
+  "name": "鼎元",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 104.0,
+  "k1_high": 101.5,
+  "k2_high": 101.0,
+  "breakout_level": 101.5,
+  "ma20": 98.99,
+  "ma60": 78.66916666666665,
+  "ma20_prev": 98.67999999999999,
+  "vma5_lots": 26911.585,
+  "yesterday_volume_lots": 26792.812,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

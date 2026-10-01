@@ -238,9 +238,12 @@ class ProductionCacheInitializer:
             })
 
         completed_set = set(completed)
-        pending = [s for s in symbols if s not in completed_set]
+        skipped_set = set(str(x) for x in (checkpoint or {}).get("skipped_symbols", []))
+        failure_log = list((checkpoint or {}).get("symbol_failures", []))
+        pending = [s for s in symbols if s not in completed_set and s not in skipped_set]
 
         for sid in pending:
+            attempt = 0
             while True:
                 # Check the budget before touching the provider. Cache hits do not
                 # need a request and are therefore allowed even at the limit.
@@ -324,6 +327,24 @@ class ProductionCacheInitializer:
                     self.sleep_fn(max(0.0, wait_seconds))
                     continue  # retry the SAME symbol after capacity returns
                 except Exception as exc:
+                    attempt += 1
+                    error_text = f"{type(exc).__name__}: {exc}"[:500]
+                    LOG.warning(
+                        "INIT_SYMBOL_FAILED symbol=%s attempt=%d/3 error=%s",
+                        sid, attempt, error_text,
+                    )
+                    failure_log.append({
+                        "symbol": sid,
+                        "attempt": attempt,
+                        "error_type": type(exc).__name__,
+                        "message": str(exc)[:500],
+                        "at": datetime.now(TAIPEI).isoformat(),
+                    })
+                    if attempt < 3:
+                        self.sleep_fn(min(2.0 * attempt, 5.0))
+                        continue
+
+                    skipped_set.add(sid)
                     payload = {
                         **self._base_payload(
                             trade_date=trade_date,
@@ -332,16 +353,19 @@ class ProductionCacheInitializer:
                             bars_required=bars_required,
                             symbols=symbols,
                             completed=sorted(completed_set),
-                            pending=[x for x in symbols if x not in completed_set],
-                            status="PAUSED_ERROR",
-                            message=f"{type(exc).__name__}: {exc}"[:500],
-                            current_symbol=sid,
+                            pending=[x for x in symbols if x not in completed_set and x not in skipped_set],
+                            status="RUNNING",
+                            message=f"SKIPPED_AFTER_3_FAILURES:{sid}:{error_text}",
+                            current_symbol=None,
                         ),
                         "all_symbols": symbols,
+                        "skipped_symbols": sorted(skipped_set),
+                        "symbol_failures": failure_log[-500:],
                     }
                     self._write_checkpoint(payload)
-                    raise
+                    break
 
+        final_status = "COMPLETE_WITH_SKIPS" if skipped_set else "COMPLETE"
         payload = {
             **self._base_payload(
                 trade_date=trade_date,
@@ -351,10 +375,16 @@ class ProductionCacheInitializer:
                 symbols=symbols,
                 completed=sorted(completed_set),
                 pending=[],
-                status="COMPLETE",
-                message="Production daily cache initialization complete.",
+                status=final_status,
+                message=(
+                    "Production daily cache initialization complete."
+                    if not skipped_set else
+                    f"Production daily cache initialization complete with {len(skipped_set)} skipped symbol(s) after 3 failures."
+                ),
             ),
             "all_symbols": symbols,
+            "skipped_symbols": sorted(skipped_set),
+            "symbol_failures": failure_log[-500:],
             "completed_at": datetime.now(TAIPEI).isoformat(),
         }
         self._write_checkpoint(payload)

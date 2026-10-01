@@ -219,7 +219,7 @@ class TianjiProductionRunner:
             symbols=stage0_symbols,
         )
         print(f"History Initialization : status={init_result.status} requested={init_result.total_symbols:,} completed={init_result.completed_symbols:,} pending={init_result.pending_symbols:,} FinMind={init_result.requests_used}/580")
-        if init_result.status != "COMPLETE":
+        if init_result.status not in {"COMPLETE", "COMPLETE_WITH_SKIPS"}:
             self.recovery_ledger.append(self.trade_date, {
                 "event_type": "HISTORY_INITIALIZATION_NOT_COMPLETE",
                 "status": init_result.status,
@@ -228,9 +228,42 @@ class TianjiProductionRunner:
                 "at": datetime.now(TAIPEI).isoformat(),
             })
             raise RuntimeError(f"HISTORY_INITIALIZATION_{init_result.status}")
+        if init_result.status == "COMPLETE_WITH_SKIPS":
+            checkpoint = initializer.load_checkpoint() or {}
+            skipped = [str(x) for x in checkpoint.get("skipped_symbols", [])]
+            self.recovery_ledger.append(self.trade_date, {
+                "event_type": "HISTORY_SYMBOLS_SKIPPED_AFTER_3_FAILURES",
+                "count": len(skipped),
+                "symbols": skipped[:200],
+                "message": init_result.message,
+                "at": datetime.now(TAIPEI).isoformat(),
+            })
+            print(f"History Initialization : CONTINUE_WITH_SKIPS skipped={len(skipped):,}")
         from .stage1.trend_engine import main as stage1_main
+        # Only history-ready Stage 0 candidates may enter Stage 1. Symbols
+        # quarantined after three history/FinMind failures are explicitly
+        # removed from the downstream pipeline for this run.
+        init_checkpoint = initializer.load_checkpoint() or {}
+        skipped_symbols = {str(x) for x in init_checkpoint.get("skipped_symbols", [])}
+        if skipped_symbols:
+            stage0_rows = json.loads(s0j.read_text(encoding="utf-8"))
+            if isinstance(stage0_rows, dict):
+                stage0_rows = stage0_rows.get("rows", stage0_rows.get("data", []))
+            stage0_ready_rows = [
+                row for row in stage0_rows
+                if isinstance(row, dict)
+                and str(row.get("symbol", row.get("stock_id", ""))) not in skipped_symbols
+            ]
+            stage0_ready_path = self.cache / "stage0_history_ready.json"
+            stage0_ready_path.write_text(
+                json.dumps(stage0_ready_rows, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        else:
+            stage0_ready_path = s0j
+
         stage1_main([
-            "--stage0-json", str(s0j), "--cache-dir", str(self.daily_cache),
+            "--stage0-json", str(stage0_ready_path), "--cache-dir", str(self.daily_cache),
             "--csv", str(s1c), "--json", str(s1j),
         ])
         self._run_module("tianji_3k.stage2.breakout_engine", [
@@ -357,6 +390,25 @@ class TianjiProductionRunner:
             })
         return out
 
+    def _print_radar_monitor(self, raw: dict, rows: list[dict]):
+        """Print a compact live monitoring table without making extra API calls."""
+        now = datetime.now(TAIPEI).strftime("%H:%M:%S")
+        print("\n" + "=" * 72, flush=True)
+        print(f"🔎 TIANJI 3K RADAR | {now} | 監控中 {len(rows)} 檔 | MIS 回傳 {len(raw)} 檔", flush=True)
+        print("=" * 72, flush=True)
+        print(f"{'股號':<8}{'股名':<18}{'現價':>12}", flush=True)
+        print("-" * 72, flush=True)
+        for row in rows:
+            sid = str(row.get("symbol", ""))
+            name = str(row.get("name", ""))[:14]
+            item = raw.get(sid, {})
+            price = item.get("current_price")
+            price_text = f"{float(price):,.2f}" if price not in (None, "") else "--"
+            print(f"{sid:<8}{name:<18}{price_text:>12}", flush=True)
+        print("-" * 72, flush=True)
+        print(f"✅ RADAR ACTIVE | 下一次監控約 {MIS_INTERVAL_SECONDS} 秒", flush=True)
+        print("=" * 72, flush=True)
+
     def poll_once(self):
         if not self.pool:
             self._load_pool()
@@ -374,9 +426,12 @@ class TianjiProductionRunner:
             raw = self.mis_provider.fetch_batch()
         except Exception as exc:
             err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+            print(f"❌ RADAR ERROR | {err['error_type']} | {err['message']}", flush=True)
             self.recovery.heartbeat("RADAR_ERROR", success=False, error=err)
             self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_ERROR", **err, "at":datetime.now(TAIPEI).isoformat()})
             return 0
+
+        self._print_radar_monitor(raw, rows)
 
         for sid, ctx in self.contexts.items():
             r = raw.get(sid)
@@ -783,6 +838,10 @@ class TianjiProductionRunner:
                 and (not prior.get("last_poll_at") or self.recovery.recovery_needed(stale_seconds=120))
             )
             self.recovery.start(trade_date, "STARTING")
+            print("=" * 72, flush=True)
+            print(f"🚀 TIANJI 3K PRODUCTION START | trade_date={trade_date}", flush=True)
+            print(f"📡 RADAR interval={MIS_INTERVAL_SECONDS}s | Telegram={'ON' if self.notifier.enabled else 'OFF'}", flush=True)
+            print("=" * 72, flush=True)
             if recovered:
                 self.recovery_ledger.append(trade_date, {
                     "event_type": "RECOVERY_DETECTED",
@@ -794,25 +853,41 @@ class TianjiProductionRunner:
             while True:
                 now = datetime.now(TAIPEI)
                 phase = self.session.phase(now)
+                if phase != getattr(self, "_last_phase", None):
+                    print(f"🟢 PHASE -> {phase} | {now.strftime('%H:%M:%S')}", flush=True)
+                    self._last_phase = phase
                 if phase == "PREMARKET_WAIT":
                     self.recovery.heartbeat("WAITING_PREMARKET", success=True)
                     time.sleep(min(30, MIS_INTERVAL_SECONDS))
                     continue
                 if phase == "PREMARKET":
                     if not self.pool:
-                        self.build_premarket_pool(trade_date)
+                        try:
+                            self.build_premarket_pool(trade_date)
+                        except Exception as exc:
+                            err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+                            self.recovery.heartbeat("PREMARKET_BUILD_ERROR", success=False, error=err)
+                            self.recovery_ledger.append(trade_date, {"event_type": "PREMARKET_BUILD_ERROR", **err, "at": datetime.now(TAIPEI).isoformat()})
                     else:
                         self._load_runtime_state()
                     time.sleep(min(30, MIS_INTERVAL_SECONDS))
                     continue
                 if phase == "RADAR":
                     if not self.pool:
-                        self.build_premarket_pool(trade_date)
+                        try:
+                            self.build_premarket_pool(trade_date)
+                        except Exception as exc:
+                            err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+                            self.recovery.heartbeat("RADAR_POOL_BUILD_ERROR", success=False, error=err)
+                            self.recovery_ledger.append(trade_date, {"event_type": "RADAR_POOL_BUILD_ERROR", **err, "at": datetime.now(TAIPEI).isoformat()})
+                            time.sleep(MIS_INTERVAL_SECONDS)
+                            continue
                     self._load_runtime_state()
                     try:
                         self.poll_once()
                     except Exception as exc:
                         err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+                        print(f"❌ RADAR FATAL ERROR | {err['error_type']} | {err['message']}", flush=True)
                         self.recovery.heartbeat("RADAR_FATAL_ERROR", success=False, error=err)
                         self.recovery_ledger.append(trade_date, {"event_type": "RADAR_FATAL_ERROR", **err, "at": datetime.now(TAIPEI).isoformat()})
                     now_ts = time.monotonic()

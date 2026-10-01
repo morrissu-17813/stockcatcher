@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "4906",
+  "name": "正文",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 42.3,
+  "k1_high": 40.8,
+  "k2_high": 38.0,
+  "breakout_level": 40.8,
+  "ma20": 37.2,
+  "ma60": 36.155833333333334,
+  "ma20_prev": 36.894999999999996,
+  "vma5_lots": 9891.780999999999,
+  "yesterday_volume_lots": 13404.59,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

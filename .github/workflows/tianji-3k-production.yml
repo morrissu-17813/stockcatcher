@@ -7,11 +7,6 @@ on:
   repository_dispatch:
     types: [trigger-tianji-3k-production]
 
-  # 每個交易日台灣時間 08:15 啟動
-  # GitHub cron 使用 UTC
-  # 08:15 Asia/Taipei = 00:15 UTC
-  schedule:
-    - cron: "15 0 * * 1-5"
 
 concurrency:
   group: tianji-3k-production

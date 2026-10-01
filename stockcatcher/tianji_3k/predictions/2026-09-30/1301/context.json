@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "1301",
+  "name": "台塑",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 68.1,
+  "k1_high": 67.7,
+  "k2_high": 64.7,
+  "breakout_level": 67.7,
+  "ma20": 65.075,
+  "ma60": 61.16833333333333,
+  "ma20_prev": 64.97999999999999,
+  "vma5_lots": 20292.6622,
+  "yesterday_volume_lots": 34908.356,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

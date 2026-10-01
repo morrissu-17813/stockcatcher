@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-01",
+  "symbol": "2492",
+  "name": "華新科",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-01T00:00:00.000",
+  "previous_close": 329.0,
+  "k1_high": 309.0,
+  "k2_high": 321.0,
+  "breakout_level": 321.0,
+  "ma20": 307.825,
+  "ma60": 302.80833333333334,
+  "ma20_prev": 306.5,
+  "vma5_lots": 21187.7948,
+  "yesterday_volume_lots": 18146.633,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

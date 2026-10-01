@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "2241",
+  "name": "艾姆勒",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 46.15,
+  "k1_high": 44.5,
+  "k2_high": 44.9,
+  "breakout_level": 44.9,
+  "ma20": 36.7025,
+  "ma60": 35.8125,
+  "ma20_prev": 36.125,
+  "vma5_lots": 4488.7294,
+  "yesterday_volume_lots": 3176.721,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

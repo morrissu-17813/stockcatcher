@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-02",
+  "symbol": "6533",
+  "name": "晶心科",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-01T00:00:00.000",
+  "previous_close": 366.5,
+  "k1_high": 333.5,
+  "k2_high": 303.5,
+  "breakout_level": 333.5,
+  "ma20": 264.625,
+  "ma60": 243.7,
+  "ma20_prev": 259.425,
+  "vma5_lots": 6781.723,
+  "yesterday_volume_lots": 9824.741,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

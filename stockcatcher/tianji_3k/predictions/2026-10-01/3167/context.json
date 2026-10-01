@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-01",
+  "symbol": "3167",
+  "name": "大量",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-01T00:00:00.000",
+  "previous_close": 975.0,
+  "k1_high": 906.0,
+  "k2_high": 946.0,
+  "breakout_level": 946.0,
+  "ma20": 852.75,
+  "ma60": 749.775,
+  "ma20_prev": 844.0,
+  "vma5_lots": 5869.8434,
+  "yesterday_volume_lots": 4139.18,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

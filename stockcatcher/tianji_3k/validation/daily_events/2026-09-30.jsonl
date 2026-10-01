@@ -1,0 +1,2 @@
+{"event_type":"PREMARKET_WATCHLIST","trade_date":"2026-09-30","symbols":["1301","2030","2241","2426","3518","3673","4906","5864","6116","6196","6530"],"pool_count":11,"source_data_dates":["2026-09-30T00:00:00.000"],"created_at":"2026-10-01T00:02:00.389141+08:00"}
+{"event_type":"PREMARKET_WATCHLIST_NOTIFICATION","trade_date":"2026-09-30","status":"SENT","telegram_message_id":18127,"created_at":"2026-10-01T00:02:01.943374+08:00"}

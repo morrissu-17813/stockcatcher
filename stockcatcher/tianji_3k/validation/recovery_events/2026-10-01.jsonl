@@ -1,0 +1,15 @@
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T00:18:01.730016+08:00"}
+{"event_type":"STAGE0_VOLUME_BOOTSTRAP_FAILED","status":"FAILED","message":"Official Stage 0 volume snapshot missing/failed: TWSE","market_results":{"TWSE":{"ok":true,"rows":0,"endpoint_rows":1246},"TPEx":{"ok":true,"rows":11288,"endpoint_rows":11288}},"at":"2026-10-01T00:18:10.155090+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T00:26:25.869192+08:00"}
+{"event_type":"STAGE0_VOLUME_BOOTSTRAP_FAILED","status":"FAILED","message":"Official Stage 0 volume snapshot missing/failed: TWSE","market_results":{"TWSE":{"ok":true,"rows":0,"endpoint_rows":1246},"TPEx":{"ok":true,"rows":11288,"endpoint_rows":11288}},"at":"2026-10-01T00:26:30.929106+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T00:32:15.739214+08:00"}
+{"event_type":"STAGE0_VOLUME_BOOTSTRAP_FAILED","status":"FAILED","message":"Official Stage 0 volume snapshot missing/failed: TWSE","market_results":{"TWSE":{"ok":true,"rows":0,"endpoint_rows":1246},"TPEx":{"ok":true,"rows":11288,"endpoint_rows":11288}},"at":"2026-10-01T00:32:20.233712+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T01:06:23.456869+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T01:11:51.350435+08:00"}
+{"event_type":"STAGE0_VOLUME_BOOTSTRAP_FAILED","status":"FAILED","message":"Official Stage 0 volume snapshot missing/failed: TWSE,TPEx","market_results":{"TWSE":{"ok":true,"rows":0,"endpoint_rows":1246,"response_date":"-"},"TPEx":{"ok":false,"rows":0,"endpoint_rows":0,"error":"ConnectionError: Failed to perform, curl: (56) Recv failure: Connection was reset. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."}},"at":"2026-10-01T01:11:58.566633+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T01:20:49.117292+08:00"}
+{"event_type":"STAGE0_VOLUME_BOOTSTRAP_FAILED","status":"FAILED","message":"Official Stage 0 volume snapshot missing/failed: TWSE","market_results":{"TWSE":{"ok":true,"rows":0,"endpoint_rows":1246,"response_date":"-"},"TPEx":{"ok":true,"rows":11288,"endpoint_rows":11288,"response_date":"2026-09-30"}},"at":"2026-10-01T01:20:55.365467+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T23:25:51.658387+08:00"}
+{"event_type":"STAGE0_VOLUME_BOOTSTRAP_FAILED","status":"FAILED","message":"Official Stage 0 volume snapshot missing/failed: TWSE","market_results":{"TWSE":{"ok":true,"rows":0,"endpoint_rows":1247,"response_date":"-"},"TPEx":{"ok":true,"rows":11384,"endpoint_rows":11384,"response_date":"2026-10-01"}},"at":"2026-10-01T23:26:21.545277+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T23:33:03.008267+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-01T23:42:43.424609+08:00"}

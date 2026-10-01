@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-01",
+  "symbol": "3490",
+  "name": "單井",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-10-01T00:00:00.000",
+  "previous_close": 48.75,
+  "k1_high": 45.9,
+  "k2_high": 46.45,
+  "breakout_level": 46.45,
+  "ma20": 44.495,
+  "ma60": 38.61333333333334,
+  "ma20_prev": 44.364999999999995,
+  "vma5_lots": 2840.828,
+  "yesterday_volume_lots": 1917.888,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

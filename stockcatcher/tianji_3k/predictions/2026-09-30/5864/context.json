@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-09-30",
+  "symbol": "5864",
+  "name": "致和證",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-09-30T00:00:00.000",
+  "previous_close": 39.2,
+  "k1_high": 37.25,
+  "k2_high": 36.8,
+  "breakout_level": 37.25,
+  "ma20": 36.225,
+  "ma60": 34.55083333333334,
+  "ma20_prev": 36.052499999999995,
+  "vma5_lots": 3376.208,
+  "yesterday_volume_lots": 1775.002,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

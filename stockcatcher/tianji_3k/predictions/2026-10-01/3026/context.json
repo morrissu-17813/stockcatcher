@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-01",
+  "symbol": "3026",
+  "name": "禾伸堂",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-01T00:00:00.000",
+  "previous_close": 852.0,
+  "k1_high": 822.0,
+  "k2_high": 804.0,
+  "breakout_level": 822.0,
+  "ma20": 761.1,
+  "ma60": 698.1416666666667,
+  "ma20_prev": 755.05,
+  "vma5_lots": 8679.8956,
+  "yesterday_volume_lots": 6314.086,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}
