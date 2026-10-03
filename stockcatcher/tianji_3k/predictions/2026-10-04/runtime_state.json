@@ -1,0 +1,149 @@
+{
+  "schema_version": "runtime-v2.1",
+  "trade_date": "2026-10-04",
+  "premarket_notified": true,
+  "dynamic_attempts": {},
+  "states": {
+    "2338": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "2492": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "3031": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "3673": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "4991": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "5425": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6155": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6239": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6274": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6426": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6531": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6834": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "8111": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "9933": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    }
+  },
+  "updated_at": "2026-10-04T00:32:14.482950+08:00"
+}

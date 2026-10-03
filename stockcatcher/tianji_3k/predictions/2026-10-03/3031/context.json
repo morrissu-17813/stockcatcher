@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-03",
+  "symbol": "3031",
+  "name": "佰鴻",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-02T00:00:00.000",
+  "previous_close": 32.8,
+  "k1_high": 31.5,
+  "k2_high": 31.45,
+  "breakout_level": 31.5,
+  "ma20": 26.807499999999997,
+  "ma60": 25.086666666666666,
+  "ma20_prev": 26.4,
+  "vma5_lots": 5530.362,
+  "yesterday_volume_lots": 2758.118,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

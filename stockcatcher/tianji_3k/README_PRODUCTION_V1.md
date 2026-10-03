@@ -11,6 +11,9 @@
 ```powershell
 python -m tianji_3k --preflight
 python -m tianji_3k --run
+
+# 人工持續監控／測試（不受盤中時間限制）
+python -m tianji_3k --manual-monitor --no-telegram
 ```
 
 測試模式：

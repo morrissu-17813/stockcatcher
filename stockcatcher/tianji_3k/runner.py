@@ -24,6 +24,9 @@ from .core.volume_predictor import IntradayVolumePredictor
 from .core.prediction_score import IntradayPredictionScorer
 from .core.simulator import IntradaySimulator
 from .data.snapshot_filter import SnapshotUniverseFilter
+from .data.fugle import FugleProvider
+from .core.dynamic_candidate import evaluate_dynamic_history
+from .core.dynamic_discovery import DynamicDiscoveryConfig, discovery_candidates
 from .data.daily_refresh import DailyDataRefreshManager
 from .data.finmind_budget import FinMindRequestBudget
 from .data.finmind_initialization import ProductionCacheInitializer
@@ -83,6 +86,14 @@ class TianjiProductionRunner:
             budget=self.finmind_budget,
         )
         self.latest_completed_date: str | None = None
+        # Intraday dynamic layer: market-wide MIS discovery, then selective
+        # history enrichment. Existing premarket pool remains untouched.
+        self.fugle_provider = FugleProvider(FUGLE_API_KEY)
+        self.dynamic_contexts: dict[str, dict] = {}
+        self.dynamic_attempts: dict[str, int] = {}
+        self.universe_cache: dict[str, dict] = {}
+        self.dynamic_discovery_config = DynamicDiscoveryConfig()
+        self._next_radar_deadline = 0.0
 
     @staticmethod
     def _today() -> str:
@@ -105,6 +116,7 @@ class TianjiProductionRunner:
             "schema_version": "runtime-v2.1",
             "trade_date": self.trade_date,
             "premarket_notified": self._premarket_notified,
+            "dynamic_attempts": self.dynamic_attempts,
             "states": {sid: sm.to_dict() for sid, sm in self.states.items()},
             "updated_at": datetime.now(TAIPEI).isoformat(),
         }
@@ -120,6 +132,7 @@ class TianjiProductionRunner:
         try:
             data = json.loads(self.runtime_state_path.read_text(encoding="utf-8"))
             self._premarket_notified = bool(data.get("premarket_notified", False))
+            self.dynamic_attempts = {str(k): int(v) for k, v in (data.get("dynamic_attempts", {}) or {}).items()}
             for sid, state in data.get("states", {}).items():
                 self.states[str(sid)] = IntradayStateMachine.from_dict(state)
         except (OSError, ValueError, TypeError):
@@ -372,48 +385,160 @@ class TianjiProductionRunner:
         self.ledger.append_daily_event(self.trade_date, event)
 
     def _radar_rows(self):
-        universe = {x["symbol"]: x for x in StockUniverseProvider().fetch()}
+        if not self.universe_cache:
+            self.universe_cache = {str(x["symbol"]): x for x in StockUniverseProvider().fetch()}
         out = []
-        for x in self.pool:
+        seen = set()
+        for x in list(self.pool) + [dict(v, symbol=k) for k, v in self.dynamic_contexts.items()]:
             sid = str(x["symbol"])
-            u = universe.get(sid, {})
+            if sid in seen:
+                continue
+            seen.add(sid)
+            u = self.universe_cache.get(sid, {})
             out.append({
                 "symbol": sid,
                 "name": u.get("name", x.get("name", "")),
                 "market": u.get("market", x.get("market", "")),
                 "product_type": "COMMON_STOCK",
+                "security_type": "COMMON_STOCK",
                 "status": "NORMAL",
                 "yesterday_volume_lots": float(
                     x.get("stage3", {}).get("yesterday_volume_lots")
-                    or x.get("yesterday_volume_lots") or 0
+                    or x.get("yesterday_volume_lots")
+                    or u.get("previous_volume_lots")
+                    or 0
                 ),
             })
         return out
 
+    def _dynamic_candidate_gate(self, raw: dict, universe: dict[str, dict]) -> list[dict]:
+        """Market-wide MIS discovery only; historical APIs are not touched."""
+        return discovery_candidates(
+            raw,
+            universe,
+            existing=set(self.contexts) | set(self.dynamic_contexts),
+            attempts=self.dynamic_attempts,
+            config=self.dynamic_discovery_config,
+        )
+
+    def _enrich_dynamic_candidates(self, candidates: list[dict]) -> int:
+        """Spend FinMind only on candidates that already passed the MIS gate."""
+        if not candidates or not self.latest_completed_date:
+            return 0
+        calendar = self.data_refresh.calendar
+        dates = calendar.previous_trading_days(self.latest_completed_date, 61, include_end=True)
+        if not dates:
+            return 0
+        start = dates[0].isoformat()
+        added = 0
+        # Small per-cycle guard prevents a sudden market-wide surge from
+        # consuming the rolling FinMind budget in one Radar iteration.
+        for c in candidates[: self.dynamic_discovery_config.max_history_enrich_per_cycle]:
+            sid = str(c["symbol"])
+            attempt = self.dynamic_attempts.get(sid, 0) + 1
+            self.dynamic_attempts[sid] = attempt
+            try:
+                frame = self.data_refresh.provider.get_daily(sid, start, self.latest_completed_date)
+                result = evaluate_dynamic_history(
+                    sid, frame, name=c.get("name", ""), market=c.get("market", ""), trade_date=self.trade_date or self._today()
+                )
+                self.ledger.append_event(self.trade_date or self._today(), sid, {
+                    "event_type": "DYNAMIC_CANDIDATE_HISTORY",
+                    "reason": result.reason,
+                    "observed_at": datetime.now(TAIPEI).isoformat(),
+                    "mis_candidate": c,
+                })
+                if not result.eligible or not result.context:
+                    continue
+                ctx = result.context
+                self.dynamic_contexts[sid] = ctx
+                self.contexts[sid] = ctx
+                self.states[sid] = IntradayStateMachine()
+                self.ledger.write_context(ctx)
+                added += 1
+                print(f"🟢 DYNAMIC CANDIDATE | {sid} {c.get('name','')} | +{c.get('up_pct',0):.2f}% | Breakout={ctx['breakout_level']:.2f} | VMA5={ctx['vma5_lots']:.0f}張", flush=True)
+            except Exception as exc:
+                print(f"⚠️ DYNAMIC HISTORY | {sid} | {type(exc).__name__}: {str(exc)[:180]}", flush=True)
+                self.ledger.append_event(self.trade_date or self._today(), sid, {
+                    "event_type": "DYNAMIC_CANDIDATE_HISTORY_ERROR",
+                    "error_type": type(exc).__name__,
+                    "message": str(exc)[:300],
+                    "observed_at": datetime.now(TAIPEI).isoformat(),
+                })
+        return added
+
+    def _save_dynamic_candidates(self):
+        if not self.trade_date:
+            return
+        path = self.cache / "pools" / f"{self.trade_date}_dynamic.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(list(self.dynamic_contexts.values()), ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def _load_dynamic_candidates(self):
+        if not self.trade_date:
+            return
+        path = self.cache / "pools" / f"{self.trade_date}_dynamic.json"
+        if not path.exists():
+            return
+        try:
+            rows = json.loads(path.read_text(encoding="utf-8"))
+            for ctx in rows if isinstance(rows, list) else []:
+                sid = str(ctx.get("symbol", ""))
+                if not sid:
+                    continue
+                self.dynamic_contexts[sid] = ctx
+                self.contexts[sid] = ctx
+                self.states.setdefault(sid, IntradayStateMachine())
+        except (OSError, ValueError, TypeError):
+            return
+
     def _print_radar_monitor(self, raw: dict, rows: list[dict]):
-        """Print a compact live monitoring table without making extra API calls."""
+        """Print the exact stocks currently attached to the intraday Radar."""
         now = datetime.now(TAIPEI).strftime("%H:%M:%S")
-        print("\n" + "=" * 72, flush=True)
+        print("\n" + "=" * 96, flush=True)
         print(f"🔎 TIANJI 3K RADAR | {now} | 監控中 {len(rows)} 檔 | MIS 回傳 {len(raw)} 檔", flush=True)
-        print("=" * 72, flush=True)
-        print(f"{'股號':<8}{'股名':<18}{'現價':>12}", flush=True)
-        print("-" * 72, flush=True)
+        print("=" * 96, flush=True)
+        print(f"{'股號':<8}{'股名':<16}{'來源':<10}{'市場':<8}{'現價':>12}{'State':<22}", flush=True)
+        print("-" * 96, flush=True)
+        dynamic_ids = set(self.dynamic_contexts)
         for row in rows:
             sid = str(row.get("symbol", ""))
-            name = str(row.get("name", ""))[:14]
+            name = str(row.get("name", ""))[:12]
+            source = "DYNAMIC" if sid in dynamic_ids else "PREMARKET"
+            market = str(row.get("market", ""))[:6]
             item = raw.get(sid, {})
             price = item.get("current_price")
             price_text = f"{float(price):,.2f}" if price not in (None, "") else "--"
-            print(f"{sid:<8}{name:<18}{price_text:>12}", flush=True)
-        print("-" * 72, flush=True)
+            state_obj = self.states.get(sid)
+            state = getattr(getattr(state_obj, "state", None), "value", "NOT_LOADED")
+            print(f"{sid:<8}{name:<16}{source:<10}{market:<8}{price_text:>12}{state:<22}", flush=True)
+        print("-" * 96, flush=True)
+        print(f"📌 PREMARKET={len(self.pool)} | DYNAMIC={len(self.dynamic_contexts)} | TOTAL={len(rows)}", flush=True)
         print(f"✅ RADAR ACTIVE | 下一次監控約 {MIS_INTERVAL_SECONDS} 秒", flush=True)
-        print("=" * 72, flush=True)
+        print("=" * 96, flush=True)
 
     def poll_once(self):
+        # If the premarket lifecycle has already been built and the resulting
+        # pool is empty, do not rebuild it on every Radar cycle.  Rebuilding
+        # here can unexpectedly invoke daily-refresh/FinMind calendar
+        # bootstrap and turns an empty watchlist into a liveness failure.
         if not self.pool:
+            if self._premarket_built:
+                return 0
             self._load_pool()
         rows = self._radar_rows()
-        eligible, _ = SnapshotUniverseFilter(min_yesterday_volume_lots=0).filter_rows(rows)
+        if not self.universe_cache:
+            self.universe_cache = {str(x["symbol"]): x for x in StockUniverseProvider().fetch()}
+        # Existing pool + full main-board common-stock universe. MIS remains the
+        # only market-wide intraday discovery source; no per-stock FinMind here.
+        market_rows = []
+        for sid, u in self.universe_cache.items():
+            market_rows.append({
+                "symbol": sid, "name": u.get("name", ""), "market": u.get("market", ""),
+                "product_type": "COMMON_STOCK", "security_type": "COMMON_STOCK", "status": "NORMAL",
+                "yesterday_volume_lots": float(u.get("previous_volume_lots") or 0),
+            })
+        eligible, _ = SnapshotUniverseFilter(min_yesterday_volume_lots=1000).filter_rows(market_rows)
         info = {x["symbol"]: x for x in eligible}
         resolver = lambda s: "otc" if info.get(s, {}).get("market") == "TPEx" else "tse"
         if self.mis_provider is None:
@@ -431,9 +556,20 @@ class TianjiProductionRunner:
             self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_ERROR", **err, "at":datetime.now(TAIPEI).isoformat()})
             return 0
 
+        dynamic_candidates = self._dynamic_candidate_gate(raw, self.universe_cache)
+        added = self._enrich_dynamic_candidates(dynamic_candidates)
+        if added:
+            self._save_dynamic_candidates()
+            rows = self._radar_rows()
+        print(
+            f"🧭 DYNAMIC DISCOVERY | candidates={len(dynamic_candidates)} "
+            f"| enriched={added} | active={len(self.dynamic_contexts)} "
+            f"| history_budget/cycle={self.dynamic_discovery_config.max_history_enrich_per_cycle}",
+            flush=True,
+        )
         self._print_radar_monitor(raw, rows)
 
-        for sid, ctx in self.contexts.items():
+        for sid, ctx in list(self.contexts.items()):
             r = raw.get(sid)
             if not r:
                 continue
@@ -452,6 +588,18 @@ class TianjiProductionRunner:
                     "observed_at": snap.observed_at,
                     "state": sm.state.value,
                     "reason": reason,
+                    "snapshot_id": snap.snapshot_id,
+                })
+                continue
+
+            # Fugle 5m confirmation is only called after the MIS price state
+            # machine has produced a real breakout trigger.
+            micro = self.fugle_provider.evaluate_3k_micro_breakout(sid)
+            if not micro:
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "FUGLE_5M_CONFIRMATION_REJECTED",
+                    "observed_at": snap.observed_at,
+                    "reason": "5M_BREAKOUT_OR_VOLUME_NOT_CONFIRMED",
                     "snapshot_id": snap.snapshot_id,
                 })
                 continue
@@ -476,6 +624,7 @@ class TianjiProductionRunner:
                 "breakout_level": ctx["breakout_level"],
                 "effective_breakout": effective,
                 "volume_prediction_pass": volume_ratio_ok,
+                "fugle_5m_confirmation": micro,
                 "state": sm.state.value,
                 "confirmed_snapshots": sm.pending_count if sm.state.value == "BREAKOUT_PENDING" else 2,
             }
@@ -588,6 +737,7 @@ class TianjiProductionRunner:
             }
             self.states[sid] = IntradayStateMachine()
             self.ledger.write_context(self.contexts[sid])
+        self._load_dynamic_candidates()
         self._load_runtime_state()
         # Reconstruct state from the durable ledger when the process died
         # between a prediction/event write and the runtime checkpoint.
@@ -658,6 +808,25 @@ class TianjiProductionRunner:
             return
         self.pool = json.loads(daily_pool.read_text(encoding="utf-8"))
         self._load_pool_from_memory()
+
+    def _finalize_close_snapshot(self, trade_date: str | None = None) -> dict:
+        """Finalize the official daily close snapshot without using FinMind.
+
+        This compatibility/close-finalization boundary intentionally delegates
+        to the official TWSE/TPEx daily snapshot provider.  It is idempotent
+        and does not consume the FinMind request budget.
+        """
+        td = trade_date or self.trade_date or self._today()
+        result = self.data_refresh.refresh_official_daily(td)
+        self.recovery_ledger.append(td, {
+            "event_type": "OFFICIAL_CLOSE_SNAPSHOT_FINALIZED",
+            "status": result.get("status"),
+            "twse_rows": result.get("twse_rows", 0),
+            "tpex_rows": result.get("tpex_rows", 0),
+            "rows_written": result.get("rows_written", 0),
+            "at": datetime.now(TAIPEI).isoformat(),
+        })
+        return result
 
     def _fetch_ground_truth_for_symbol(self, sid: str, td: str, ctx: dict) -> dict | None:
         if not FUGLE_API_KEY:
@@ -815,14 +984,17 @@ class TianjiProductionRunner:
             self._record_notification(**gt_event)
         return results
 
-    def run_forever(self):
+    def run_forever(self, manual_monitor: bool = False):
         """Run one complete trading-day production lifecycle.
 
         The ledger is the source of truth; runtime_state/checkpoint are only
         recovery aids. Every phase is idempotent so a restart resumes safely.
         """
         now = datetime.now(TAIPEI)
-        if not self.session.is_trading_candidate(now.date()):
+        # Production mode remains strictly session-gated. Manual monitor mode
+        # is an explicit operator/test mode: it never exits merely because the
+        # current clock is outside the Taiwan trading session.
+        if not manual_monitor and not self.session.is_trading_candidate(now.date()):
             print(f"TIANJI CLOSED | {now.date().isoformat()}")
             return 0
 
@@ -840,7 +1012,10 @@ class TianjiProductionRunner:
             self.recovery.start(trade_date, "STARTING")
             print("=" * 72, flush=True)
             print(f"🚀 TIANJI 3K PRODUCTION START | trade_date={trade_date}", flush=True)
-            print(f"📡 RADAR interval={MIS_INTERVAL_SECONDS}s | Telegram={'ON' if self.notifier.enabled else 'OFF'}", flush=True)
+            print(f"📡 RADAR interval={MIS_INTERVAL_SECONDS}s | Telegram={'ON' if self.notifier.enabled else 'OFF'} | Dynamic Discovery=ON", flush=True)
+            if manual_monitor:
+                print("🧪 MANUAL MONITOR MODE | 忽略非盤中時間限制 | 僅供本地/線上測試，不代表目前為真實盤中", flush=True)
+                print("🧭 啟動後會持續執行 MIS Radar，並列出目前實際進入監控的股票", flush=True)
             print("=" * 72, flush=True)
             if recovered:
                 self.recovery_ledger.append(trade_date, {
@@ -853,6 +1028,35 @@ class TianjiProductionRunner:
             while True:
                 now = datetime.now(TAIPEI)
                 phase = self.session.phase(now)
+
+                if manual_monitor:
+                    if phase != getattr(self, "_last_phase", None):
+                        print(f"🧪 MANUAL PHASE | TradingSession={phase} | {now.strftime('%H:%M:%S')}", flush=True)
+                        self._last_phase = phase
+                    if not self.pool:
+                        try:
+                            self._load_pool()
+                        except Exception as exc:
+                            err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+                            print(f"❌ MANUAL MONITOR INIT ERROR | {err['error_type']} | {err['message']}", flush=True)
+                            self.recovery.heartbeat("MANUAL_MONITOR_INIT_ERROR", success=False, error=err)
+                            time.sleep(MIS_INTERVAL_SECONDS)
+                            continue
+                    self._load_runtime_state()
+                    try:
+                        cycle_started = time.monotonic()
+                        self.poll_once()
+                        self._next_radar_deadline = max(
+                            self._next_radar_deadline, cycle_started
+                        ) + MIS_INTERVAL_SECONDS
+                    except Exception as exc:
+                        err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
+                        print(f"❌ MANUAL RADAR ERROR | {err['error_type']} | {err['message']}", flush=True)
+                        self.recovery.heartbeat("MANUAL_RADAR_ERROR", success=False, error=err)
+                    delay = max(0.5, self._next_radar_deadline - time.monotonic())
+                    time.sleep(min(delay, MIS_INTERVAL_SECONDS))
+                    continue
+
                 if phase != getattr(self, "_last_phase", None):
                     print(f"🟢 PHASE -> {phase} | {now.strftime('%H:%M:%S')}", flush=True)
                     self._last_phase = phase
@@ -873,6 +1077,8 @@ class TianjiProductionRunner:
                     time.sleep(min(30, MIS_INTERVAL_SECONDS))
                     continue
                 if phase == "RADAR":
+                    if self._next_radar_deadline <= time.monotonic():
+                        self._next_radar_deadline = time.monotonic()
                     if not self.pool:
                         try:
                             self.build_premarket_pool(trade_date)
@@ -884,7 +1090,13 @@ class TianjiProductionRunner:
                             continue
                     self._load_runtime_state()
                     try:
+                        cycle_started = time.monotonic()
                         self.poll_once()
+                        # Fixed-cadence radar: work time is included in the
+                        # interval so a slow cycle does not drift to 30-40s.
+                        self._next_radar_deadline = max(
+                            self._next_radar_deadline, cycle_started
+                        ) + MIS_INTERVAL_SECONDS
                     except Exception as exc:
                         err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
                         print(f"❌ RADAR FATAL ERROR | {err['error_type']} | {err['message']}", flush=True)
@@ -894,7 +1106,8 @@ class TianjiProductionRunner:
                     if now_ts - self._last_notification_retry_at >= 60:
                         self.reconcile_pending_notifications()
                         self._last_notification_retry_at = now_ts
-                    time.sleep(MIS_INTERVAL_SECONDS)
+                    delay = max(0.5, self._next_radar_deadline - time.monotonic())
+                    time.sleep(min(delay, MIS_INTERVAL_SECONDS))
                     continue
                 if phase == "GROUND_TRUTH":
                     if not self.pool:
@@ -930,6 +1143,16 @@ class TianjiProductionRunner:
                     self.recovery_ledger.append(trade_date, {"event_type":"CLEAN_SHUTDOWN", "at":datetime.now(TAIPEI).isoformat()})
                     return 0
                 time.sleep(MIS_INTERVAL_SECONDS)
+        except KeyboardInterrupt:
+            if manual_monitor:
+                self.recovery.mark_clean_shutdown()
+                self.recovery_ledger.append(trade_date, {
+                    "event_type": "MANUAL_MONITOR_STOPPED",
+                    "at": datetime.now(TAIPEI).isoformat(),
+                })
+                print("\n🛑 MANUAL MONITOR STOPPED | 已安全停止測試監控", flush=True)
+                return 0
+            raise
         finally:
             self.process_lock.release()
 
@@ -940,6 +1163,7 @@ def main(argv=None):
     ap.add_argument("--intraday-once", action="store_true", help="只執行一次 MIS Radar")
     ap.add_argument("--ground-truth-once", action="store_true", help="只執行一次收盤驗證")
     ap.add_argument("--run", action="store_true", help="完整交易日循環")
+    ap.add_argument("--manual-monitor", action="store_true", help="手動持續盤中監控模式：忽略非盤中時間限制，持續 MIS Radar，供本地/線上測試")
     ap.add_argument("--recovery-status", action="store_true", help="顯示最近一次 runtime checkpoint")
     ap.add_argument("--simulate", type=Path, help="離線重播 MIS snapshot JSON/JSONL")
     ap.add_argument("--preflight", action="store_true", help="檢查 Production 環境與必要設定")
@@ -971,8 +1195,19 @@ def main(argv=None):
     elif a.ground_truth_once:
         r._load_pool()
         print(f"GROUND_TRUTH rows={len(r.ground_truth())}")
-    elif a.run:
-        r.run_forever()
+    elif a.run or a.manual_monitor:
+        # Local interactive `--run` is intentionally test-friendly outside the
+        # Taiwan trading session: enter the same continuous Radar path instead
+        # of exiting immediately. CI/online non-interactive `--run` keeps the
+        # strict Production lifecycle and will still stop outside session.
+        manual = bool(a.manual_monitor)
+        if a.run and not manual and sys.stdin.isatty():
+            phase = r.session.phase(datetime.now(TAIPEI))
+            if phase in {"CLOSED", "PREMARKET_WAIT", "PREMARKET", "GROUND_TRUTH", "STOP"} and phase != "RADAR":
+                manual = True
+                print("🧪 LOCAL INTERACTIVE TEST | --run 在非盤中時間自動切換 MANUAL MONITOR", flush=True)
+                print("   若要嚴格 Production lifecycle，請在線上/非互動環境執行 --run。", flush=True)
+        r.run_forever(manual_monitor=manual)
     else:
         r.build_premarket_pool()
         print(f"PREMARKET_WATCHLIST size={len(r.pool)}")

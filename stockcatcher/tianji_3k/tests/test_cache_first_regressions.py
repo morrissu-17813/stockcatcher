@@ -26,6 +26,6 @@ def test_symbol_specific_suspension_does_not_fail_history_backfill(tmp_path):
         if d.strftime("%Y-%m-%d") not in suspended
     ]
     p.fallback.get_daily = lambda symbol, start, end: pd.DataFrame([row(d) for d in traded])
-    out = p.get_daily("3591", "2026-09-01", "2026-09-24")
+    out = p.get_daily("3591", "2026-09-01", "2026-09-24", allow_symbol_non_trading=True)
     assert len(out) == len(traded)
     assert "2026-09-18" not in out.date.astype(str).tolist()

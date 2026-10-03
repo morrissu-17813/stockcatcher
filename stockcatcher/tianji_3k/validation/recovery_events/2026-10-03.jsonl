@@ -1,0 +1,4 @@
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-03T23:21:19.681062+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-03T23:24:52.751932+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-03T23:44:13.029457+08:00"}
+{"event_type":"HISTORY_SYMBOLS_SKIPPED_AFTER_3_FAILURES","count":1,"symbols":["3718"],"message":"Production daily cache initialization complete with 1 skipped symbol(s) after 3 failures.","at":"2026-10-03T23:48:03.791089+08:00"}

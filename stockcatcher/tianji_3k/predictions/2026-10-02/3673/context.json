@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-02",
+  "symbol": "3673",
+  "name": "TPK-KY",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-02T00:00:00.000",
+  "previous_close": 80.6,
+  "k1_high": 75.8,
+  "k2_high": 75.5,
+  "breakout_level": 75.8,
+  "ma20": 66.27000000000001,
+  "ma60": 64.98833333333333,
+  "ma20_prev": 65.59,
+  "vma5_lots": 16203.0978,
+  "yesterday_volume_lots": 26102.941,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-02",
+  "symbol": "6239",
+  "name": "力成",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-02T00:00:00.000",
+  "previous_close": 308.0,
+  "k1_high": 293.0,
+  "k2_high": 295.5,
+  "breakout_level": 295.5,
+  "ma20": 282.3,
+  "ma60": 278.4916666666667,
+  "ma20_prev": 280.8,
+  "vma5_lots": 8642.902,
+  "yesterday_volume_lots": 7278.591,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

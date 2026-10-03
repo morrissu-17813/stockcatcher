@@ -2,8 +2,9 @@
   "schema_version": "runtime-v2.1",
   "trade_date": "2026-10-02",
   "premarket_notified": true,
+  "dynamic_attempts": {},
   "states": {
-    "2399": {
+    "2338": {
       "schema_version": "state-v1",
       "state": "WATCHING",
       "last_snapshot_id": "",
@@ -23,7 +24,7 @@
       "last_trigger_price": 0.0,
       "seen_data_identities": []
     },
-    "3026": {
+    "3031": {
       "schema_version": "state-v1",
       "state": "WATCHING",
       "last_snapshot_id": "",
@@ -33,7 +34,7 @@
       "last_trigger_price": 0.0,
       "seen_data_identities": []
     },
-    "3167": {
+    "3673": {
       "schema_version": "state-v1",
       "state": "WATCHING",
       "last_snapshot_id": "",
@@ -43,7 +44,7 @@
       "last_trigger_price": 0.0,
       "seen_data_identities": []
     },
-    "3490": {
+    "4991": {
       "schema_version": "state-v1",
       "state": "WATCHING",
       "last_snapshot_id": "",
@@ -53,7 +54,7 @@
       "last_trigger_price": 0.0,
       "seen_data_identities": []
     },
-    "6533": {
+    "6155": {
       "schema_version": "state-v1",
       "state": "WATCHING",
       "last_snapshot_id": "",
@@ -63,7 +64,27 @@
       "last_trigger_price": 0.0,
       "seen_data_identities": []
     },
-    "6672": {
+    "6239": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6426": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    },
+    "6531": {
       "schema_version": "state-v1",
       "state": "WATCHING",
       "last_snapshot_id": "",
@@ -82,7 +103,17 @@
       "trigger_count": 0,
       "last_trigger_price": 0.0,
       "seen_data_identities": []
+    },
+    "9933": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
     }
   },
-  "updated_at": "2026-10-02T00:02:29.483712+08:00"
+  "updated_at": "2026-10-02T22:19:48.501383+08:00"
 }

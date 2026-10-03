@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-04",
+  "symbol": "6274",
+  "name": "台燿",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-10-02T00:00:00.000",
+  "previous_close": 1620.0,
+  "k1_high": 1540.0,
+  "k2_high": 1550.0,
+  "breakout_level": 1550.0,
+  "ma20": 1420.25,
+  "ma60": 1410.75,
+  "ma20_prev": 1409.75,
+  "vma5_lots": 6857.2624,
+  "yesterday_volume_lots": 4682.645,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}
