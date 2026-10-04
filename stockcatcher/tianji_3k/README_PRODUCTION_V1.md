@@ -44,3 +44,9 @@ python -m tianji_3k.tools.failure_injection
 資料層現在採用 Trading Calendar 驅動的增量更新與缺日自動補抓。正式上線前建議先清除開發期 `cache/daily`，重新建立乾淨歷史基線；正式營運後只做增量更新與必要補抓。
 
 詳細規格：`docs/production_data_integrity_v1.md`。
+
+
+## Production Release
+- Release: v1.0.8
+- Base: v1.0.7
+- Test status: 106 passed / 0 failed

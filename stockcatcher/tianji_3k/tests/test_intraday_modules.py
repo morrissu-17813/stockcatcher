@@ -42,3 +42,8 @@ def test_trigger_requires_invalidation_before_rearm():
     # Fresh breakout needs two new distinct valid snapshots.
     assert not sm.evaluate(build_snapshot("2221", raw("e")), 120)[0]
     assert sm.evaluate(build_snapshot("2221", raw("f")), 120)[0]
+
+
+def test_build_snapshot_accepts_explicit_mis_lots():
+    s = build_snapshot("2221", {"observed_at":"2026-09-22T09:10:20+08:00", "current_price":121, "previous_close":116, "today_open":116.5, "cumulative_volume_lots":2000, "up_pct":4.3, "is_traded":True, "data_identity":"x"})
+    assert s.cumulative_volume_lots == 2000

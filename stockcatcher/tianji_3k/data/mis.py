@@ -29,8 +29,16 @@ class MISProvider:
                 for item in payload.get('msgArray',[]):
                     sid=str(item.get('c','')).strip(); y=self._num(item.get('y')); z=self._num(item.get('z')); lp=z if z>0 else y
                     if not sid or lp<=0: continue
-                    v=int(self._num(str(item.get('v','0')).replace(',',''))); up=(lp/y-1)*100 if y>0 else 0.0
+                    # TWSE/TPEx MIS `v` is cumulative volume in LOTS.
+                    # Keep explicit units so downstream code cannot silently
+                    # divide the value by 1000 a second time.
+                    v_lots=float(self._num(str(item.get('v','0')).replace(',','')))
+                    up=(lp/y-1)*100 if y>0 else 0.0
                     identity='|'.join([sid,str(item.get('t','')),str(item.get('tv','')),str(item.get('z','')),str(item.get('v','')),str(item.get('d',''))])
-                    out[sid]={'symbol':sid,'current_price':lp,'previous_close':y,'today_open':self._num(item.get('o',y)),'cumulative_volume':v,'up_pct':round(up,4),'is_traded':str(item.get('z','-')) not in {'-','0'},'data_identity':identity,'observed_at':datetime.now(TAIPEI)}
+                    out[sid]={'symbol':sid,'current_price':lp,'previous_close':y,'today_open':self._num(item.get('o',y)),
+                              'cumulative_volume':v_lots, 'cumulative_volume_lots':v_lots,
+                              'cumulative_volume_shares':v_lots*1000.0,
+                              'up_pct':round(up,4),'is_traded':str(item.get('z','-')) not in {'-','0'},
+                              'data_identity':identity,'observed_at':datetime.now(TAIPEI)}
             except Exception: continue
         return out

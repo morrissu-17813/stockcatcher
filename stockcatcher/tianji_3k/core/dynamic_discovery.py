@@ -59,7 +59,11 @@ def discovery_candidates(
             up = float(row.get("up_pct") or 0)
             price = float(row.get("current_price") or 0)
             open_price = float(row.get("today_open") or 0)
-            current_lots = float(row.get("cumulative_volume") or 0) / 1000.0
+            current_lots = float(row.get("cumulative_volume_lots") or 0)
+            if current_lots <= 0:
+                # Backward-compatible fallback for legacy test/replay payloads
+                # where MIS-like volume was represented as shares.
+                current_lots = float(row.get("cumulative_volume") or 0) / 1000.0
         except (TypeError, ValueError):
             continue
 

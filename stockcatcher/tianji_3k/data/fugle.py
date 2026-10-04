@@ -22,13 +22,13 @@ class FugleProvider:
     def enabled(self) -> bool:
         return bool(self.api_key)
 
-    def get_5m_bars(self, symbol: str, limit: int = 200) -> list[dict[str, Any]]:
+    def get_5m_bars(self, symbol: str, limit: int | None = None) -> list[dict[str, Any]]:
         if not self.enabled:
             return []
         response = requests.get(
             self.URL.format(symbol=str(symbol)),
             headers={"X-API-KEY": self.api_key},
-            params={"timeframe": "5", "limit": str(limit)},
+            params={"timeframe": "5"},
             timeout=self.timeout,
         )
         response.raise_for_status()
@@ -70,7 +70,7 @@ class FugleProvider:
         The 5m layer is a confirmation layer. The existing Production
         projected-volume >=1.5 gate remains the final volume gate.
         """
-        bars = self.get_5m_bars(symbol, limit=200)
+        bars = self.get_5m_bars(symbol)
         if len(bars) < 23:
             return None
         first, second, third = bars[-3:]

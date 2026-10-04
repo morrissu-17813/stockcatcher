@@ -807,6 +807,20 @@ class TianjiProductionRunner:
             self.build_premarket_pool(self.trade_date)
             return
         self.pool = json.loads(daily_pool.read_text(encoding="utf-8"))
+        # A fresh process may not have run the premarket initialization in
+        # this process, so restore the T-1 completed-K date from the durable
+        # pool before dynamic history enrichment.
+        dates = [str(x.get("date") or x.get("latest_date") or "") for x in self.pool]
+        dates = [d for d in dates if d]
+        if dates:
+            self.latest_completed_date = max(dates)
+        else:
+            freshness_path = self.cache / "data_freshness.json"
+            if freshness_path.exists():
+                try:
+                    self.latest_completed_date = json.loads(freshness_path.read_text(encoding="utf-8")).get("latest_completed_date")
+                except Exception:
+                    pass
         self._load_pool_from_memory()
 
     def _finalize_close_snapshot(self, trade_date: str | None = None) -> dict:
