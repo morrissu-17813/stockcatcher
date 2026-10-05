@@ -67,3 +67,5 @@
 {"event_type":"RADAR_COMPLETE","snapshot_count":568,"at":"2026-10-05T21:48:12.215102+08:00"}
 {"event_type":"RADAR_COMPLETE","snapshot_count":568,"at":"2026-10-05T21:48:30.984384+08:00"}
 {"event_type":"RADAR_COMPLETE","snapshot_count":568,"at":"2026-10-05T21:48:49.892028+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":568,"at":"2026-10-05T21:49:09.425056+08:00"}
+{"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-05T21:49:11.221803+08:00"}
