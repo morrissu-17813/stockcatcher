@@ -24,7 +24,7 @@ from .core.volume_predictor import IntradayVolumePredictor
 from .core.prediction_score import IntradayPredictionScorer
 from .core.simulator import IntradaySimulator
 from .data.snapshot_filter import SnapshotUniverseFilter
-from .data.fugle import FugleProvider
+from .data.fugle import FugleAPIError, FugleProvider
 from .core.dynamic_candidate import evaluate_dynamic_history
 from .core.dynamic_discovery import DynamicDiscoveryConfig, discovery_candidates
 from .data.daily_refresh import DailyDataRefreshManager
@@ -94,6 +94,9 @@ class TianjiProductionRunner:
         self.universe_cache: dict[str, dict] = {}
         self.dynamic_discovery_config = DynamicDiscoveryConfig()
         self._next_radar_deadline = 0.0
+        self._fugle_health_checked = False
+        self._fugle_health_status = "NOT_CHECKED"
+        self._fugle_pending: dict[str, str] = {}
 
     @staticmethod
     def _today() -> str:
@@ -118,6 +121,8 @@ class TianjiProductionRunner:
             "premarket_notified": self._premarket_notified,
             "dynamic_attempts": self.dynamic_attempts,
             "states": {sid: sm.to_dict() for sid, sm in self.states.items()},
+            "fugle_pending": self._fugle_pending,
+            "fugle_health_status": self._fugle_health_status,
             "updated_at": datetime.now(TAIPEI).isoformat(),
         }
         tmp = self.runtime_state_path.with_suffix(".json.tmp")
@@ -133,6 +138,8 @@ class TianjiProductionRunner:
             data = json.loads(self.runtime_state_path.read_text(encoding="utf-8"))
             self._premarket_notified = bool(data.get("premarket_notified", False))
             self.dynamic_attempts = {str(k): int(v) for k, v in (data.get("dynamic_attempts", {}) or {}).items()}
+            self._fugle_pending = {str(k): str(v) for k, v in (data.get("fugle_pending", {}) or {}).items()}
+            self._fugle_health_status = str(data.get("fugle_health_status", "NOT_CHECKED"))
             for sid, state in data.get("states", {}).items():
                 self.states[str(sid)] = IntradayStateMachine.from_dict(state)
         except (OSError, ValueError, TypeError):
@@ -556,6 +563,20 @@ class TianjiProductionRunner:
             self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_ERROR", **err, "at":datetime.now(TAIPEI).isoformat()})
             return 0
 
+        if not self._fugle_health_checked and self.contexts:
+            probe_symbol = next(iter(self.contexts))
+            try:
+                print(f"🔵 FUGLE HEALTH CHECK | symbol={probe_symbol} | timeframe=5", flush=True)
+                result = self.fugle_provider.check_5m_access(probe_symbol)
+                self._fugle_health_status = "OK" if result.get("ok") else str(result.get("status"))
+                print(f"🟢 FUGLE HEALTH CHECK | status={self._fugle_health_status} | bars={result.get('bars', 0)}", flush=True)
+            except FugleAPIError as exc:
+                self._fugle_health_status = f"HTTP_{exc.status_code or 'ERROR'}"
+                print(f"🔴 FUGLE HEALTH CHECK | status={self._fugle_health_status} | symbol={exc.symbol} | {exc.message} | RADAR=CONTINUE", flush=True)
+            finally:
+                self._fugle_health_checked = True
+                self._save_runtime_state()
+
         dynamic_candidates = self._dynamic_candidate_gate(raw, self.universe_cache)
         added = self._enrich_dynamic_candidates(dynamic_candidates)
         if added:
@@ -582,27 +603,61 @@ class TianjiProductionRunner:
             )
             if reason == "DUPLICATE_SNAPSHOT":
                 continue
-            if not triggered:
-                self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "RADAR_STATE",
-                    "observed_at": snap.observed_at,
-                    "state": sm.state.value,
-                    "reason": reason,
-                    "snapshot_id": snap.snapshot_id,
-                })
+
+            if reason == "TRIGGER_INVALIDATED":
+                self._fugle_pending.pop(sid, None)
+
+            self.ledger.append_event(ctx["trade_date"], sid, {
+                "event_type": "RADAR_STATE",
+                "observed_at": snap.observed_at,
+                "state": sm.state.value,
+                "reason": reason,
+                "snapshot_id": snap.snapshot_id,
+                "data_identity": snap.data_identity,
+            })
+            self._save_runtime_state()
+
+            # A fresh trigger starts Fugle confirmation. If the confirmation
+            # failed previously (401/network/insufficient 5m bars), keep it
+            # pending and retry without re-arming the price state machine.
+            if triggered:
+                self._fugle_pending[sid] = snap.observed_at.isoformat()
+                print(
+                    f"🔔 BREAKOUT TRIGGER | {sid} {ctx['name']} | price={snap.current_price:.2f} "
+                    f"| breakout={ctx['breakout_level']:.2f} | snapshot={snap.snapshot_id}",
+                    flush=True,
+                )
+                self._save_runtime_state()
+            elif not (sm.state.value == "TRIGGERED" and sid in self._fugle_pending):
                 continue
 
-            # Fugle 5m confirmation is only called after the MIS price state
-            # machine has produced a real breakout trigger.
-            micro = self.fugle_provider.evaluate_3k_micro_breakout(sid)
+            try:
+                print(f"🔵 FUGLE 5M REQUEST | {sid} | timeframe=5", flush=True)
+                micro = self.fugle_provider.evaluate_3k_micro_breakout(sid)
+            except FugleAPIError as exc:
+                print(f"🔴 FUGLE 5M ERROR | {sid} | HTTP={exc.status_code or 'N/A'} | {exc.message} | ACTION=RETRY", flush=True)
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "FUGLE_5M_ERROR",
+                    "observed_at": snap.observed_at,
+                    "status_code": exc.status_code,
+                    "reason": exc.message,
+                    "snapshot_id": snap.snapshot_id,
+                })
+                self._save_runtime_state()
+                continue
+
             if not micro:
+                print(f"🟡 FUGLE 5M REJECT | {sid} | micro confirmation not met | ACTION=RETRY", flush=True)
                 self.ledger.append_event(ctx["trade_date"], sid, {
                     "event_type": "FUGLE_5M_CONFIRMATION_REJECTED",
                     "observed_at": snap.observed_at,
                     "reason": "5M_BREAKOUT_OR_VOLUME_NOT_CONFIRMED",
                     "snapshot_id": snap.snapshot_id,
                 })
+                self._save_runtime_state()
                 continue
+
+            print(f"🟢 FUGLE 5M SUCCESS | {sid} | bars_used={micro.get('bars_used')} | volume_ratio={micro.get('volume_ratio', 0):.2f}x", flush=True)
 
             projection = self.volume_predictor.project(
                 snap.cumulative_volume_lots,
@@ -642,6 +697,7 @@ class TianjiProductionRunner:
             # Price trigger without projected Stage-3 volume is retained as an audit event,
             # but it is not promoted to an INTRADAY_3K_PREDICTION.
             if not volume_ratio_ok:
+                print(f"🟡 PROJECTED VOLUME REJECT | {sid} | ratio={projection.projected_ratio if projection.projected_ratio is not None else 'N/A'} | required=1.50x", flush=True)
                 self.ledger.append_event(ctx["trade_date"], sid, {
                     "event_type": "BREAKOUT_PRICE_TRIGGER_REJECTED",
                     "observed_at": snap.observed_at,
@@ -703,6 +759,7 @@ class TianjiProductionRunner:
                     "notification_status": status,
                     "suppression_reason": gate.get("suppression_reason"),
                 })
+            self._fugle_pending.pop(sid, None)
             self._save_runtime_state()
 
         self.recovery.heartbeat("RADAR_COMPLETE", success=True)

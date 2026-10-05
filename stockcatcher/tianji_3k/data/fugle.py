@@ -4,9 +4,20 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
+from requests import HTTPError
 
 
 TAIPEI = timezone(timedelta(hours=8))
+
+
+class FugleAPIError(RuntimeError):
+    """Structured Fugle HTTP/auth failure for safe Radar degradation."""
+
+    def __init__(self, symbol: str, status_code: int | None, message: str):
+        self.symbol = str(symbol)
+        self.status_code = status_code
+        self.message = message
+        super().__init__(message)
 
 
 class FugleProvider:
@@ -25,14 +36,23 @@ class FugleProvider:
     def get_5m_bars(self, symbol: str, limit: int | None = None) -> list[dict[str, Any]]:
         if not self.enabled:
             return []
-        response = requests.get(
-            self.URL.format(symbol=str(symbol)),
-            headers={"X-API-KEY": self.api_key},
-            params={"timeframe": "5"},
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        payload = response.json()
+        try:
+            response = requests.get(
+                self.URL.format(symbol=str(symbol)),
+                headers={"X-API-KEY": self.api_key},
+                params={"timeframe": "5"},
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+        except HTTPError as exc:
+            status = getattr(exc.response, "status_code", None)
+            raise FugleAPIError(str(symbol), status, f"HTTP {status or 'ERROR'}: {exc}") from exc
+        except requests.RequestException as exc:
+            raise FugleAPIError(str(symbol), None, f"REQUEST_ERROR: {exc}") from exc
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise FugleAPIError(str(symbol), response.status_code, "INVALID_JSON_RESPONSE") from exc
         raw = payload.get("data", payload.get("candles", []))
         if not isinstance(raw, list):
             return []
@@ -63,6 +83,14 @@ class FugleProvider:
                 continue
         out.sort(key=lambda x: x["date"])
         return out
+
+
+    def check_5m_access(self, symbol: str) -> dict[str, Any]:
+        """One-shot connectivity/auth check; does not require 23 bars."""
+        if not self.enabled:
+            return {"ok": False, "status": "DISABLED", "symbol": str(symbol), "bars": 0}
+        bars = self.get_5m_bars(symbol)
+        return {"ok": True, "status": "OK", "symbol": str(symbol), "bars": len(bars)}
 
     def evaluate_3k_micro_breakout(self, symbol: str) -> dict[str, Any] | None:
         """Use the scanner.py-style completed-5m-bar structure.

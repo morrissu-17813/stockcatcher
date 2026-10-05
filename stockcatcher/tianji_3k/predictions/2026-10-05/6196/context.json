@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-05",
+  "symbol": "6196",
+  "name": "帆宣",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-05T00:00:00.000",
+  "previous_close": 679.0,
+  "k1_high": 619.0,
+  "k2_high": 602.0,
+  "breakout_level": 619.0,
+  "ma20": 547.0,
+  "ma60": 521.4083333333333,
+  "ma20_prev": 538.05,
+  "vma5_lots": 2055.8908,
+  "yesterday_volume_lots": 1802.45,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

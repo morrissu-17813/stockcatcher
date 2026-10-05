@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-05",
+  "symbol": "2376",
+  "name": "技嘉",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-05T00:00:00.000",
+  "previous_close": 388.5,
+  "k1_high": 388.0,
+  "k2_high": 369.0,
+  "breakout_level": 388.0,
+  "ma20": 359.625,
+  "ma60": 350.675,
+  "ma20_prev": 357.725,
+  "vma5_lots": 6068.032,
+  "yesterday_volume_lots": 9164.965,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

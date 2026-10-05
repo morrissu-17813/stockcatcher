@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-05",
+  "symbol": "6209",
+  "name": "今國光",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-05T00:00:00.000",
+  "previous_close": 87.9,
+  "k1_high": 84.7,
+  "k2_high": 83.8,
+  "breakout_level": 84.7,
+  "ma20": 80.025,
+  "ma60": 74.81333333333333,
+  "ma20_prev": 79.685,
+  "vma5_lots": 8468.819,
+  "yesterday_volume_lots": 9549.478,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

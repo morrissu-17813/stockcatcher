@@ -47,6 +47,7 @@ python -m tianji_3k.tools.failure_injection
 
 
 ## Production Release
-- Release: v1.0.8
-- Base: v1.0.7
-- Test status: 106 passed / 0 failed
+- Release: v1.0.9
+- Base: v1.0.8
+- Test status: 108 passed / 0 failed
+- Intraday resilience: Fugle auth/error isolation + health check + pending confirmation recovery

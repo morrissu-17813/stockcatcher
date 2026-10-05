@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-05",
+  "symbol": "2413",
+  "name": "環科",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-05T00:00:00.000",
+  "previous_close": 55.3,
+  "k1_high": 52.9,
+  "k2_high": 53.6,
+  "breakout_level": 53.6,
+  "ma20": 51.08,
+  "ma60": 45.2175,
+  "ma20_prev": 50.3975,
+  "vma5_lots": 1987.7254,
+  "yesterday_volume_lots": 1936.535,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

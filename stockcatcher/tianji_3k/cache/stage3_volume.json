@@ -1,77 +1,13 @@
 [
   {
-    "symbol": "2399",
-    "pass": true,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 9457.571,
-    "yesterday_volume_lots": 1726.908,
-    "vma5_lots": 6170.567,
-    "volume_ratio": 1.5326907559710476,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": ""
-  },
-  {
-    "symbol": "2436",
-    "pass": true,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 12261.097,
-    "yesterday_volume_lots": 8606.455,
-    "vma5_lots": 6530.9624,
-    "volume_ratio": 1.8773798177126237,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": ""
-  },
-  {
-    "symbol": "3016",
-    "pass": true,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 75400.142,
-    "yesterday_volume_lots": 49083.815,
-    "vma5_lots": 26944.176,
-    "volume_ratio": 2.798383665546128,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": ""
-  },
-  {
-    "symbol": "3021",
+    "symbol": "1303",
     "pass": false,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 1253.253,
-    "yesterday_volume_lots": 1664.52,
-    "vma5_lots": 895.3796,
-    "volume_ratio": 1.3996890257495256,
-    "checks": {
-      "vma5_ge_1000": false,
-      "today_gt_yesterday": false,
-      "volume_ratio_ge_1_5": false
-    },
-    "first_fail": "vma5_ge_1000"
-  },
-  {
-    "symbol": "3066",
-    "pass": false,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 2779.985,
-    "yesterday_volume_lots": 2127.36,
-    "vma5_lots": 3383.6663999999996,
-    "volume_ratio": 0.8215895633210178,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 90932.358,
+    "yesterday_volume_lots": 42323.575,
+    "vma5_lots": 73869.8892,
+    "volume_ratio": 1.230980024266775,
     "checks": {
       "vma5_ge_1000": true,
       "today_gt_yesterday": true,
@@ -80,46 +16,190 @@
     "first_fail": "volume_ratio_ge_1_5"
   },
   {
-    "symbol": "3094",
+    "symbol": "1709",
     "pass": false,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 10028.323,
-    "yesterday_volume_lots": 22755.44,
-    "vma5_lots": 18173.1556,
-    "volume_ratio": 0.5518206755462987,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 19250.83,
+    "yesterday_volume_lots": 33307.38,
+    "vma5_lots": 36939.232,
+    "volume_ratio": 0.5211486259378646,
     "checks": {
       "vma5_ge_1000": true,
       "today_gt_yesterday": false,
       "volume_ratio_ge_1_5": false
     },
     "first_fail": "today_gt_yesterday"
+  },
+  {
+    "symbol": "1714",
+    "pass": true,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 49600.892,
+    "yesterday_volume_lots": 17662.469,
+    "vma5_lots": 8846.6698,
+    "volume_ratio": 5.606730342755644,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": true
+    },
+    "first_fail": ""
+  },
+  {
+    "symbol": "2313",
+    "pass": true,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 51436.246,
+    "yesterday_volume_lots": 8635.843,
+    "vma5_lots": 9105.5836,
+    "volume_ratio": 5.648868678774197,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": true
+    },
+    "first_fail": ""
+  },
+  {
+    "symbol": "2368",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 7237.447,
+    "yesterday_volume_lots": 7170.519,
+    "vma5_lots": 12036.669,
+    "volume_ratio": 0.6012832121577822,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "volume_ratio_ge_1_5"
+  },
+  {
+    "symbol": "2376",
+    "pass": true,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 11355.878,
+    "yesterday_volume_lots": 9164.965,
+    "vma5_lots": 6068.032,
+    "volume_ratio": 1.871426848111546,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": true
+    },
+    "first_fail": ""
+  },
+  {
+    "symbol": "2413",
+    "pass": true,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 8344.142,
+    "yesterday_volume_lots": 1936.535,
+    "vma5_lots": 1987.7254,
+    "volume_ratio": 4.197834368872078,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": true
+    },
+    "first_fail": ""
+  },
+  {
+    "symbol": "2426",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 27454.253,
+    "yesterday_volume_lots": 30702.529,
+    "vma5_lots": 42448.433600000004,
+    "volume_ratio": 0.6467671636298024,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": false,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "today_gt_yesterday"
+  },
+  {
+    "symbol": "2466",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 4574.285,
+    "yesterday_volume_lots": 2480.183,
+    "vma5_lots": 3118.597,
+    "volume_ratio": 1.4667765665137238,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "volume_ratio_ge_1_5"
+  },
+  {
+    "symbol": "3017",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 4606.753,
+    "yesterday_volume_lots": 3274.994,
+    "vma5_lots": 3284.0824000000002,
+    "volume_ratio": 1.4027519528742638,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "volume_ratio_ge_1_5"
+  },
+  {
+    "symbol": "3189",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 30076.585,
+    "yesterday_volume_lots": 18823.011,
+    "vma5_lots": 27114.013199999998,
+    "volume_ratio": 1.1092634933142247,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "volume_ratio_ge_1_5"
+  },
+  {
+    "symbol": "3406",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 5365.739,
+    "yesterday_volume_lots": 4816.591,
+    "vma5_lots": 4045.6168,
+    "volume_ratio": 1.3263092540054708,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "volume_ratio_ge_1_5"
   },
   {
     "symbol": "3518",
     "pass": false,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 5608.941,
-    "yesterday_volume_lots": 7183.649,
-    "vma5_lots": 2116.314,
-    "volume_ratio": 2.6503349691964426,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": false,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": "today_gt_yesterday"
-  },
-  {
-    "symbol": "4174",
-    "pass": false,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 1519.951,
-    "yesterday_volume_lots": 3332.269,
-    "vma5_lots": 2655.1387999999997,
-    "volume_ratio": 0.5724563250704634,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 8802.224,
+    "yesterday_volume_lots": 10157.623,
+    "vma5_lots": 10022.7128,
+    "volume_ratio": 0.878227698991834,
     "checks": {
       "vma5_ge_1000": true,
       "today_gt_yesterday": false,
@@ -128,14 +208,14 @@
     "first_fail": "today_gt_yesterday"
   },
   {
-    "symbol": "4540",
+    "symbol": "6196",
     "pass": true,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 5084.83,
-    "yesterday_volume_lots": 1301.41,
-    "vma5_lots": 1728.0288,
-    "volume_ratio": 2.9425609110218534,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 3101.021,
+    "yesterday_volume_lots": 1802.45,
+    "vma5_lots": 2055.8908,
+    "volume_ratio": 1.508358809718882,
     "checks": {
       "vma5_ge_1000": true,
       "today_gt_yesterday": true,
@@ -144,14 +224,14 @@
     "first_fail": ""
   },
   {
-    "symbol": "4906",
+    "symbol": "6209",
     "pass": true,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 13404.59,
-    "yesterday_volume_lots": 2374.151,
-    "vma5_lots": 8310.9226,
-    "volume_ratio": 1.6128883212075638,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 18483.958,
+    "yesterday_volume_lots": 9549.478,
+    "vma5_lots": 8468.819,
+    "volume_ratio": 2.18258980384396,
     "checks": {
       "vma5_ge_1000": true,
       "today_gt_yesterday": true,
@@ -160,99 +240,35 @@
     "first_fail": ""
   },
   {
-    "symbol": "6133",
+    "symbol": "6213",
     "pass": false,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 9954.159,
-    "yesterday_volume_lots": 2307.472,
-    "vma5_lots": 7244.8466,
-    "volume_ratio": 1.3739640808957916,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 20063.879,
+    "yesterday_volume_lots": 24367.397,
+    "vma5_lots": 21348.8888,
+    "volume_ratio": 0.9398090546052215,
     "checks": {
       "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
+      "today_gt_yesterday": false,
       "volume_ratio_ge_1_5": false
     },
-    "first_fail": "volume_ratio_ge_1_5"
+    "first_fail": "today_gt_yesterday"
   },
   {
-    "symbol": "6456",
+    "symbol": "6531",
     "pass": false,
     "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 18926.798,
-    "yesterday_volume_lots": 14497.011,
-    "vma5_lots": 15849.941200000001,
-    "volume_ratio": 1.1941241775710814,
+    "latest_date": "2026-10-05T00:00:00.000",
+    "volume_lots": 4949.972,
+    "yesterday_volume_lots": 5926.915,
+    "vma5_lots": 3547.328,
+    "volume_ratio": 1.3954086005015605,
     "checks": {
       "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
+      "today_gt_yesterday": false,
       "volume_ratio_ge_1_5": false
     },
-    "first_fail": "volume_ratio_ge_1_5"
-  },
-  {
-    "symbol": "6505",
-    "pass": true,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 40587.92,
-    "yesterday_volume_lots": 10807.153,
-    "vma5_lots": 15780.63,
-    "volume_ratio": 2.5720088488228923,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": ""
-  },
-  {
-    "symbol": "6533",
-    "pass": true,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 11054.299,
-    "yesterday_volume_lots": 6688.397,
-    "vma5_lots": 3913.6385999999998,
-    "volume_ratio": 2.8245579446196185,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": ""
-  },
-  {
-    "symbol": "6706",
-    "pass": false,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 4511.914,
-    "yesterday_volume_lots": 2291.537,
-    "vma5_lots": 8324.868,
-    "volume_ratio": 0.5419802452122964,
-    "checks": {
-      "vma5_ge_1000": true,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": false
-    },
-    "first_fail": "volume_ratio_ge_1_5"
-  },
-  {
-    "symbol": "6925",
-    "pass": false,
-    "unknown": false,
-    "latest_date": "2026-09-29T00:00:00.000",
-    "volume_lots": 2039.484,
-    "yesterday_volume_lots": 1451.122,
-    "vma5_lots": 588.9026,
-    "volume_ratio": 3.4631940833679455,
-    "checks": {
-      "vma5_ge_1000": false,
-      "today_gt_yesterday": true,
-      "volume_ratio_ge_1_5": true
-    },
-    "first_fail": "vma5_ge_1000"
+    "first_fail": "today_gt_yesterday"
   }
 ]

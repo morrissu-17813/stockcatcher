@@ -1,0 +1,207 @@
+{
+  "schema_version": "runtime-v2.1",
+  "trade_date": "2026-10-05",
+  "premarket_notified": true,
+  "dynamic_attempts": {
+    "1303": 1,
+    "2483": 3,
+    "3498": 1,
+    "4174": 1,
+    "2367": 3,
+    "6187": 1,
+    "3114": 3,
+    "6213": 1,
+    "2368": 1,
+    "3317": 3,
+    "3441": 1,
+    "2466": 1,
+    "3597": 2,
+    "3518": 1,
+    "8261": 1
+  },
+  "states": {
+    "1714": {
+      "schema_version": "state-v1",
+      "state": "BREAKOUT_PENDING",
+      "last_snapshot_id": "1714:1714|13:30:00|54|18.5000|49342|20261005",
+      "last_data_identity": "1714|13:30:00|54|18.5000|49342|20261005",
+      "pending_count": 1,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "1714|13:30:00|54|18.5000|49342|20261005"
+      ]
+    },
+    "2313": {
+      "schema_version": "state-v1",
+      "state": "BREAKOUT_PENDING",
+      "last_snapshot_id": "2313:2313|13:30:00|146|248.5000|49545|20261005",
+      "last_data_identity": "2313|13:30:00|146|248.5000|49545|20261005",
+      "pending_count": 1,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "2313|13:30:00|146|248.5000|49545|20261005"
+      ]
+    },
+    "2376": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "2376:2376|13:30:00|400|388.5000|10985|20261005",
+      "last_data_identity": "2376|13:30:00|400|388.5000|10985|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "2376|13:30:00|400|388.5000|10985|20261005"
+      ]
+    },
+    "2413": {
+      "schema_version": "state-v1",
+      "state": "BREAKOUT_PENDING",
+      "last_snapshot_id": "2413:2413|13:30:00|326|55.3000|8263|20261005",
+      "last_data_identity": "2413|13:30:00|326|55.3000|8263|20261005",
+      "pending_count": 1,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "2413|13:30:00|326|55.3000|8263|20261005"
+      ]
+    },
+    "6196": {
+      "schema_version": "state-v1",
+      "state": "BREAKOUT_PENDING",
+      "last_snapshot_id": "6196:6196|13:30:00|5|679.0000|2888|20261005",
+      "last_data_identity": "6196|13:30:00|5|679.0000|2888|20261005",
+      "pending_count": 1,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "6196|13:30:00|5|679.0000|2888|20261005"
+      ]
+    },
+    "6209": {
+      "schema_version": "state-v1",
+      "state": "BREAKOUT_PENDING",
+      "last_snapshot_id": "6209:6209|13:30:00|619|87.9000|18228|20261005",
+      "last_data_identity": "6209|13:30:00|619|87.9000|18228|20261005",
+      "pending_count": 1,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "6209|13:30:00|619|87.9000|18228|20261005"
+      ]
+    },
+    "1303": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "1303:1303|13:30:00|264|286.0000|89338|20261005",
+      "last_data_identity": "1303|13:30:00|264|286.0000|89338|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "1303|13:30:00|264|286.0000|89338|20261005"
+      ]
+    },
+    "3498": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "3498:3498|13:30:00|18|236.5000|4750|20261005",
+      "last_data_identity": "3498|13:30:00|18|236.5000|4750|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "3498|13:30:00|18|236.5000|4750|20261005"
+      ]
+    },
+    "4174": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "4174:4174|13:30:00|68|46.2000|1894|20261005",
+      "last_data_identity": "4174|13:30:00|68|46.2000|1894|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "4174|13:30:00|68|46.2000|1894|20261005"
+      ]
+    },
+    "6187": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "6187:6187|13:30:00|44|1490.0000|4544|20261005",
+      "last_data_identity": "6187|13:30:00|44|1490.0000|4544|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "6187|13:30:00|44|1490.0000|4544|20261005"
+      ]
+    },
+    "6213": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "6213:6213|13:30:00|67|751.0000|19619|20261005",
+      "last_data_identity": "6213|13:30:00|67|751.0000|19619|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "6213|13:30:00|67|751.0000|19619|20261005"
+      ]
+    },
+    "2368": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "2368:2368|13:30:00|32|1215.0000|6670|20261005",
+      "last_data_identity": "2368|13:30:00|32|1215.0000|6670|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "2368|13:30:00|32|1215.0000|6670|20261005"
+      ]
+    },
+    "3441": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "3441:3441|13:30:00|27|232.0000|9599|20261005",
+      "last_data_identity": "3441|13:30:00|27|232.0000|9599|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "3441|13:30:00|27|232.0000|9599|20261005"
+      ]
+    },
+    "2466": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "2466:2466|13:30:00|5|155.0000|4518|20261005",
+      "last_data_identity": "2466|13:30:00|5|155.0000|4518|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "2466|13:30:00|5|155.0000|4518|20261005"
+      ]
+    },
+    "3518": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "3518:3518|13:30:00|8|48.7500|8752|20261005",
+      "last_data_identity": "3518|13:30:00|8|48.7500|8752|20261005",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": [
+        "3518|13:30:00|8|48.7500|8752|20261005"
+      ]
+    }
+  },
+  "fugle_pending": {},
+  "fugle_health_status": "OK",
+  "updated_at": "2026-10-05T21:28:48.271960+08:00"
+}

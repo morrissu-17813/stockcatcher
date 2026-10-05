@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-05",
+  "symbol": "2313",
+  "name": "華通",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-05T00:00:00.000",
+  "previous_close": 248.5,
+  "k1_high": 228.0,
+  "k2_high": 228.0,
+  "breakout_level": 228.0,
+  "ma20": 227.45,
+  "ma60": 218.55,
+  "ma20_prev": 226.825,
+  "vma5_lots": 9105.5836,
+  "yesterday_volume_lots": 8635.843,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

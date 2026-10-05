@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-05",
+  "symbol": "1714",
+  "name": "和桐",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-05T00:00:00.000",
+  "previous_close": 18.5,
+  "k1_high": 17.45,
+  "k2_high": 16.6,
+  "breakout_level": 17.45,
+  "ma20": 16.142500000000002,
+  "ma60": 16.028333333333332,
+  "ma20_prev": 16.044999999999998,
+  "vma5_lots": 8846.6698,
+  "yesterday_volume_lots": 17662.469,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}
