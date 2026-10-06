@@ -102,6 +102,21 @@ class TianjiProductionRunner:
     def _today() -> str:
         return datetime.now(TAIPEI).date().isoformat()
 
+    @staticmethod
+    def _iso_timestamp(value) -> str:
+        """Normalize datetime/string timestamps used by the durable Radar state."""
+        if hasattr(value, "isoformat"):
+            return value.isoformat()
+        return str(value)
+
+    @staticmethod
+    def _as_datetime(value) -> datetime:
+        """Normalize persisted/live ISO timestamps to an aware datetime."""
+        if isinstance(value, datetime):
+            return value if value.tzinfo else value.replace(tzinfo=TAIPEI)
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return dt if dt.tzinfo else dt.replace(tzinfo=TAIPEI)
+
     def _run_module(self, module, args):
         cmd = [sys.executable, "-m", module, *args]
         return subprocess.run(cmd, cwd=str(self.repo_root), check=True)
@@ -621,7 +636,7 @@ class TianjiProductionRunner:
             # failed previously (401/network/insufficient 5m bars), keep it
             # pending and retry without re-arming the price state machine.
             if triggered:
-                self._fugle_pending[sid] = snap.observed_at.isoformat()
+                self._fugle_pending[sid] = self._iso_timestamp(snap.observed_at)
                 print(
                     f"🔔 BREAKOUT TRIGGER | {sid} {ctx['name']} | price={snap.current_price:.2f} "
                     f"| breakout={ctx['breakout_level']:.2f} | snapshot={snap.snapshot_id}",
@@ -645,6 +660,21 @@ class TianjiProductionRunner:
                 })
                 self._save_runtime_state()
                 continue
+            except Exception as exc:
+                # Fugle confirmation is an external dependency. Unexpected
+                # adapter/runtime errors must degrade this symbol only; the
+                # MIS Radar cycle must remain alive and the pending trigger
+                # must remain durable for the next retry.
+                print(f"🔴 FUGLE 5M UNEXPECTED ERROR | {sid} | {type(exc).__name__} | {str(exc)[:300]} | ACTION=RETRY", flush=True)
+                self.ledger.append_event(ctx["trade_date"], sid, {
+                    "event_type": "FUGLE_5M_ERROR",
+                    "observed_at": snap.observed_at,
+                    "status_code": None,
+                    "reason": f"{type(exc).__name__}: {str(exc)[:300]}",
+                    "snapshot_id": snap.snapshot_id,
+                })
+                self._save_runtime_state()
+                continue
 
             if not micro:
                 print(f"🟡 FUGLE 5M REJECT | {sid} | micro confirmation not met | ACTION=RETRY", flush=True)
@@ -661,7 +691,7 @@ class TianjiProductionRunner:
 
             projection = self.volume_predictor.project(
                 snap.cumulative_volume_lots,
-                datetime.fromisoformat(snap.observed_at),
+                self._as_datetime(snap.observed_at),
                 ctx["vma5_lots"],
             )
             volume_ratio_ok = (

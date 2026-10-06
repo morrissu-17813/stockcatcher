@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "6257",
+  "name": "矽格",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-06T00:00:00.000",
+  "previous_close": 286.0,
+  "k1_high": 275.0,
+  "k2_high": 266.0,
+  "breakout_level": 275.0,
+  "ma20": 234.9,
+  "ma60": 217.26666666666668,
+  "ma20_prev": 231.2,
+  "vma5_lots": 14886.5924,
+  "yesterday_volume_lots": 20298.667,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

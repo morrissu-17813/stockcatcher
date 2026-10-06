@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "2254",
+  "name": "巨鎧精密-創",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-06T00:00:00.000",
+  "previous_close": 101.5,
+  "k1_high": 95.0,
+  "k2_high": 95.0,
+  "breakout_level": 95.0,
+  "ma20": 79.88,
+  "ma60": 61.891666666666666,
+  "ma20_prev": 77.91,
+  "vma5_lots": 2026.5561999999998,
+  "yesterday_volume_lots": 2187.298,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

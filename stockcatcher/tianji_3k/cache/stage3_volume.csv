@@ -1,18 +1,9 @@
 ﻿checks,first_fail,latest_date,pass,symbol,unknown,vma5_lots,volume_lots,volume_ratio,yesterday_volume_lots
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-10-05T00:00:00.000,False,1303,False,73869.8892,90932.358,1.230980024266775,42323.575
-"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-05T00:00:00.000,False,1709,False,36939.232,19250.83,0.5211486259378646,33307.38
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-05T00:00:00.000,True,1714,False,8846.6698,49600.892,5.606730342755644,17662.469
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-05T00:00:00.000,True,2313,False,9105.5836,51436.246,5.648868678774197,8635.843
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-10-05T00:00:00.000,False,2368,False,12036.669,7237.447,0.6012832121577822,7170.519
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-05T00:00:00.000,True,2376,False,6068.032,11355.878,1.871426848111546,9164.965
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-05T00:00:00.000,True,2413,False,1987.7254,8344.142,4.197834368872078,1936.535
-"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-05T00:00:00.000,False,2426,False,42448.433600000004,27454.253,0.6467671636298024,30702.529
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-10-05T00:00:00.000,False,2466,False,3118.597,4574.285,1.4667765665137238,2480.183
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-10-05T00:00:00.000,False,3017,False,3284.0824000000002,4606.753,1.4027519528742638,3274.994
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-10-05T00:00:00.000,False,3189,False,27114.013199999998,30076.585,1.1092634933142247,18823.011
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': False}",volume_ratio_ge_1_5,2026-10-05T00:00:00.000,False,3406,False,4045.6168,5365.739,1.3263092540054708,4816.591
-"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-05T00:00:00.000,False,3518,False,10022.7128,8802.224,0.878227698991834,10157.623
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-05T00:00:00.000,True,6196,False,2055.8908,3101.021,1.508358809718882,1802.45
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-05T00:00:00.000,True,6209,False,8468.819,18483.958,2.18258980384396,9549.478
-"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-05T00:00:00.000,False,6213,False,21348.8888,20063.879,0.9398090546052215,24367.397
-"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-05T00:00:00.000,False,6531,False,3547.328,4949.972,1.3954086005015605,5926.915
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,1711,False,9219.450200000001,37734.899,4.092966302914679,21865.293
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,2254,False,2026.5561999999998,4343.259,2.1431722446187282,2187.298
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,2466,False,3553.1531999999997,6768.665,1.904974150847197,4574.285
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,3441,False,9198.0314,19701.521,2.141927999941379,9682.549
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,6257,False,14886.5924,36162.334,2.4291881599445153,20298.667
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,6278,False,8584.3712,19489.443,2.270340196845169,12352.429
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-06T00:00:00.000,False,6456,False,28186.9686,15976.714,0.5668120693191534,18149.753
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-06T00:00:00.000,True,6668,False,2749.7401999999997,8358.122,3.0396042506124763,6136.507

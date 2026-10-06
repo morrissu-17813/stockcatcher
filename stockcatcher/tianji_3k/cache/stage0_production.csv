@@ -7,8 +7,8 @@
 0056,元大高股息,TWSE,ETF,official:twse_fund,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_ETF,排除商品類型：ETF,False
 0057,富邦摩台,TWSE,ETF,official:twse_fund,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_ETF,排除商品類型：ETF,False
 0061,元大寶滬深,TWSE,ETF,official:twse_fund,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_ETF,排除商品類型：ETF,False
-1101,台泥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,25248148.0,25248.148,cache,,,True
-1102,亞泥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4911440.0,4911.44,cache,,,True
+1101,台泥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,35720704.0,35720.704,cache,,,True
+1102,亞泥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5154626.0,5154.626,cache,,,True
 1103,嘉泥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,176272.0,176.272,cache,VOLUME_LT_THRESHOLD,176.272 張 < 1000 張,False
 1104,環泥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,251430.0,251.43,cache,VOLUME_LT_THRESHOLD,251.430 張 < 1000 張,False
 1108,幸福,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,205540.0,205.54,cache,VOLUME_LT_THRESHOLD,205.540 張 < 1000 張,False
@@ -26,7 +26,7 @@
 1220,台榮,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1225,福懋油,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1227,佳格,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,556585.0,556.585,cache,VOLUME_LT_THRESHOLD,556.585 張 < 1000 張,False
-1229,聯華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2092675.0,2092.675,cache,,,True
+1229,聯華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2011301.0,2011.301,cache,,,True
 1231,聯華食,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1232,大統益,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,46996.0,46.996,cache,VOLUME_LT_THRESHOLD,46.996 張 < 1000 張,False
 1233,天仁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,17043.0,17.043,cache,VOLUME_LT_THRESHOLD,17.043 張 < 1000 張,False
@@ -34,9 +34,9 @@
 1235,興泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,189960.0,189.96,cache,VOLUME_LT_THRESHOLD,189.960 張 < 1000 張,False
 1236,宏亞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,49853.0,49.853,cache,VOLUME_LT_THRESHOLD,49.853 張 < 1000 張,False
 1256,鮮活果汁-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,55393.0,55.393,cache,VOLUME_LT_THRESHOLD,55.393 張 < 1000 張,False
-1301,台塑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,33115055.0,33115.055,cache,,,True
-1303,南亞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,42323575.0,42323.575,cache,,,True
-1304,台聚,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3202927.0,3202.927,cache,,,True
+1301,台塑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,24980170.0,24980.17,cache,,,True
+1303,南亞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,90932358.0,90932.358,cache,,,True
+1304,台聚,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1730629.0,1730.629,cache,,,True
 1305,華夏,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1307,三芳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,208728.0,208.728,cache,VOLUME_LT_THRESHOLD,208.728 張 < 1000 張,False
 1308,亞聚,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -44,7 +44,7 @@
 1310,台苯,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1312,國喬,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1313,聯成,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-1314,中石化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,32391130.0,32391.13,cache,,,True
+1314,中石化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,46188896.0,46188.896,cache,,,True
 1315,達新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,18564.0,18.564,cache,VOLUME_LT_THRESHOLD,18.564 張 < 1000 張,False
 1316,上曜,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,699804.0,699.804,cache,VOLUME_LT_THRESHOLD,699.804 張 < 1000 張,False
 1319,東陽,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -52,15 +52,15 @@
 1323,永裕,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,16062.0,16.062,cache,VOLUME_LT_THRESHOLD,16.062 張 < 1000 張,False
 1324,地球,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,29688.0,29.688,cache,VOLUME_LT_THRESHOLD,29.688 張 < 1000 張,False
 1325,恆大,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,182787.0,182.787,cache,VOLUME_LT_THRESHOLD,182.787 張 < 1000 張,False
-1326,台化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,56653992.0,56653.992,cache,,,True
+1326,台化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,27123406.0,27123.406,cache,,,True
 1337,再生-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,259505.0,259.505,cache,VOLUME_LT_THRESHOLD,259.505 張 < 1000 張,False
 1338,廣華-KY,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1339,昭輝,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,38644.0,38.644,cache,VOLUME_LT_THRESHOLD,38.644 張 < 1000 張,False
 1340,勝悅-KY,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1341,富林-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,1061.0,1.061,cache,VOLUME_LT_THRESHOLD,1.061 張 < 1000 張,False
 1342,八貫,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,56993.0,56.993,cache,VOLUME_LT_THRESHOLD,56.993 張 < 1000 張,False
-1402,遠東新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4746737.0,4746.737,cache,,,True
-1409,新纖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,11973583.0,11973.583,cache,,,True
+1402,遠東新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6392829.0,6392.829,cache,,,True
+1409,新纖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,24296690.0,24296.69,cache,,,True
 1410,南染,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1413,宏洲,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,6216.0,6.216,cache,VOLUME_LT_THRESHOLD,6.216 張 < 1000 張,False
 1414,東和,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,141227.0,141.227,cache,VOLUME_LT_THRESHOLD,141.227 張 < 1000 張,False
@@ -109,10 +109,10 @@
 1476,儒鴻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,831703.0,831.703,cache,VOLUME_LT_THRESHOLD,831.703 張 < 1000 張,False
 1477,聚陽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,781995.0,781.995,cache,VOLUME_LT_THRESHOLD,781.995 張 < 1000 張,False
 1503,士電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,625987.0,625.987,cache,VOLUME_LT_THRESHOLD,625.987 張 < 1000 張,False
-1504,東元,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3548122.0,3548.122,cache,,,True
+1504,東元,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4664336.0,4664.336,cache,,,True
 1506,正道,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,312228.0,312.228,cache,VOLUME_LT_THRESHOLD,312.228 張 < 1000 張,False
 1512,瑞利,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,50439.0,50.439,cache,VOLUME_LT_THRESHOLD,50.439 張 < 1000 張,False
-1513,中興電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1860658.0,1860.658,cache,,,True
+1513,中興電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1909857.0,1909.857,cache,,,True
 1514,亞力,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-30,669400.0,669.4,cache,VOLUME_LT_THRESHOLD,669.400 張 < 1000 張,False
 1515,力山,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1516,川飛,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -124,7 +124,7 @@
 1525,江申,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1526,日馳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,25365.0,25.365,cache,VOLUME_LT_THRESHOLD,25.365 張 < 1000 張,False
 1527,鑽全,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,89339.0,89.339,cache,VOLUME_LT_THRESHOLD,89.339 張 < 1000 張,False
-1528,恩德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2855598.0,2855.598,cache,,,True
+1528,恩德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3564709.0,3564.709,cache,,,True
 1529,樂事綠能,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,512347.0,512.347,cache,VOLUME_LT_THRESHOLD,512.347 張 < 1000 張,False
 1530,亞崴,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1531,高林股,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,776324.0,776.324,cache,VOLUME_LT_THRESHOLD,776.324 張 < 1000 張,False
@@ -138,7 +138,7 @@
 1540,喬福,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1541,錩泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,,,,unavailable,VOLUME_UNKNOWN,最近可得交易日成交量 Cache 不存在或無有效值,False
 1558,伸興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,42146.0,42.146,cache,VOLUME_LT_THRESHOLD,42.146 張 < 1000 張,False
-1560,中砂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1570824.0,1570.824,cache,,,True
+1560,中砂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1227306.0,1227.306,cache,,,True
 1563,巧新,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1568,倉佑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,176644.0,176.644,cache,VOLUME_LT_THRESHOLD,176.644 張 < 1000 張,False
 1582,信錦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,257013.0,257.013,cache,VOLUME_LT_THRESHOLD,257.013 張 < 1000 張,False
@@ -149,9 +149,9 @@
 1598,岱宇,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,170591.0,170.591,cache,VOLUME_LT_THRESHOLD,170.591 張 < 1000 張,False
 1603,華電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,93143.0,93.143,cache,VOLUME_LT_THRESHOLD,93.143 張 < 1000 張,False
 1604,聲寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,84562.0,84.562,cache,VOLUME_LT_THRESHOLD,84.562 張 < 1000 張,False
-1605,華新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,29963296.0,29963.296,cache,,,True
-1608,華榮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1351450.0,1351.45,cache,,,True
-1609,大亞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2911262.0,2911.262,cache,,,True
+1605,華新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,23323207.0,23323.207,cache,,,True
+1608,華榮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1554099.0,1554.099,cache,,,True
+1609,大亞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3514769.0,3514.769,cache,,,True
 1611,中電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,344799.0,344.799,cache,VOLUME_LT_THRESHOLD,344.799 張 < 1000 張,False
 1612,宏泰,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1614,三洋電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,34564.0,34.564,cache,VOLUME_LT_THRESHOLD,34.564 張 < 1000 張,False
@@ -163,22 +163,22 @@
 1626,艾美特-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,36065.0,36.065,cache,VOLUME_LT_THRESHOLD,36.065 張 < 1000 張,False
 1702,南僑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,81244.0,81.244,cache,VOLUME_LT_THRESHOLD,81.244 張 < 1000 張,False
 1707,葡萄王,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,132935.0,132.935,cache,VOLUME_LT_THRESHOLD,132.935 張 < 1000 張,False
-1708,東鹼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,11141339.0,11141.339,cache,,,True
-1709,和益,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,33307380.0,33307.38,cache,,,True
+1708,東鹼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7899714.0,7899.714,cache,,,True
+1709,和益,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,19250830.0,19250.83,cache,,,True
 1710,東聯,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-1711,永光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,11775512.0,11775.512,cache,,,True
+1711,永光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,21865293.0,21865.293,cache,,,True
 1712,興農,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,335237.0,335.237,cache,VOLUME_LT_THRESHOLD,335.237 張 < 1000 張,False
 1713,國化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,62930.0,62.93,cache,VOLUME_LT_THRESHOLD,62.930 張 < 1000 張,False
-1714,和桐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,17662469.0,17662.469,cache,,,True
+1714,和桐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,49600892.0,49600.892,cache,,,True
 1717,長興,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-1718,中纖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,10159044.0,10159.044,cache,,,True
+1718,中纖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,42928384.0,42928.384,cache,,,True
 1720,生達,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1721,國慶科技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,864008.0,864.008,cache,VOLUME_LT_THRESHOLD,864.008 張 < 1000 張,False
-1722,台肥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1659085.0,1659.085,cache,,,True
+1722,台肥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2959615.0,2959.615,cache,,,True
 1723,中碳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,217702.0,217.702,cache,VOLUME_LT_THRESHOLD,217.702 張 < 1000 張,False
 1725,元禎,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1726,永記,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,89465.0,89.465,cache,VOLUME_LT_THRESHOLD,89.465 張 < 1000 張,False
-1727,中華化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,35901281.0,35901.281,cache,,,True
+1727,中華化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,22433842.0,22433.842,cache,,,True
 1730,花仙子,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,25846.0,25.846,cache,VOLUME_LT_THRESHOLD,25.846 張 < 1000 張,False
 1731,美吾華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,55387.0,55.387,cache,VOLUME_LT_THRESHOLD,55.387 張 < 1000 張,False
 1732,毛寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,14268.0,14.268,cache,VOLUME_LT_THRESHOLD,14.268 張 < 1000 張,False
@@ -196,28 +196,28 @@
 1786,科妍,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,87618.0,87.618,cache,VOLUME_LT_THRESHOLD,87.618 張 < 1000 張,False
 1789,神隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,295668.0,295.668,cache,VOLUME_LT_THRESHOLD,295.668 張 < 1000 張,False
 1795,美時,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,420878.0,420.878,cache,VOLUME_LT_THRESHOLD,420.878 張 < 1000 張,False
-1802,台玻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,12062573.0,12062.573,cache,,,True
+1802,台玻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,23093784.0,23093.784,cache,,,True
 1805,寶徠,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1806,冠軍,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,65334.0,65.334,cache,VOLUME_LT_THRESHOLD,65.334 張 < 1000 張,False
 1808,潤隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,511395.0,511.395,cache,VOLUME_LT_THRESHOLD,511.395 張 < 1000 張,False
-1809,中釉,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,11390862.0,11390.862,cache,,,True
+1809,中釉,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4735060.0,4735.06,cache,,,True
 1810,和成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,835697.0,835.697,cache,VOLUME_LT_THRESHOLD,835.697 張 < 1000 張,False
 1817,凱撒衛,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,18513.0,18.513,cache,VOLUME_LT_THRESHOLD,18.513 張 < 1000 張,False
 1903,士紙,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,39414.0,39.414,cache,VOLUME_LT_THRESHOLD,39.414 張 < 1000 張,False
-1904,正隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1110300.0,1110.3,cache,,,True
+1904,正隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1408636.0,1408.636,cache,,,True
 1905,華紙,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 1906,寶隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,30244.0,30.244,cache,VOLUME_LT_THRESHOLD,30.244 張 < 1000 張,False
 1907,永豐餘,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,898147.0,898.147,cache,VOLUME_LT_THRESHOLD,898.147 張 < 1000 張,False
-1909,榮成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1620404.0,1620.404,cache,,,True
-2002,中鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,21124095.0,21124.095,cache,,,True
-2006,東和鋼鐵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1100589.0,1100.589,cache,,,True
+1909,榮成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2397212.0,2397.212,cache,,,True
+2002,中鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,26859457.0,26859.457,cache,,,True
+2006,東和鋼鐵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,723099.0,723.099,cache,VOLUME_LT_THRESHOLD,723.099 張 < 1000 張,False
 2007,燁興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,147204.0,147.204,cache,VOLUME_LT_THRESHOLD,147.204 張 < 1000 張,False
 2008,高興昌,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,12658.0,12.658,cache,VOLUME_LT_THRESHOLD,12.658 張 < 1000 張,False
 2009,第一銅,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,874995.0,874.995,cache,VOLUME_LT_THRESHOLD,874.995 張 < 1000 張,False
 2010,春源,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2012,春雨,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2013,中鋼構,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,61624.0,61.624,cache,VOLUME_LT_THRESHOLD,61.624 張 < 1000 張,False
-2014,中鴻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1520901.0,1520.901,cache,,,True
+2014,中鴻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2253453.0,2253.453,cache,,,True
 2015,豐興,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2017,官田鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,340921.0,340.921,cache,VOLUME_LT_THRESHOLD,340.921 張 < 1000 張,False
 2020,美亞,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -225,36 +225,36 @@
 2023,燁輝,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,765267.0,765.267,cache,VOLUME_LT_THRESHOLD,765.267 張 < 1000 張,False
 2024,志聯,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,8661.0,8.661,cache,VOLUME_LT_THRESHOLD,8.661 張 < 1000 張,False
 2025,千興,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2027,大成鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,6962195.0,6962.195,cache,,,True
+2027,大成鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,10667229.0,10667.229,cache,,,True
 2028,威致,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2029,盛餘,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2030,彰源,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 2031,新光鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,819549.0,819.549,cache,VOLUME_LT_THRESHOLD,819.549 張 < 1000 張,False
 2032,新鋼,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2033,佳大,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2034,允強,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5400624.0,5400.624,cache,,,True
+2033,佳大,TWSE,WARRANT,official:twse_warrant,DISPOSAL,official:disposal,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+2034,允強,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4692948.0,4692.948,cache,,,True
 2038,海光,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2049,上銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1577341.0,1577.341,cache,,,True
+2049,上銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4839198.0,4839.198,cache,,,True
 2059,川湖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,417513.0,417.513,cache,VOLUME_LT_THRESHOLD,417.513 張 < 1000 張,False
 2062,橋椿,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2069,運錩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1068140.0,1068.14,cache,,,True
+2069,運錩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1410035.0,1410.035,cache,,,True
 2072,世紀風電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,229616.0,229.616,cache,VOLUME_LT_THRESHOLD,229.616 張 < 1000 張,False
 2101,南港,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,989879.0,989.879,cache,VOLUME_LT_THRESHOLD,989.879 張 < 1000 張,False
 2102,泰豐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,888765.0,888.765,cache,VOLUME_LT_THRESHOLD,888.765 張 < 1000 張,False
 2103,台橡,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2104,國際中橡,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1846415.0,1846.415,cache,,,True
-2105,正新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3763944.0,3763.944,cache,,,True
+2104,國際中橡,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4890748.0,4890.748,cache,,,True
+2105,正新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4018941.0,4018.941,cache,,,True
 2106,建大,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,425210.0,425.21,cache,VOLUME_LT_THRESHOLD,425.210 張 < 1000 張,False
 2107,厚生,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,180208.0,180.208,cache,VOLUME_LT_THRESHOLD,180.208 張 < 1000 張,False
 2108,南帝,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,194171.0,194.171,cache,VOLUME_LT_THRESHOLD,194.171 張 < 1000 張,False
 2109,華豐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,392021.0,392.021,cache,VOLUME_LT_THRESHOLD,392.021 張 < 1000 張,False
 2114,鑫永銓,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,3250.0,3.25,cache,VOLUME_LT_THRESHOLD,3.250 張 < 1000 張,False
 2115,六暉-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,16000.0,16.0,cache,VOLUME_LT_THRESHOLD,16.000 張 < 1000 張,False
-2201,裕隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5164307.0,5164.307,cache,,,True
+2201,裕隆,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3032136.0,3032.136,cache,,,True
 2204,中華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,218504.0,218.504,cache,VOLUME_LT_THRESHOLD,218.504 張 < 1000 張,False
 2206,三陽工業,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,220086.0,220.086,cache,VOLUME_LT_THRESHOLD,220.086 張 < 1000 張,False
 2207,和泰車,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,270934.0,270.934,cache,VOLUME_LT_THRESHOLD,270.934 張 < 1000 張,False
-2208,台船,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1969954.0,1969.954,cache,,,True
+2208,台船,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5573000.0,5573.0,cache,,,True
 2211,長榮鋼,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2227,裕日車,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,19698.0,19.698,cache,VOLUME_LT_THRESHOLD,19.698 張 < 1000 張,False
 2228,劍麟,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,39277.0,39.277,cache,VOLUME_LT_THRESHOLD,39.277 張 < 1000 張,False
@@ -263,94 +263,94 @@
 2236,百達-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,470851.0,470.851,cache,VOLUME_LT_THRESHOLD,470.851 張 < 1000 張,False
 2237,華德動能-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,62182.0,62.182,cache,VOLUME_LT_THRESHOLD,62.182 張 < 1000 張,False
 2239,英利-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,21001.0,21.001,cache,VOLUME_LT_THRESHOLD,21.001 張 < 1000 張,False
-2241,艾姆勒,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2571955.0,2571.955,cache,,,True
+2241,艾姆勒,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4031023.0,4031.023,cache,,,True
 2243,宏旭-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,182750.0,182.75,cache,VOLUME_LT_THRESHOLD,182.750 張 < 1000 張,False
 2247,汎德永業,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2248,華勝-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,38424.0,38.424,cache,VOLUME_LT_THRESHOLD,38.424 張 < 1000 張,False
 2250,IKKA-KY,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2254,巨鎧精密-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2135259.0,2135.259,cache,,,True
+2254,巨鎧精密-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2187298.0,2187.298,cache,,,True
 2258,鴻華先進-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,180155.0,180.155,cache,VOLUME_LT_THRESHOLD,180.155 張 < 1000 張,False
-2301,光寶科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,7078006.0,7078.006,cache,,,True
+2301,光寶科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,29984591.0,29984.591,cache,,,True
 2302,麗正,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2303,聯電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,100339050.0,100339.05,cache,,,True
+2303,聯電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,328772084.0,328772.084,cache,,,True
 2305,全友,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2308,台達電,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2312,金寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5879296.0,5879.296,cache,,,True
-2313,華通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8635843.0,8635.843,cache,,,True
+2312,金寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5703898.0,5703.898,cache,,,True
+2313,華通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,51436246.0,51436.246,cache,,,True
 2314,台揚,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,87445.0,87.445,cache,VOLUME_LT_THRESHOLD,87.445 張 < 1000 張,False
 2316,楠梓電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,602793.0,602.793,cache,VOLUME_LT_THRESHOLD,602.793 張 < 1000 張,False
-2317,鴻海,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,30466967.0,30466.967,cache,,,True
+2317,鴻海,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,52629375.0,52629.375,cache,,,True
 2321,東訊,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,377.0,0.377,cache,VOLUME_LT_THRESHOLD,0.377 張 < 1000 張,False
-2324,仁寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,35135273.0,35135.273,cache,,,True
-2327,國巨*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,106667349.0,106667.349,cache,,,True
+2324,仁寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,43703092.0,43703.092,cache,,,True
+2327,國巨*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,67379604.0,67379.604,cache,,,True
 2328,廣宇,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,797393.0,797.393,cache,VOLUME_LT_THRESHOLD,797.393 張 < 1000 張,False
-2329,華泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3082944.0,3082.944,cache,,,True
+2329,華泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4115875.0,4115.875,cache,,,True
 2330,台積電,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2331,精英,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,549135.0,549.135,cache,VOLUME_LT_THRESHOLD,549.135 張 < 1000 張,False
-2332,友訊,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4314727.0,4314.727,cache,,,True
-2337,旺宏,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,19636645.0,19636.645,cache,,,True
-2338,光罩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,15644706.0,15644.706,cache,,,True
+2332,友訊,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7145358.0,7145.358,cache,,,True
+2337,旺宏,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,24536381.0,24536.381,cache,,,True
+2338,光罩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7682582.0,7682.582,cache,,,True
 2340,台亞,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2342,茂矽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,15524775.0,15524.775,cache,,,True
-2344,華邦電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,74491648.0,74491.648,cache,,,True
+2342,茂矽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,10795983.0,10795.983,cache,,,True
+2344,華邦電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,90976614.0,90976.614,cache,,,True
 2345,智邦,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2347,聯強,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2348,海悅,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,237401.0,237.401,cache,VOLUME_LT_THRESHOLD,237.401 張 < 1000 張,False
 2349,錸德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,941000.0,941.0,cache,VOLUME_LT_THRESHOLD,941.000 張 < 1000 張,False
-2351,順德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3165920.0,3165.92,cache,,,True
+2351,順德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6037296.0,6037.296,cache,,,True
 2352,佳世達,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2353,宏碁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,13319795.0,13319.795,cache,,,True
-2354,鴻準,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8981747.0,8981.747,cache,,,True
+2353,宏碁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,12041524.0,12041.524,cache,,,True
+2354,鴻準,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14939250.0,14939.25,cache,,,True
 2355,敬鵬,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2356,英業達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,11624754.0,11624.754,cache,,,True
-2357,華碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1166554.0,1166.554,cache,,,True
+2356,英業達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,15023218.0,15023.218,cache,,,True
+2357,華碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2807714.0,2807.714,cache,,,True
 2359,所羅門,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,878250.0,878.25,cache,VOLUME_LT_THRESHOLD,878.250 張 < 1000 張,False
 2360,致茂,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2362,藍天,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,236155.0,236.155,cache,VOLUME_LT_THRESHOLD,236.155 張 < 1000 張,False
-2363,矽統,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,15579464.0,15579.464,cache,,,True
+2363,矽統,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,10146062.0,10146.062,cache,,,True
 2364,倫飛,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,87979.0,87.979,cache,VOLUME_LT_THRESHOLD,87.979 張 < 1000 張,False
 2365,昆盈,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,295591.0,295.591,cache,VOLUME_LT_THRESHOLD,295.591 張 < 1000 張,False
-2367,燿華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,7376988.0,7376.988,cache,,,True
-2368,金像電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,7170519.0,7170.519,cache,,,True
-2369,菱生,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3431170.0,3431.17,cache,,,True
-2371,大同,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,18900562.0,18900.562,cache,,,True
+2367,燿華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,31483475.0,31483.475,cache,,,True
+2368,金像電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7237447.0,7237.447,cache,,,True
+2369,菱生,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4075640.0,4075.64,cache,,,True
+2371,大同,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,18642408.0,18642.408,cache,,,True
 2373,震旦行,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,4080.0,4.08,cache,VOLUME_LT_THRESHOLD,4.080 張 < 1000 張,False
 2374,佳能,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,953374.0,953.374,cache,VOLUME_LT_THRESHOLD,953.374 張 < 1000 張,False
 2375,凱美,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2376,技嘉,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9164965.0,9164.965,cache,,,True
+2376,技嘉,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,11355878.0,11355.878,cache,,,True
 2377,微星,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2379,瑞昱,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1632949.0,1632.949,cache,,,True
+2379,瑞昱,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2088058.0,2088.058,cache,,,True
 2380,虹光,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2382,廣達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,10305780.0,10305.78,cache,,,True
-2383,台光電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2397410.0,2397.41,cache,,,True
+2382,廣達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14036243.0,14036.243,cache,,,True
+2383,台光電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1316051.0,1316.051,cache,,,True
 2385,群光,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2387,精元,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,104425.0,104.425,cache,VOLUME_LT_THRESHOLD,104.425 張 < 1000 張,False
 2388,威盛,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2390,云辰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,91320.0,91.32,cache,VOLUME_LT_THRESHOLD,91.320 張 < 1000 張,False
 2392,正崴,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,893005.0,893.005,cache,VOLUME_LT_THRESHOLD,893.005 張 < 1000 張,False
-2393,億光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2465307.0,2465.307,cache,,,True
-2395,研華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2331301.0,2331.301,cache,,,True
+2393,億光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3705329.0,3705.329,cache,,,True
+2395,研華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2579224.0,2579.224,cache,,,True
 2397,友通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,100308.0,100.308,cache,VOLUME_LT_THRESHOLD,100.308 張 < 1000 張,False
-2399,映泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8735540.0,8735.54,cache,,,True
-2401,凌陽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5358097.0,5358.097,cache,,,True
+2399,映泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,9795241.0,9795.241,cache,,,True
+2401,凌陽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6369118.0,6369.118,cache,,,True
 2402,毅嘉,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,860023.0,860.023,cache,VOLUME_LT_THRESHOLD,860.023 張 < 1000 張,False
-2404,漢唐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2191273.0,2191.273,cache,,,True
+2404,漢唐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1938856.0,1938.856,cache,,,True
 2405,輔信,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,637095.0,637.095,cache,VOLUME_LT_THRESHOLD,637.095 張 < 1000 張,False
-2406,國碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5205433.0,5205.433,cache,,,True
-2408,南亞科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,36677068.0,36677.068,cache,,,True
-2409,友達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,701554317.0,701554.317,cache,,,True
-2412,中華電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,10009961.0,10009.961,cache,,,True
-2413,環科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1936535.0,1936.535,cache,,,True
+2406,國碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,9148067.0,9148.067,cache,,,True
+2408,南亞科,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+2409,友達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,965082115.0,965082.115,cache,,,True
+2412,中華電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,8515486.0,8515.486,cache,,,True
+2413,環科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,8344142.0,8344.142,cache,,,True
 2414,精技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,50580.0,50.58,cache,VOLUME_LT_THRESHOLD,50.580 張 < 1000 張,False
 2415,錩新,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2417,圓剛,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,260302.0,260.302,cache,VOLUME_LT_THRESHOLD,260.302 張 < 1000 張,False
 2419,仲琦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,928764.0,928.764,cache,VOLUME_LT_THRESHOLD,928.764 張 < 1000 張,False
 2420,新巨,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2421,建準,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1705201.0,1705.201,cache,,,True
+2421,建準,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3627253.0,3627.253,cache,,,True
 2423,固緯,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,132973.0,132.973,cache,VOLUME_LT_THRESHOLD,132.973 張 < 1000 張,False
 2424,隴華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,22000.0,22.0,cache,VOLUME_LT_THRESHOLD,22.000 張 < 1000 張,False
 2425,承啟,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,263492.0,263.492,cache,VOLUME_LT_THRESHOLD,263.492 張 < 1000 張,False
-2426,鼎元,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,30702529.0,30702.529,cache,,,True
+2426,鼎元,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,27454253.0,27454.253,cache,,,True
 2427,三商電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,500406.0,500.406,cache,VOLUME_LT_THRESHOLD,500.406 張 < 1000 張,False
 2428,興勤,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,496159.0,496.159,cache,VOLUME_LT_THRESHOLD,496.159 張 < 1000 張,False
 2429,銘旺科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,116086.0,116.086,cache,VOLUME_LT_THRESHOLD,116.086 張 < 1000 張,False
@@ -359,52 +359,52 @@
 2432,倚天酷碁-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,25100.0,25.1,cache,VOLUME_LT_THRESHOLD,25.100 張 < 1000 張,False
 2433,互盛電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,29084.0,29.084,cache,VOLUME_LT_THRESHOLD,29.084 張 < 1000 張,False
 2434,統懋,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,507659.0,507.659,cache,VOLUME_LT_THRESHOLD,507.659 張 < 1000 張,False
-2436,偉詮電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,6180465.0,6180.465,cache,,,True
+2436,偉詮電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7263426.0,7263.426,cache,,,True
 2438,翔耀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,62725.0,62.725,cache,VOLUME_LT_THRESHOLD,62.725 張 < 1000 張,False
 2439,美律,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,780903.0,780.903,cache,VOLUME_LT_THRESHOLD,780.903 張 < 1000 張,False
 2440,太空梭,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2441,超豐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3477871.0,3477.871,cache,,,True
+2441,超豐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3434661.0,3434.661,cache,,,True
 2442,新美齊,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,701204.0,701.204,cache,VOLUME_LT_THRESHOLD,701.204 張 < 1000 張,False
-2444,兆勁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5722454.0,5722.454,cache,,,True
-2449,京元電子,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,13902351.0,13902.351,cache,,,True
+2444,兆勁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5517237.0,5517.237,cache,,,True
+2449,京元電子,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,18711413.0,18711.413,cache,,,True
 2450,神腦,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2451,創見,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1091828.0,1091.828,cache,,,True
+2451,創見,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1846095.0,1846.095,cache,,,True
 2453,凌群,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,262272.0,262.272,cache,VOLUME_LT_THRESHOLD,262.272 張 < 1000 張,False
 2454,聯發科,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2455,全新,TWSE,WARRANT,official:twse_warrant,DISPOSAL,official:disposal,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+2455,全新,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2457,飛宏,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,708477.0,708.477,cache,VOLUME_LT_THRESHOLD,708.477 張 < 1000 張,False
 2458,義隆,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2459,敦吉,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,67374.0,67.374,cache,VOLUME_LT_THRESHOLD,67.374 張 < 1000 張,False
 2460,建通,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2461,光群雷,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,291344.0,291.344,cache,VOLUME_LT_THRESHOLD,291.344 張 < 1000 張,False
 2462,良得電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,132016.0,132.016,cache,VOLUME_LT_THRESHOLD,132.016 張 < 1000 張,False
-2464,盟立,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,11541972.0,11541.972,cache,,,True
+2464,盟立,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,23185762.0,23185.762,cache,,,True
 2465,麗臺,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2466,冠西電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2480183.0,2480.183,cache,,,True
+2466,冠西電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4574285.0,4574.285,cache,,,True
 2467,志聖,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2468,華經,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1437269.0,1437.269,cache,,,True
+2468,華經,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4568867.0,4568.867,cache,,,True
 2471,資通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,432876.0,432.876,cache,VOLUME_LT_THRESHOLD,432.876 張 < 1000 張,False
-2472,立隆電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4791775.0,4791.775,cache,,,True
-2474,可成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1050240.0,1050.24,cache,,,True
+2472,立隆電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3396416.0,3396.416,cache,,,True
+2474,可成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1470531.0,1470.531,cache,,,True
 2476,鉅祥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,721500.0,721.5,cache,VOLUME_LT_THRESHOLD,721.500 張 < 1000 張,False
 2477,美隆電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,92563.0,92.563,cache,VOLUME_LT_THRESHOLD,92.563 張 < 1000 張,False
 2478,大毅,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-30,985080.0,985.08,cache,VOLUME_LT_THRESHOLD,985.080 張 < 1000 張,False
 2480,敦陽科,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2481,強茂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,28414583.0,28414.583,cache,,,True
+2481,強茂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,55982783.0,55982.783,cache,,,True
 2482,連宇,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,49358.0,49.358,cache,VOLUME_LT_THRESHOLD,49.358 張 < 1000 張,False
-2483,百容,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,341412.0,341.412,cache,VOLUME_LT_THRESHOLD,341.412 張 < 1000 張,False
-2484,希華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,46132849.0,46132.849,cache,,,True
-2485,兆赫,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2231409.0,2231.409,cache,,,True
-2486,一詮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3396108.0,3396.108,cache,,,True
+2483,百容,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3931690.0,3931.69,cache,,,True
+2484,希華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,34032579.0,34032.579,cache,,,True
+2485,兆赫,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,18380592.0,18380.592,cache,,,True
+2486,一詮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4968816.0,4968.816,cache,,,True
 2488,漢平,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,43260.0,43.26,cache,VOLUME_LT_THRESHOLD,43.260 張 < 1000 張,False
-2489,瑞軒,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,15967742.0,15967.742,cache,,,True
+2489,瑞軒,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,16344152.0,16344.152,cache,,,True
 2491,吉祥全,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,534954.0,534.954,cache,VOLUME_LT_THRESHOLD,534.954 張 < 1000 張,False
-2492,華新科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,55788034.0,55788.034,cache,,,True
+2492,華新科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,95779681.0,95779.681,cache,,,True
 2493,揚博,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,988907.0,988.907,cache,VOLUME_LT_THRESHOLD,988.907 張 < 1000 張,False
 2495,普安,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2496,卓越,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,12765.0,12.765,cache,VOLUME_LT_THRESHOLD,12.765 張 < 1000 張,False
 2497,怡利電,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2498,宏達電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,7419209.0,7419.209,cache,,,True
+2498,宏達電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6643820.0,6643.82,cache,,,True
 2501,國建,TWSE,ETF,official:twse_fund,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_ETF,排除商品類型：ETF,False
 2504,國產,TWSE,ETF,official:twse_fund,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_ETF,排除商品類型：ETF,False
 2505,國揚,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,489277.0,489.277,cache,VOLUME_LT_THRESHOLD,489.277 張 < 1000 張,False
@@ -420,22 +420,23 @@
 2528,皇普,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,127050.0,127.05,cache,VOLUME_LT_THRESHOLD,127.050 張 < 1000 張,False
 2530,華建,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2534,宏盛,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,260385.0,260.385,cache,VOLUME_LT_THRESHOLD,260.385 張 < 1000 張,False
-2535,達欣工,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,359976.0,359.976,cache,VOLUME_LT_THRESHOLD,359.976 張 < 1000 張,False
+2535,達欣工,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2536,宏普,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,376183.0,376.183,cache,VOLUME_LT_THRESHOLD,376.183 張 < 1000 張,False
 2537,聯上發,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,189889.0,189.889,cache,VOLUME_LT_THRESHOLD,189.889 張 < 1000 張,False
 2538,基泰,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2539,櫻花建,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-30,657424.0,657.424,cache,VOLUME_LT_THRESHOLD,657.424 張 < 1000 張,False
 2540,愛山林,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2542,興富發,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8587725.0,8587.725,cache,,,True
+2542,興富發,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,11966350.0,11966.35,cache,,,True
 2543,皇昌,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,357734.0,357.734,cache,VOLUME_LT_THRESHOLD,357.734 張 < 1000 張,False
 2545,皇翔,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,59553.0,59.553,cache,VOLUME_LT_THRESHOLD,59.553 張 < 1000 張,False
 2546,根基,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,80044.0,80.044,cache,VOLUME_LT_THRESHOLD,80.044 張 < 1000 張,False
 2547,日勝生,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,774661.0,774.661,cache,VOLUME_LT_THRESHOLD,774.661 張 < 1000 張,False
 2548,華固,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,324548.0,324.548,cache,VOLUME_LT_THRESHOLD,324.548 張 < 1000 張,False
 2597,潤弘,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,180208.0,180.208,cache,VOLUME_LT_THRESHOLD,180.208 張 < 1000 張,False
-2603,長榮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5621086.0,5621.086,cache,,,True
+2601,益航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,,,,unavailable,VOLUME_UNKNOWN,最近可得交易日成交量 Cache 不存在或無有效值,False
+2603,長榮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,9022467.0,9022.467,cache,,,True
 2605,新興,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2606,裕民,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3649164.0,3649.164,cache,,,True
+2606,裕民,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2327013.0,2327.013,cache,,,True
 2607,榮運,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,216362.0,216.362,cache,VOLUME_LT_THRESHOLD,216.362 張 < 1000 張,False
 2608,嘉里大榮,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,92755.0,92.755,cache,VOLUME_LT_THRESHOLD,92.755 張 < 1000 張,False
 2609,陽明,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -444,18 +445,18 @@
 2612,中航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,244146.0,244.146,cache,VOLUME_LT_THRESHOLD,244.146 張 < 1000 張,False
 2613,中櫃,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,130355.0,130.355,cache,VOLUME_LT_THRESHOLD,130.355 張 < 1000 張,False
 2614,東森,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,320181.0,320.181,cache,VOLUME_LT_THRESHOLD,320.181 張 < 1000 張,False
-2615,萬海,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4638177.0,4638.177,cache,,,True
+2615,萬海,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7837690.0,7837.69,cache,,,True
 2616,山隆,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2617,台航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,575669.0,575.669,cache,VOLUME_LT_THRESHOLD,575.669 張 < 1000 張,False
-2618,長榮航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8563147.0,8563.147,cache,,,True
+2618,長榮航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,9545947.0,9545.947,cache,,,True
 2630,亞航,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2633,台灣高鐵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3723884.0,3723.884,cache,,,True
-2634,漢翔,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,12874547.0,12874.547,cache,,,True
+2633,台灣高鐵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2987577.0,2987.577,cache,,,True
+2634,漢翔,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,10287198.0,10287.198,cache,,,True
 2636,台驊控股,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,222241.0,222.241,cache,VOLUME_LT_THRESHOLD,222.241 張 < 1000 張,False
-2637,慧洋-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1864997.0,1864.997,cache,,,True
+2637,慧洋-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1186635.0,1186.635,cache,,,True
 2642,宅配通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,15508.0,15.508,cache,VOLUME_LT_THRESHOLD,15.508 張 < 1000 張,False
 2645,長榮航太,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2646,星宇航空,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2950628.0,2950.628,cache,,,True
+2646,星宇航空,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2990124.0,2990.124,cache,,,True
 2701,萬企,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,118963.0,118.963,cache,VOLUME_LT_THRESHOLD,118.963 張 < 1000 張,False
 2702,華園,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,29765.0,29.765,cache,VOLUME_LT_THRESHOLD,29.765 張 < 1000 張,False
 2704,國賓,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,18064.0,18.064,cache,VOLUME_LT_THRESHOLD,18.064 張 < 1000 張,False
@@ -471,14 +472,14 @@
 2748,雲品,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,61491.0,61.491,cache,VOLUME_LT_THRESHOLD,61.491 張 < 1000 張,False
 2753,八方雲集,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,34563.0,34.563,cache,VOLUME_LT_THRESHOLD,34.563 張 < 1000 張,False
 2762,世界健身-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,64363.0,64.363,cache,VOLUME_LT_THRESHOLD,64.363 張 < 1000 張,False
-2801,彰銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,20636594.0,20636.594,cache,,,True
+2801,彰銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,17748735.0,17748.735,cache,,,True
 2812,台中銀,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2816,旺旺保,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,324599.0,324.599,cache,VOLUME_LT_THRESHOLD,324.599 張 < 1000 張,False
-2820,華票,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2798555.0,2798.555,cache,,,True
+2820,華票,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2720467.0,2720.467,cache,,,True
 2832,台產,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,86239.0,86.239,cache,VOLUME_LT_THRESHOLD,86.239 張 < 1000 張,False
-2834,臺企銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,12028725.0,12028.725,cache,,,True
+2834,臺企銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,33527891.0,33527.891,cache,,,True
 2836,高雄銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,529445.0,529.445,cache,VOLUME_LT_THRESHOLD,529.445 張 < 1000 張,False
-2838,聯邦銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1713294.0,1713.294,cache,,,True
+2838,聯邦銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2373119.0,2373.119,cache,,,True
 2845,遠東銀,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2849,安泰銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,181693.0,181.693,cache,VOLUME_LT_THRESHOLD,181.693 張 < 1000 張,False
 2850,新產,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -486,18 +487,18 @@
 2852,第一保,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,220545.0,220.545,cache,VOLUME_LT_THRESHOLD,220.545 張 < 1000 張,False
 2855,統一證,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2880,華南金,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-2881,富邦金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,10614902.0,10614.902,cache,,,True
-2882,國泰金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,13877928.0,13877.928,cache,,,True
-2883,凱基金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,67231685.0,67231.685,cache,,,True
-2884,玉山金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,21945062.0,21945.062,cache,,,True
-2885,元大金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,19695021.0,19695.021,cache,,,True
-2886,兆豐金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,28642625.0,28642.625,cache,,,True
-2887,台新新光金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,56891872.0,56891.872,cache,,,True
-2889,國票金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5874536.0,5874.536,cache,,,True
-2890,永豐金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,13939013.0,13939.013,cache,,,True
-2891,中信金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,18882806.0,18882.806,cache,,,True
-2892,第一金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,14985368.0,14985.368,cache,,,True
-2897,王道銀行,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2489916.0,2489.916,cache,,,True
+2881,富邦金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,11116444.0,11116.444,cache,,,True
+2882,國泰金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,13948307.0,13948.307,cache,,,True
+2883,凱基金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,33641657.0,33641.657,cache,,,True
+2884,玉山金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,19596079.0,19596.079,cache,,,True
+2885,元大金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14141135.0,14141.135,cache,,,True
+2886,兆豐金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,13947129.0,13947.129,cache,,,True
+2887,台新新光金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,36545158.0,36545.158,cache,,,True
+2889,國票金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,11287069.0,11287.069,cache,,,True
+2890,永豐金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,17577071.0,17577.071,cache,,,True
+2891,中信金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,16418201.0,16418.201,cache,,,True
+2892,第一金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,13117827.0,13117.827,cache,,,True
+2897,王道銀行,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5029399.0,5029.399,cache,,,True
 2901,欣欣,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,163902.0,163.902,cache,VOLUME_LT_THRESHOLD,163.902 張 < 1000 張,False
 2903,遠百,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,838175.0,838.175,cache,VOLUME_LT_THRESHOLD,838.175 張 < 1000 張,False
 2904,匯僑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,22974.0,22.974,cache,VOLUME_LT_THRESHOLD,22.974 張 < 1000 張,False
@@ -506,9 +507,9 @@
 2908,特力,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,275895.0,275.895,cache,VOLUME_LT_THRESHOLD,275.895 張 < 1000 張,False
 2910,統領,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 2911,麗嬰房,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,38973.0,38.973,cache,VOLUME_LT_THRESHOLD,38.973 張 < 1000 張,False
-2912,統一超,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2981945.0,2981.945,cache,,,True
+2912,統一超,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1150568.0,1150.568,cache,,,True
 2913,農林,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,813993.0,813.993,cache,VOLUME_LT_THRESHOLD,813.993 張 < 1000 張,False
-2915,潤泰全,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1576854.0,1576.854,cache,,,True
+2915,潤泰全,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1581273.0,1581.273,cache,,,True
 2923,鼎固-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,143243.0,143.243,cache,VOLUME_LT_THRESHOLD,143.243 張 < 1000 張,False
 2929,淘帝-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,86691.0,86.691,cache,VOLUME_LT_THRESHOLD,86.691 張 < 1000 張,False
 2939,永邑-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,17001.0,17.001,cache,VOLUME_LT_THRESHOLD,17.001 張 < 1000 張,False
@@ -517,45 +518,45 @@
 3003,健和興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,460508.0,460.508,cache,VOLUME_LT_THRESHOLD,460.508 張 < 1000 張,False
 3004,豐達科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,111407.0,111.407,cache,VOLUME_LT_THRESHOLD,111.407 張 < 1000 張,False
 3005,神基,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,758055.0,758.055,cache,VOLUME_LT_THRESHOLD,758.055 張 < 1000 張,False
-3006,晶豪科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9101409.0,9101.409,cache,,,True
+3006,晶豪科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14449344.0,14449.344,cache,,,True
 3008,大立光,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3010,華立,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3011,今皓,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,277954.0,277.954,cache,VOLUME_LT_THRESHOLD,277.954 張 < 1000 張,False
 3013,晟銘電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,569586.0,569.586,cache,VOLUME_LT_THRESHOLD,569.586 張 < 1000 張,False
-3014,聯陽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1134800.0,1134.8,cache,,,True
+3014,聯陽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5400354.0,5400.354,cache,,,True
 3015,全漢,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,219501.0,219.501,cache,VOLUME_LT_THRESHOLD,219.501 張 < 1000 張,False
 3016,嘉晶,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
-3017,奇鋐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3274994.0,3274.994,cache,,,True
+3017,奇鋐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4606753.0,4606.753,cache,,,True
 3018,隆銘綠能,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3019,亞光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2069927.0,2069.927,cache,,,True
+3019,亞光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4707577.0,4707.577,cache,,,True
 3021,鴻名,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,599976.0,599.976,cache,VOLUME_LT_THRESHOLD,599.976 張 < 1000 張,False
 3022,威強電,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3023,信邦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,378175.0,378.175,cache,VOLUME_LT_THRESHOLD,378.175 張 < 1000 張,False
 3024,憶聲,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,876861.0,876.861,cache,VOLUME_LT_THRESHOLD,876.861 張 < 1000 張,False
 3025,星通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,92285.0,92.285,cache,VOLUME_LT_THRESHOLD,92.285 張 < 1000 張,False
-3026,禾伸堂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,17157777.0,17157.777,cache,,,True
+3026,禾伸堂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,9680400.0,9680.4,cache,,,True
 3027,盛達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,155165.0,155.165,cache,VOLUME_LT_THRESHOLD,155.165 張 < 1000 張,False
 3028,增你強,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,783469.0,783.469,cache,VOLUME_LT_THRESHOLD,783.469 張 < 1000 張,False
 3029,零壹,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,920932.0,920.932,cache,VOLUME_LT_THRESHOLD,920.932 張 < 1000 張,False
 3030,德律,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,456455.0,456.455,cache,VOLUME_LT_THRESHOLD,456.455 張 < 1000 張,False
-3031,佰鴻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,10999738.0,10999.738,cache,,,True
+3031,佰鴻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7718132.0,7718.132,cache,,,True
 3032,偉訓,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,716619.0,716.619,cache,VOLUME_LT_THRESHOLD,716.619 張 < 1000 張,False
-3033,威健,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1689590.0,1689.59,cache,,,True
-3034,聯詠,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2855910.0,2855.91,cache,,,True
+3033,威健,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2238700.0,2238.7,cache,,,True
+3034,聯詠,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2406418.0,2406.418,cache,,,True
 3035,智原,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3036,文曄,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,6758956.0,6758.956,cache,,,True
-3037,欣興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,18635778.0,18635.778,cache,,,True
+3036,文曄,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6051028.0,6051.028,cache,,,True
+3037,欣興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,27109050.0,27109.05,cache,,,True
 3038,全台,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,98826.0,98.826,cache,VOLUME_LT_THRESHOLD,98.826 張 < 1000 張,False
 3040,遠見,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3041,揚智,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,390785.0,390.785,cache,VOLUME_LT_THRESHOLD,390.785 張 < 1000 張,False
-3042,晶技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,43452288.0,43452.288,cache,,,True
+3042,晶技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,35474796.0,35474.796,cache,,,True
 3043,科風,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,26344.0,26.344,cache,VOLUME_LT_THRESHOLD,26.344 張 < 1000 張,False
-3044,健鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1693324.0,1693.324,cache,,,True
+3044,健鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3000757.0,3000.757,cache,,,True
 3045,台灣大,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3046,建碁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,73645.0,73.645,cache,VOLUME_LT_THRESHOLD,73.645 張 < 1000 張,False
 3047,訊舟,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,534436.0,534.436,cache,VOLUME_LT_THRESHOLD,534.436 張 < 1000 張,False
 3048,益登,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-30,783996.0,783.996,cache,VOLUME_LT_THRESHOLD,783.996 張 < 1000 張,False
-3049,精金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3124829.0,3124.829,cache,,,True
+3049,精金,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6302329.0,6302.329,cache,,,True
 3050,鈺德,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3051,力特,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,267019.0,267.019,cache,VOLUME_LT_THRESHOLD,267.019 張 < 1000 張,False
 3052,夆典,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,170973.0,170.973,cache,VOLUME_LT_THRESHOLD,170.973 張 < 1000 張,False
@@ -566,22 +567,22 @@
 3058,立德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,293692.0,293.692,cache,VOLUME_LT_THRESHOLD,293.692 張 < 1000 張,False
 3059,華晶科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,647194.0,647.194,cache,VOLUME_LT_THRESHOLD,647.194 張 < 1000 張,False
 3060,銘異,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,339363.0,339.363,cache,VOLUME_LT_THRESHOLD,339.363 張 < 1000 張,False
-3062,建漢,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1228568.0,1228.568,cache,,,True
-3090,日電貿,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8401227.0,8401.227,cache,,,True
+3062,建漢,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2043954.0,2043.954,cache,,,True
+3090,日電貿,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6876625.0,6876.625,cache,,,True
 3092,鴻碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,61043.0,61.043,cache,VOLUME_LT_THRESHOLD,61.043 張 < 1000 張,False
-3094,聯傑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,35223446.0,35223.446,cache,,,True
+3094,聯傑,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,24279874.0,24279.874,cache,,,True
 3130,一零四,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3135,凌航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,639398.0,639.398,cache,VOLUME_LT_THRESHOLD,639.398 張 < 1000 張,False
 3138,耀登,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3149,正達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,24846956.0,24846.956,cache,,,True
+3149,正達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,16141575.0,16141.575,cache,,,True
 3150,鈺寶-創,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3164,景岳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,27239.0,27.239,cache,VOLUME_LT_THRESHOLD,27.239 張 < 1000 張,False
 3167,大量,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 3168,眾福科,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3189,景碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,18823011.0,18823.011,cache,,,True
+3189,景碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,30076585.0,30076.585,cache,,,True
 3209,全科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,451816.0,451.816,cache,VOLUME_LT_THRESHOLD,451.816 張 < 1000 張,False
-3229,晟鈦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1350644.0,1350.644,cache,,,True
-3231,緯創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,36439616.0,36439.616,cache,,,True
+3229,晟鈦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1247502.0,1247.502,cache,,,True
+3231,緯創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,48432219.0,48432.219,cache,,,True
 3257,虹冠電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,71864.0,71.864,cache,VOLUME_LT_THRESHOLD,71.864 張 < 1000 張,False
 3266,昇陽,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,19001.0,19.001,cache,VOLUME_LT_THRESHOLD,19.001 張 < 1000 張,False
 3296,勝德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,43901.0,43.901,cache,VOLUME_LT_THRESHOLD,43.901 張 < 1000 張,False
@@ -593,67 +594,67 @@
 3338,泰碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,150367.0,150.367,cache,VOLUME_LT_THRESHOLD,150.367 張 < 1000 張,False
 3346,麗清,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,587047.0,587.047,cache,VOLUME_LT_THRESHOLD,587.047 張 < 1000 張,False
 3356,奇偶,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3376,新日興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1030830.0,1030.83,cache,,,True
+3376,新日興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2407309.0,2407.309,cache,,,True
 3380,明泰,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3406,玉晶光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4816591.0,4816.591,cache,,,True
+3406,玉晶光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5365739.0,5365.739,cache,,,True
 3413,京鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,476069.0,476.069,cache,VOLUME_LT_THRESHOLD,476.069 張 < 1000 張,False
 3416,融程電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,88799.0,88.799,cache,VOLUME_LT_THRESHOLD,88.799 張 < 1000 張,False
 3419,譁裕,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,490127.0,490.127,cache,VOLUME_LT_THRESHOLD,490.127 張 < 1000 張,False
 3432,台端,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,41400.0,41.4,cache,VOLUME_LT_THRESHOLD,41.400 張 < 1000 張,False
-3437,榮創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1251151.0,1251.151,cache,,,True
-3443,創意,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
+3437,榮創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2721178.0,2721.178,cache,,,True
+3443,創意,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,1471460.0,1471.46,cache,,,True
 3447,展達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,104434.0,104.434,cache,VOLUME_LT_THRESHOLD,104.434 張 < 1000 張,False
 3450,聯鈞,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3481,群創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,211783047.0,211783.047,cache,,,True
+3481,群創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,360995094.0,360995.094,cache,,,True
 3494,誠研,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,32294.0,32.294,cache,VOLUME_LT_THRESHOLD,32.294 張 < 1000 張,False
 3501,維熹,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,143731.0,143.731,cache,VOLUME_LT_THRESHOLD,143.731 張 < 1000 張,False
 3504,揚明光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,627895.0,627.895,cache,VOLUME_LT_THRESHOLD,627.895 張 < 1000 張,False
 3515,華擎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,147990.0,147.99,cache,VOLUME_LT_THRESHOLD,147.990 張 < 1000 張,False
-3518,柏騰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,10157623.0,10157.623,cache,,,True
+3518,柏騰,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 3528,安馳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,504831.0,504.831,cache,VOLUME_LT_THRESHOLD,504.831 張 < 1000 張,False
 3530,晶相光,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3532,台勝科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9010177.0,9010.177,cache,,,True
-3533,嘉澤,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2023700.0,2023.7,cache,,,True
+3532,台勝科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6047771.0,6047.771,cache,,,True
+3533,嘉澤,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1551638.0,1551.638,cache,,,True
 3535,晶彩科,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3543,州巧,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,784913.0,784.913,cache,VOLUME_LT_THRESHOLD,784.913 張 < 1000 張,False
 3545,敦泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,386758.0,386.758,cache,VOLUME_LT_THRESHOLD,386.758 張 < 1000 張,False
 3550,聯穎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,785551.0,785.551,cache,VOLUME_LT_THRESHOLD,785.551 張 < 1000 張,False
 3557,嘉威,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,52371.0,52.371,cache,VOLUME_LT_THRESHOLD,52.371 張 < 1000 張,False
-3563,牧德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1273871.0,1273.871,cache,,,True
-3576,聯合再生,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,29410686.0,29410.686,cache,,,True
+3563,牧德,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1417672.0,1417.672,cache,,,True
+3576,聯合再生,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,22838416.0,22838.416,cache,,,True
 3583,辛耘,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,299371.0,299.371,cache,VOLUME_LT_THRESHOLD,299.371 張 < 1000 張,False
 3588,通嘉,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3591,艾笛森,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1825704.0,1825.704,cache,,,True
+3591,艾笛森,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2171607.0,2171.607,cache,,,True
 3592,瑞鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,258281.0,258.281,cache,VOLUME_LT_THRESHOLD,258.281 張 < 1000 張,False
 3593,力銘,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,19985.0,19.985,cache,VOLUME_LT_THRESHOLD,19.985 張 < 1000 張,False
 3596,智易,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,450284.0,450.284,cache,VOLUME_LT_THRESHOLD,450.284 張 < 1000 張,False
-3605,宏致,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,15261661.0,15261.661,cache,,,True
+3605,宏致,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,10337743.0,10337.743,cache,,,True
 3607,谷崧,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,101378.0,101.378,cache,VOLUME_LT_THRESHOLD,101.378 張 < 1000 張,False
 3617,碩天,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,177345.0,177.345,cache,VOLUME_LT_THRESHOLD,177.345 張 < 1000 張,False
 3622,洋華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,188618.0,188.618,cache,VOLUME_LT_THRESHOLD,188.618 張 < 1000 張,False
-3645,達邁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1987150.0,1987.15,cache,,,True
+3645,達邁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7014529.0,7014.529,cache,,,True
 3652,精聯,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,65160.0,65.16,cache,VOLUME_LT_THRESHOLD,65.160 張 < 1000 張,False
 3653,健策,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,616931.0,616.931,cache,VOLUME_LT_THRESHOLD,616.931 張 < 1000 張,False
 3661,世芯-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,953454.0,953.454,cache,VOLUME_LT_THRESHOLD,953.454 張 < 1000 張,False
-3665,貿聯-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2759339.0,2759.339,cache,,,True
+3665,貿聯-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5362695.0,5362.695,cache,,,True
 3669,圓展,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,71270.0,71.27,cache,VOLUME_LT_THRESHOLD,71.270 張 < 1000 張,False
-3673,TPK-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,28711684.0,28711.684,cache,,,True
+3673,TPK-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,29000616.0,29000.616,cache,,,True
 3679,新至陞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,11570.0,11.57,cache,VOLUME_LT_THRESHOLD,11.570 張 < 1000 張,False
 3686,達能,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,81179.0,81.179,cache,VOLUME_LT_THRESHOLD,81.179 張 < 1000 張,False
 3694,海華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,246631.0,246.631,cache,VOLUME_LT_THRESHOLD,246.631 張 < 1000 張,False
 3701,大眾控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,350805.0,350.805,cache,VOLUME_LT_THRESHOLD,350.805 張 < 1000 張,False
-3702,大聯大,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4724498.0,4724.498,cache,,,True
+3702,大聯大,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4033077.0,4033.077,cache,,,True
 3703,欣陸,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,431649.0,431.649,cache,VOLUME_LT_THRESHOLD,431.649 張 < 1000 張,False
 3704,合勤控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-30,926509.0,926.509,cache,VOLUME_LT_THRESHOLD,926.509 張 < 1000 張,False
 3705,永信,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3706,神達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,6734700.0,6734.7,cache,,,True
+3706,神達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6496770.0,6496.77,cache,,,True
 3708,上緯投控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,258069.0,258.069,cache,VOLUME_LT_THRESHOLD,258.069 張 < 1000 張,False
 3711,日月光投控,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3712,永崴投控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,156631.0,156.631,cache,VOLUME_LT_THRESHOLD,156.631 張 < 1000 張,False
-3714,富采,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,23714073.0,23714.073,cache,,,True
-3715,定穎投控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5708720.0,5708.72,cache,,,True
+3714,富采,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,21371294.0,21371.294,cache,,,True
+3715,定穎投控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,13025997.0,13025.997,cache,,,True
 3716,中化控股,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,95053.0,95.053,cache,VOLUME_LT_THRESHOLD,95.053 張 < 1000 張,False
-3717,聯嘉投控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9385198.0,9385.198,cache,,,True
+3717,聯嘉投控,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,16061762.0,16061.762,cache,,,True
 4104,佳醫,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,71688.0,71.688,cache,VOLUME_LT_THRESHOLD,71.688 張 < 1000 張,False
 4106,雃博,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,115987.0,115.987,cache,VOLUME_LT_THRESHOLD,115.987 張 < 1000 張,False
 4108,懷特,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -678,16 +679,16 @@
 4526,東台,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,751944.0,751.944,cache,VOLUME_LT_THRESHOLD,751.944 張 < 1000 張,False
 4532,瑞智,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,767760.0,767.76,cache,VOLUME_LT_THRESHOLD,767.760 張 < 1000 張,False
 4536,拓凱,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,156387.0,156.387,cache,VOLUME_LT_THRESHOLD,156.387 張 < 1000 張,False
-4540,全球傳動,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1784891.0,1784.891,cache,,,True
+4540,全球傳動,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1541968.0,1541.968,cache,,,True
 4545,銘鈺,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,77315.0,77.315,cache,VOLUME_LT_THRESHOLD,77.315 張 < 1000 張,False
-4551,智伸科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3377447.0,3377.447,cache,,,True
+4551,智伸科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5644279.0,5644.279,cache,,,True
 4552,力達-KY,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4555,氣立,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,103719.0,103.719,cache,VOLUME_LT_THRESHOLD,103.719 張 < 1000 張,False
 4557,永新-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,25316.0,25.316,cache,VOLUME_LT_THRESHOLD,25.316 張 < 1000 張,False
 4560,強信-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,462430.0,462.43,cache,VOLUME_LT_THRESHOLD,462.430 張 < 1000 張,False
 4562,穎漢,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,65496.0,65.496,cache,VOLUME_LT_THRESHOLD,65.496 張 < 1000 張,False
 4564,元翎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,268356.0,268.356,cache,VOLUME_LT_THRESHOLD,268.356 張 < 1000 張,False
-4566,時碩工業,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1855390.0,1855.39,cache,,,True
+4566,時碩工業,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4408037.0,4408.037,cache,,,True
 4569,六方科-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,28158.0,28.158,cache,VOLUME_LT_THRESHOLD,28.158 張 < 1000 張,False
 4571,鈞興-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,61006.0,61.006,cache,VOLUME_LT_THRESHOLD,61.006 張 < 1000 張,False
 4572,駐龍,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,16094.0,16.094,cache,VOLUME_LT_THRESHOLD,16.094 張 < 1000 張,False
@@ -705,36 +706,36 @@
 4739,康普,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,409578.0,409.578,cache,VOLUME_LT_THRESHOLD,409.578 張 < 1000 張,False
 4746,台耀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,644992.0,644.992,cache,VOLUME_LT_THRESHOLD,644.992 張 < 1000 張,False
 4755,三福化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,79103.0,79.103,cache,VOLUME_LT_THRESHOLD,79.103 張 < 1000 張,False
-4763,材料*-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4011848.0,4011.848,cache,,,True
-4764,雙鍵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1493882.0,1493.882,cache,,,True
+4763,材料*-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6246002.0,6246.002,cache,,,True
+4764,雙鍵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3074821.0,3074.821,cache,,,True
 4766,南寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,70421.0,70.421,cache,VOLUME_LT_THRESHOLD,70.421 張 < 1000 張,False
 4770,上品,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,871633.0,871.633,cache,VOLUME_LT_THRESHOLD,871.633 張 < 1000 張,False
 4771,望隼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,128002.0,128.002,cache,VOLUME_LT_THRESHOLD,128.002 張 < 1000 張,False
 4807,日成-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,78769.0,78.769,cache,VOLUME_LT_THRESHOLD,78.769 張 < 1000 張,False
-4904,遠傳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4014485.0,4014.485,cache,,,True
-4906,正文,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,13521119.0,13521.119,cache,,,True
+4904,遠傳,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6052583.0,6052.583,cache,,,True
+4906,正文,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,18583054.0,18583.054,cache,,,True
 4912,聯德控股-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,373546.0,373.546,cache,VOLUME_LT_THRESHOLD,373.546 張 < 1000 張,False
-4915,致伸,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2611056.0,2611.056,cache,,,True
+4915,致伸,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1934585.0,1934.585,cache,,,True
 4916,事欣科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,962674.0,962.674,cache,VOLUME_LT_THRESHOLD,962.674 張 < 1000 張,False
-4919,新唐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,57349128.0,57349.128,cache,,,True
+4919,新唐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,31573293.0,31573.293,cache,,,True
 4927,泰鼎-KY,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4930,燦星網,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,10261.0,10.261,cache,VOLUME_LT_THRESHOLD,10.261 張 < 1000 張,False
 4934,太極,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,324032.0,324.032,cache,VOLUME_LT_THRESHOLD,324.032 張 < 1000 張,False
 4935,茂林-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,54271.0,54.271,cache,VOLUME_LT_THRESHOLD,54.271 張 < 1000 張,False
-4938,和碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4521969.0,4521.969,cache,,,True
+4938,和碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4424512.0,4424.512,cache,,,True
 4942,嘉彰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,26707.0,26.707,cache,VOLUME_LT_THRESHOLD,26.707 張 < 1000 張,False
 4943,康控-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,8959.0,8.959,cache,VOLUME_LT_THRESHOLD,8.959 張 < 1000 張,False
 4949,有成精密,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,238177.0,238.177,cache,VOLUME_LT_THRESHOLD,238.177 張 < 1000 張,False
 4952,凌通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,112021.0,112.021,cache,VOLUME_LT_THRESHOLD,112.021 張 < 1000 張,False
-4956,光鋐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9885585.0,9885.585,cache,,,True
-4958,臻鼎-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,69348102.0,69348.102,cache,,,True
-4960,誠美材,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5244982.0,5244.982,cache,,,True
+4956,光鋐,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,12675550.0,12675.55,cache,,,True
+4958,臻鼎-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,56786688.0,56786.688,cache,,,True
+4960,誠美材,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5141054.0,5141.054,cache,,,True
 4961,天鈺,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,430723.0,430.723,cache,VOLUME_LT_THRESHOLD,430.723 張 < 1000 張,False
 4967,十銓,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,572713.0,572.713,cache,VOLUME_LT_THRESHOLD,572.713 張 < 1000 張,False
 4968,立積,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,207951.0,207.951,cache,VOLUME_LT_THRESHOLD,207.951 張 < 1000 張,False
 4976,佳凌,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,528809.0,528.809,cache,VOLUME_LT_THRESHOLD,528.809 張 < 1000 張,False
 4977,眾達-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,962856.0,962.856,cache,VOLUME_LT_THRESHOLD,962.856 張 < 1000 張,False
-4989,榮科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,7789340.0,7789.34,cache,,,True
+4989,榮科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,19469537.0,19469.537,cache,,,True
 4994,傳奇,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,10616.0,10.616,cache,VOLUME_LT_THRESHOLD,10.616 張 < 1000 張,False
 4999,鑫禾,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 5007,三星,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,66094.0,66.094,cache,VOLUME_LT_THRESHOLD,66.094 張 < 1000 張,False
@@ -770,34 +771,34 @@
 5538,東明-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,42132.0,42.132,cache,VOLUME_LT_THRESHOLD,42.132 張 < 1000 張,False
 5546,永固-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,36090.0,36.09,cache,VOLUME_LT_THRESHOLD,36.090 張 < 1000 張,False
 5607,遠雄港,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,426451.0,426.451,cache,VOLUME_LT_THRESHOLD,426.451 張 < 1000 張,False
-5608,四維航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2173947.0,2173.947,cache,,,True
+5608,四維航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2553019.0,2553.019,cache,,,True
 5706,鳳凰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,67236.0,67.236,cache,VOLUME_LT_THRESHOLD,67.236 張 < 1000 張,False
-5871,中租-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5948646.0,5948.646,cache,,,True
-5876,上海商銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3664456.0,3664.456,cache,,,True
+5871,中租-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4068025.0,4068.025,cache,,,True
+5876,上海商銀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4716959.0,4716.959,cache,,,True
 5880,合庫金,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 5906,台南-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,,,,unavailable,VOLUME_UNKNOWN,最近可得交易日成交量 Cache 不存在或無有效值,False
 5907,大洋-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,122058.0,122.058,cache,VOLUME_LT_THRESHOLD,122.058 張 < 1000 張,False
-6005,群益證,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3652489.0,3652.489,cache,,,True
+6005,群益證,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14269727.0,14269.727,cache,,,True
 6024,群益期,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,107319.0,107.319,cache,VOLUME_LT_THRESHOLD,107.319 張 < 1000 張,False
-6108,競國,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1558395.0,1558.395,cache,,,True
+6108,競國,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1527530.0,1527.53,cache,,,True
 6112,邁達特,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,861750.0,861.75,cache,VOLUME_LT_THRESHOLD,861.750 張 < 1000 張,False
 6115,鎰勝,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,51556.0,51.556,cache,VOLUME_LT_THRESHOLD,51.556 張 < 1000 張,False
-6116,彩晶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,80015461.0,80015.461,cache,,,True
+6116,彩晶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,126208893.0,126208.893,cache,,,True
 6117,迎廣,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,59417.0,59.417,cache,VOLUME_LT_THRESHOLD,59.417 張 < 1000 張,False
-6120,達運,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,16135373.0,16135.373,cache,,,True
+6120,達運,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14566769.0,14566.769,cache,,,True
 6128,上福,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,17457.0,17.457,cache,VOLUME_LT_THRESHOLD,17.457 張 < 1000 張,False
-6133,金橋,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4672601.0,4672.601,cache,,,True
+6133,金橋,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6973736.0,6973.736,cache,,,True
 6136,富爾特,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,130061.0,130.061,cache,VOLUME_LT_THRESHOLD,130.061 張 < 1000 張,False
-6139,亞翔,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3304534.0,3304.534,cache,,,True
-6141,柏承,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2124864.0,2124.864,cache,,,True
+6139,亞翔,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3971097.0,3971.097,cache,,,True
+6141,柏承,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1905185.0,1905.185,cache,,,True
 6142,友勁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,254269.0,254.269,cache,VOLUME_LT_THRESHOLD,254.269 張 < 1000 張,False
 6152,百一,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,480652.0,480.652,cache,VOLUME_LT_THRESHOLD,480.652 張 < 1000 張,False
-6153,嘉聯益,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1702786.0,1702.786,cache,,,True
-6155,鈞寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,16636888.0,16636.888,cache,,,True
+6153,嘉聯益,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2637169.0,2637.169,cache,,,True
+6155,鈞寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5292391.0,5292.391,cache,,,True
 6164,華興,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,348731.0,348.731,cache,VOLUME_LT_THRESHOLD,348.731 張 < 1000 張,False
 6165,浪凡,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,150868.0,150.868,cache,VOLUME_LT_THRESHOLD,150.868 張 < 1000 張,False
 6166,凌華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,999557.0,999.557,cache,VOLUME_LT_THRESHOLD,999.557 張 < 1000 張,False
-6168,宏齊,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4275358.0,4275.358,cache,,,True
+6168,宏齊,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,31808643.0,31808.643,cache,,,True
 6176,瑞儀,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,771588.0,771.588,cache,VOLUME_LT_THRESHOLD,771.588 張 < 1000 張,False
 6177,達麗,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,620878.0,620.878,cache,VOLUME_LT_THRESHOLD,620.878 張 < 1000 張,False
 6183,關貿,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,18832.0,18.832,cache,VOLUME_LT_THRESHOLD,18.832 張 < 1000 張,False
@@ -805,59 +806,59 @@
 6189,豐藝,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,253498.0,253.498,cache,VOLUME_LT_THRESHOLD,253.498 張 < 1000 張,False
 6191,精成科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,813601.0,813.601,cache,VOLUME_LT_THRESHOLD,813.601 張 < 1000 張,False
 6192,巨路,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,52488.0,52.488,cache,VOLUME_LT_THRESHOLD,52.488 張 < 1000 張,False
-6196,帆宣,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1802450.0,1802.45,cache,,,True
+6196,帆宣,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3101021.0,3101.021,cache,,,True
 6197,佳必琪,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,993774.0,993.774,cache,VOLUME_LT_THRESHOLD,993.774 張 < 1000 張,False
 6201,亞弘電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,15252.0,15.252,cache,VOLUME_LT_THRESHOLD,15.252 張 < 1000 張,False
 6202,盛群,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,879959.0,879.959,cache,VOLUME_LT_THRESHOLD,879.959 張 < 1000 張,False
-6205,詮欣,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3399984.0,3399.984,cache,,,True
+6205,詮欣,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1664612.0,1664.612,cache,,,True
 6206,飛捷,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,318098.0,318.098,cache,VOLUME_LT_THRESHOLD,318.098 張 < 1000 張,False
-6209,今國光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9549478.0,9549.478,cache,,,True
-6213,聯茂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,24367397.0,24367.397,cache,,,True
+6209,今國光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,18483958.0,18483.958,cache,,,True
+6213,聯茂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,20063879.0,20063.879,cache,,,True
 6214,精誠,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,732126.0,732.126,cache,VOLUME_LT_THRESHOLD,732.126 張 < 1000 張,False
 6215,和椿,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,367400.0,367.4,cache,VOLUME_LT_THRESHOLD,367.400 張 < 1000 張,False
 6216,居易,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,33100.0,33.1,cache,VOLUME_LT_THRESHOLD,33.100 張 < 1000 張,False
 6224,聚鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,842435.0,842.435,cache,VOLUME_LT_THRESHOLD,842.435 張 < 1000 張,False
 6225,天瀚,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,800324.0,800.324,cache,VOLUME_LT_THRESHOLD,800.324 張 < 1000 張,False
-6226,光鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,39930818.0,39930.818,cache,,,True
+6226,光鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,36413647.0,36413.647,cache,,,True
 6230,尼得科超眾,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,42552.0,42.552,cache,VOLUME_LT_THRESHOLD,42.552 張 < 1000 張,False
 6235,華孚,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,471977.0,471.977,cache,VOLUME_LT_THRESHOLD,471.977 張 < 1000 張,False
-6239,力成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,30835497.0,30835.497,cache,,,True
+6239,力成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,24412772.0,24412.772,cache,,,True
 6243,迅杰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,362425.0,362.425,cache,VOLUME_LT_THRESHOLD,362.425 張 < 1000 張,False
-6257,矽格,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,15922505.0,15922.505,cache,,,True
-6269,台郡,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2625479.0,2625.479,cache,,,True
-6271,同欣電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4573045.0,4573.045,cache,,,True
+6257,矽格,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,20298667.0,20298.667,cache,,,True
+6269,台郡,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3026754.0,3026.754,cache,,,True
+6271,同欣電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5078324.0,5078.324,cache,,,True
 6272,驊陞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,187267.0,187.267,cache,VOLUME_LT_THRESHOLD,187.267 張 < 1000 張,False
 6277,宏正,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,67573.0,67.573,cache,VOLUME_LT_THRESHOLD,67.573 張 < 1000 張,False
-6278,台表科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,6237633.0,6237.633,cache,,,True
+6278,台表科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,12352429.0,12352.429,cache,,,True
 6281,全國電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,42484.0,42.484,cache,VOLUME_LT_THRESHOLD,42.484 張 < 1000 張,False
-6282,康舒,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,6063472.0,6063.472,cache,,,True
+6282,康舒,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,8349604.0,8349.604,cache,,,True
 6283,淳安,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,29017.0,29.017,cache,VOLUME_LT_THRESHOLD,29.017 張 < 1000 張,False
-6285,啟碁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3030823.0,3030.823,cache,,,True
+6285,啟碁,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,8838953.0,8838.953,cache,,,True
 6405,悅城,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,538439.0,538.439,cache,VOLUME_LT_THRESHOLD,538.439 張 < 1000 張,False
 6409,旭隼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,234051.0,234.051,cache,VOLUME_LT_THRESHOLD,234.051 張 < 1000 張,False
 6412,群電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,319411.0,319.411,cache,VOLUME_LT_THRESHOLD,319.411 張 < 1000 張,False
 6414,樺漢,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,590230.0,590.23,cache,VOLUME_LT_THRESHOLD,590.230 張 < 1000 張,False
-6415,矽力*-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2189982.0,2189.982,cache,,,True
+6415,矽力*-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2534848.0,2534.848,cache,,,True
 6416,瑞祺電通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,257186.0,257.186,cache,VOLUME_LT_THRESHOLD,257.186 張 < 1000 張,False
-6426,統新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4936579.0,4936.579,cache,,,True
+6426,統新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3509288.0,3509.288,cache,,,True
 6431,光麗-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,11004.0,11.004,cache,VOLUME_LT_THRESHOLD,11.004 張 < 1000 張,False
 6438,迅得,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-01,714358.0,714.358,cache,VOLUME_LT_THRESHOLD,714.358 張 < 1000 張,False
 6442,光聖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,895074.0,895.074,cache,VOLUME_LT_THRESHOLD,895.074 張 < 1000 張,False
 6443,元晶,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6446,藥華藥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1255233.0,1255.233,cache,,,True
+6446,藥華藥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1604038.0,1604.038,cache,,,True
 6449,鈺邦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,447534.0,447.534,cache,VOLUME_LT_THRESHOLD,447.534 張 < 1000 張,False
 6451,訊芯-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,992621.0,992.621,cache,VOLUME_LT_THRESHOLD,992.621 張 < 1000 張,False
-6456,GIS-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,20444355.0,20444.355,cache,,,True
+6456,GIS-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,18149753.0,18149.753,cache,,,True
 6464,台數科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,1105.0,1.105,cache,VOLUME_LT_THRESHOLD,1.105 張 < 1000 張,False
 6472,保瑞,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,508828.0,508.828,cache,VOLUME_LT_THRESHOLD,508.828 張 < 1000 張,False
 6477,安集,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,852394.0,852.394,cache,VOLUME_LT_THRESHOLD,852.394 張 < 1000 張,False
 6491,晶碩,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,177464.0,177.464,cache,VOLUME_LT_THRESHOLD,177.464 張 < 1000 張,False
 6504,南六,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,16000.0,16.0,cache,VOLUME_LT_THRESHOLD,16.000 張 < 1000 張,False
-6505,台塑化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,35503078.0,35503.078,cache,,,True
+6505,台塑化,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,20175570.0,20175.57,cache,,,True
 6515,穎崴,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,445040.0,445.04,cache,VOLUME_LT_THRESHOLD,445.040 張 < 1000 張,False
 6525,捷敏-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,449529.0,449.529,cache,VOLUME_LT_THRESHOLD,449.529 張 < 1000 張,False
 6526,達發,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
-6531,愛普*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5926915.0,5926.915,cache,,,True
+6531,愛普*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,4949972.0,4949.972,cache,,,True
 6533,晶心科,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 6534,正瀚-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,54140.0,54.14,cache,VOLUME_LT_THRESHOLD,54.140 張 < 1000 張,False
 6541,泰福-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,501087.0,501.087,cache,VOLUME_LT_THRESHOLD,501.087 張 < 1000 張,False
@@ -883,17 +884,17 @@
 6657,華安,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,81194.0,81.194,cache,VOLUME_LT_THRESHOLD,81.194 張 < 1000 張,False
 6658,聯策,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6666,羅麗芬-KY,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6668,中揚光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1776027.0,1776.027,cache,,,True
-6669,緯穎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2329609.0,2329.609,cache,,,True
+6668,中揚光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6136507.0,6136.507,cache,,,True
+6669,緯穎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3007826.0,3007.826,cache,,,True
 6670,復盛應用,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,126922.0,126.922,cache,VOLUME_LT_THRESHOLD,126.922 張 < 1000 張,False
 6671,三能-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,5030.0,5.03,cache,VOLUME_LT_THRESHOLD,5.030 張 < 1000 張,False
-6672,騰輝電子-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,16620827.0,16620.827,cache,,,True
+6672,騰輝電子-KY,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 6674,鋐寶科技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,199815.0,199.815,cache,VOLUME_LT_THRESHOLD,199.815 張 < 1000 張,False
 6689,伊雲谷,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,490273.0,490.273,cache,VOLUME_LT_THRESHOLD,490.273 張 < 1000 張,False
 6691,洋基工程,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,736040.0,736.04,cache,VOLUME_LT_THRESHOLD,736.040 張 < 1000 張,False
 6695,芯鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,156551.0,156.551,cache,VOLUME_LT_THRESHOLD,156.551 張 < 1000 張,False
 6698,旭暉應材,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,52578.0,52.578,cache,VOLUME_LT_THRESHOLD,52.578 張 < 1000 張,False
-6706,惠特,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,4150630.0,4150.63,cache,,,True
+6706,惠特,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2280897.0,2280.897,cache,,,True
 6715,嘉基,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,560936.0,560.936,cache,VOLUME_LT_THRESHOLD,560.936 張 < 1000 張,False
 6719,力智,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,283508.0,283.508,cache,VOLUME_LT_THRESHOLD,283.508 張 < 1000 張,False
 6722,輝創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,9521.0,9.521,cache,VOLUME_LT_THRESHOLD,9.521 張 < 1000 張,False
@@ -904,7 +905,7 @@
 6756,威鋒電子,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,78807.0,78.807,cache,VOLUME_LT_THRESHOLD,78.807 張 < 1000 張,False
 6757,台灣虎航,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,485683.0,485.683,cache,VOLUME_LT_THRESHOLD,485.683 張 < 1000 張,False
 6768,志強-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,48690.0,48.69,cache,VOLUME_LT_THRESHOLD,48.690 張 < 1000 張,False
-6770,力積電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,178851877.0,178851.877,cache,,,True
+6770,力積電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,125964867.0,125964.867,cache,,,True
 6771,平和環保-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,9000.0,9.0,cache,VOLUME_LT_THRESHOLD,9.000 張 < 1000 張,False
 6776,展碁國際,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,63140.0,63.14,cache,VOLUME_LT_THRESHOLD,63.140 張 < 1000 張,False
 6781,AES-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,143940.0,143.94,cache,VOLUME_LT_THRESHOLD,143.940 張 < 1000 張,False
@@ -915,11 +916,11 @@
 6794,向榮生技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,38000.0,38.0,cache,VOLUME_LT_THRESHOLD,38.000 張 < 1000 張,False
 6796,晉弘,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,22998.0,22.998,cache,VOLUME_LT_THRESHOLD,22.998 張 < 1000 張,False
 6799,來頡,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,219429.0,219.429,cache,VOLUME_LT_THRESHOLD,219.429 張 < 1000 張,False
-6805,富世達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1860964.0,1860.964,cache,,,True
+6805,富世達,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2557802.0,2557.802,cache,,,True
 6807,峰源-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,,,,unavailable,VOLUME_UNKNOWN,最近可得交易日成交量 Cache 不存在或無有效值,False
 6830,汎銓,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,942448.0,942.448,cache,VOLUME_LT_THRESHOLD,942.448 張 < 1000 張,False
 6831,邁科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,786787.0,786.787,cache,VOLUME_LT_THRESHOLD,786.787 張 < 1000 張,False
-6834,天二科技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,12078273.0,12078.273,cache,,,True
+6834,天二科技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,10894293.0,10894.293,cache,,,True
 6835,圓裕,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,20180.0,20.18,cache,VOLUME_LT_THRESHOLD,20.180 張 < 1000 張,False
 6838,台新藥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,603017.0,603.017,cache,VOLUME_LT_THRESHOLD,603.017 張 < 1000 張,False
 6854,錼創科技-KY創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,153317.0,153.317,cache,VOLUME_LT_THRESHOLD,153.317 張 < 1000 張,False
@@ -931,7 +932,7 @@
 6885,全福生技,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6887,寶綠特-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,10000.0,10.0,cache,VOLUME_LT_THRESHOLD,10.000 張 < 1000 張,False
 6890,來億-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,140614.0,140.614,cache,VOLUME_LT_THRESHOLD,140.614 張 < 1000 張,False
-6901,鑽石投資,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1721017.0,1721.017,cache,,,True
+6901,鑽石投資,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6644376.0,6644.376,cache,,,True
 6902,GOGOLOOK,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,739617.0,739.617,cache,VOLUME_LT_THRESHOLD,739.617 張 < 1000 張,False
 6906,現觀科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,47047.0,47.047,cache,VOLUME_LT_THRESHOLD,47.047 張 < 1000 張,False
 6908,宏碁遊戲-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,12062.0,12.062,cache,VOLUME_LT_THRESHOLD,12.062 張 < 1000 張,False
@@ -939,19 +940,19 @@
 6914,阜爾運通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,20655.0,20.655,cache,VOLUME_LT_THRESHOLD,20.655 張 < 1000 張,False
 6916,華凌,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,15210.0,15.21,cache,VOLUME_LT_THRESHOLD,15.210 張 < 1000 張,False
 6918,愛派司,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,16115.0,16.115,cache,VOLUME_LT_THRESHOLD,16.115 張 < 1000 張,False
-6919,康霈*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3635766.0,3635.766,cache,,,True
+6919,康霈*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3565795.0,3565.795,cache,,,True
 6921,嘉雨思-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,36100.0,36.1,cache,VOLUME_LT_THRESHOLD,36.100 張 < 1000 張,False
 6923,中台,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,62772.0,62.772,cache,VOLUME_LT_THRESHOLD,62.772 張 < 1000 張,False
 6924,榮惠-KY創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,19247.0,19.247,cache,VOLUME_LT_THRESHOLD,19.247 張 < 1000 張,False
 6928,攸泰科技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,31556.0,31.556,cache,VOLUME_LT_THRESHOLD,31.556 張 < 1000 張,False
 6931,青松健康,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,20182.0,20.182,cache,VOLUME_LT_THRESHOLD,20.182 張 < 1000 張,False
-6933,AMAX-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3286200.0,3286.2,cache,,,True
+6933,AMAX-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2154273.0,2154.273,cache,,,True
 6934,心誠鎂,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,60109.0,60.109,cache,VOLUME_LT_THRESHOLD,60.109 張 < 1000 張,False
 6936,永鴻生技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,10469.0,10.469,cache,VOLUME_LT_THRESHOLD,10.469 張 < 1000 張,False
 6937,天虹,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,678835.0,678.835,cache,VOLUME_LT_THRESHOLD,678.835 張 < 1000 張,False
 6944,兆聯實業,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,469755.0,469.755,cache,VOLUME_LT_THRESHOLD,469.755 張 < 1000 張,False
 6947,台鎔科技,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,134696.0,134.696,cache,VOLUME_LT_THRESHOLD,134.696 張 < 1000 張,False
-6949,沛爾生醫*-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,14023533.0,14023.533,cache,,,True
+6949,沛爾生醫*-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3960715.0,3960.715,cache,,,True
 6951,青新-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,17699.0,17.699,cache,VOLUME_LT_THRESHOLD,17.699 張 < 1000 張,False
 6952,大武山,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,2000.0,2.0,cache,VOLUME_LT_THRESHOLD,2.000 張 < 1000 張,False
 6955,邦睿生技-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,1161.0,1.161,cache,VOLUME_LT_THRESHOLD,1.161 張 < 1000 張,False
@@ -997,39 +998,39 @@
 8011,台通,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,135271.0,135.271,cache,VOLUME_LT_THRESHOLD,135.271 張 < 1000 張,False
 8016,矽創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,323090.0,323.09,cache,VOLUME_LT_THRESHOLD,323.090 張 < 1000 張,False
 8021,尖點,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,949881.0,949.881,cache,VOLUME_LT_THRESHOLD,949.881 張 < 1000 張,False
-8028,昇陽半導體,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5010534.0,5010.534,cache,,,True
-8033,雷虎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1830423.0,1830.423,cache,,,True
-8039,台虹,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,19171352.0,19171.352,cache,,,True
+8028,昇陽半導體,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,6222005.0,6222.005,cache,,,True
+8033,雷虎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1982665.0,1982.665,cache,,,True
+8039,台虹,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,49438408.0,49438.408,cache,,,True
 8045,達運光電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,80890.0,80.89,cache,VOLUME_LT_THRESHOLD,80.890 張 < 1000 張,False
-8046,南電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,16705151.0,16705.151,cache,,,True
+8046,南電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,15131229.0,15131.229,cache,,,True
 8070,長華*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,667296.0,667.296,cache,VOLUME_LT_THRESHOLD,667.296 張 < 1000 張,False
 8072,陞泰,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,740235.0,740.235,cache,VOLUME_LT_THRESHOLD,740.235 張 < 1000 張,False
 8081,致新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,224628.0,224.628,cache,VOLUME_LT_THRESHOLD,224.628 張 < 1000 張,False
 8101,華冠,TWSE,ETF,official:twse_fund,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_ETF,排除商品類型：ETF,False
-8103,瀚荃,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1955142.0,1955.142,cache,,,True
+8103,瀚荃,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,3823115.0,3823.115,cache,,,True
 8104,錸寶,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,189594.0,189.594,cache,VOLUME_LT_THRESHOLD,189.594 張 < 1000 張,False
 8105,凌巨,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,988490.0,988.49,cache,VOLUME_LT_THRESHOLD,988.490 張 < 1000 張,False
-8110,華東,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9920246.0,9920.246,cache,,,True
-8112,至上,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5045893.0,5045.893,cache,,,True
+8110,華東,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,7409030.0,7409.03,cache,,,True
+8112,至上,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5336243.0,5336.243,cache,,,True
 8114,振樺電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,228963.0,228.963,cache,VOLUME_LT_THRESHOLD,228.963 張 < 1000 張,False
 8131,福懋科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,792721.0,792.721,cache,VOLUME_LT_THRESHOLD,792.721 張 < 1000 張,False
 8150,南茂,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 8162,微矽電子-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-29,412662.0,412.662,cache,VOLUME_LT_THRESHOLD,412.662 張 < 1000 張,False
 8163,達方,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,579483.0,579.483,cache,VOLUME_LT_THRESHOLD,579.483 張 < 1000 張,False
-8201,無敵,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,421852.0,421.852,cache,VOLUME_LT_THRESHOLD,421.852 張 < 1000 張,False
+8201,無敵,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 8210,勤誠,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,554178.0,554.178,cache,VOLUME_LT_THRESHOLD,554.178 張 < 1000 張,False
 8213,志超,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,179430.0,179.43,cache,VOLUME_LT_THRESHOLD,179.430 張 < 1000 張,False
-8215,明基材,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1925721.0,1925.721,cache,,,True
+8215,明基材,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,2080719.0,2080.719,cache,,,True
 8222,寶一,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,95393.0,95.393,cache,VOLUME_LT_THRESHOLD,95.393 張 < 1000 張,False
 8249,菱光,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,66852.0,66.852,cache,VOLUME_LT_THRESHOLD,66.852 張 < 1000 張,False
-8261,富鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,5681906.0,5681.906,cache,,,True
+8261,富鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,15767944.0,15767.944,cache,,,True
 8271,宇瞻,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,977099.0,977.099,cache,VOLUME_LT_THRESHOLD,977.099 張 < 1000 張,False
 8341,日友,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,104313.0,104.313,cache,VOLUME_LT_THRESHOLD,104.313 張 < 1000 張,False
 8367,建新國際,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,9000.0,9.0,cache,VOLUME_LT_THRESHOLD,9.000 張 < 1000 張,False
 8374,羅昇,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,147506.0,147.506,cache,VOLUME_LT_THRESHOLD,147.506 張 < 1000 張,False
 8404,百和興業-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,215582.0,215.582,cache,VOLUME_LT_THRESHOLD,215.582 張 < 1000 張,False
 8411,福貞-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,238519.0,238.519,cache,VOLUME_LT_THRESHOLD,238.519 張 < 1000 張,False
-8422,可寧衛*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,2992277.0,2992.277,cache,,,True
+8422,可寧衛*,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5201338.0,5201.338,cache,,,True
 8429,金麗-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,91426.0,91.426,cache,VOLUME_LT_THRESHOLD,91.426 張 < 1000 張,False
 8438,昶昕,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,998074.0,998.074,cache,VOLUME_LT_THRESHOLD,998.074 張 < 1000 張,False
 8442,威宏-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,73000.0,73.0,cache,VOLUME_LT_THRESHOLD,73.000 張 < 1000 張,False
@@ -1048,16 +1049,16 @@
 8487,愛爾達-創,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,4769.0,4.769,cache,VOLUME_LT_THRESHOLD,4.769 張 < 1000 張,False
 8488,吉源-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,371009.0,371.009,cache,VOLUME_LT_THRESHOLD,371.009 張 < 1000 張,False
 8499,鼎炫-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,10354.0,10.354,cache,VOLUME_LT_THRESHOLD,10.354 張 < 1000 張,False
-8926,台汽電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,1416775.0,1416.775,cache,,,True
+8926,台汽電,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,1880273.0,1880.273,cache,,,True
 8940,新天地,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,15223.0,15.223,cache,VOLUME_LT_THRESHOLD,15.223 張 < 1000 張,False
 8996,高力,TWSE,COMMON_STOCK,official:twse_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 9103,美德醫療-DR,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,265091.0,265.091,cache,VOLUME_LT_THRESHOLD,265.091 張 < 1000 張,False
-9105,泰金寶-DR,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,9479177.0,9479.177,cache,,,True
+9105,泰金寶-DR,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,15204752.0,15204.752,cache,,,True
 9110,越南控-DR,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,22000.0,22.0,cache,VOLUME_LT_THRESHOLD,22.000 張 < 1000 張,False
 9136,巨騰-DR,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,172100.0,172.1,cache,VOLUME_LT_THRESHOLD,172.100 張 < 1000 張,False
 9802,鈺齊-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,524913.0,524.913,cache,VOLUME_LT_THRESHOLD,524.913 張 < 1000 張,False
 9902,台火,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,67252.0,67.252,cache,VOLUME_LT_THRESHOLD,67.252 張 < 1000 張,False
-9904,寶成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,8170592.0,8170.592,cache,,,True
+9904,寶成,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,14875833.0,14875.833,cache,,,True
 9905,大華,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,52579.0,52.579,cache,VOLUME_LT_THRESHOLD,52.579 張 < 1000 張,False
 9906,欣巴巴,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,30191.0,30.191,cache,VOLUME_LT_THRESHOLD,30.191 張 < 1000 張,False
 9907,統一實,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,448732.0,448.732,cache,VOLUME_LT_THRESHOLD,448.732 張 < 1000 張,False
@@ -1078,7 +1079,7 @@
 9929,秋雨,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,11145.0,11.145,cache,VOLUME_LT_THRESHOLD,11.145 張 < 1000 張,False
 9930,中聯資源,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,125755.0,125.755,cache,VOLUME_LT_THRESHOLD,125.755 張 < 1000 張,False
 9931,欣高,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,12246.0,12.246,cache,VOLUME_LT_THRESHOLD,12.246 張 < 1000 張,False
-9933,中鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,21275998.0,21275.998,cache,,,True
+9933,中鼎,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,23071356.0,23071.356,cache,,,True
 9934,成霖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,176300.0,176.3,cache,VOLUME_LT_THRESHOLD,176.300 張 < 1000 張,False
 9935,慶豐富,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,62149.0,62.149,cache,VOLUME_LT_THRESHOLD,62.149 張 < 1000 張,False
 9937,全國,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,12004.0,12.004,cache,VOLUME_LT_THRESHOLD,12.004 張 < 1000 張,False
@@ -1089,11 +1090,11 @@
 9942,茂順,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,43351.0,43.351,cache,VOLUME_LT_THRESHOLD,43.351 張 < 1000 張,False
 9943,好樂迪,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,36502.0,36.502,cache,VOLUME_LT_THRESHOLD,36.502 張 < 1000 張,False
 9944,新麗,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,18641.0,18.641,cache,VOLUME_LT_THRESHOLD,18.641 張 < 1000 張,False
-9945,潤泰新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-02,3575449.0,3575.449,cache,,,True
+9945,潤泰新,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-05,5792753.0,5792.753,cache,,,True
 9946,三發地產,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,233111.0,233.111,cache,VOLUME_LT_THRESHOLD,233.111 張 < 1000 張,False
 9955,佳龍,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,138353.0,138.353,cache,VOLUME_LT_THRESHOLD,138.353 張 < 1000 張,False
 9958,世紀鋼,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,930936.0,930.936,cache,VOLUME_LT_THRESHOLD,930.936 張 < 1000 張,False
-1240,茂生農經,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,61000.0,61.0,cache,VOLUME_LT_THRESHOLD,61.000 張 < 1000 張,False
+1240,茂生農經,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-06,31000.0,31.0,cache,VOLUME_LT_THRESHOLD,31.000 張 < 1000 張,False
 1259,安心,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,40965.0,40.965,cache,VOLUME_LT_THRESHOLD,40.965 張 < 1000 張,False
 1264,德麥,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,16377.0,16.377,cache,VOLUME_LT_THRESHOLD,16.377 張 < 1000 張,False
 1268,漢來美食,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,16759.0,16.759,cache,VOLUME_LT_THRESHOLD,16.759 張 < 1000 張,False
@@ -1115,7 +1116,7 @@
 1780,立弘,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,99703.0,99.703,cache,VOLUME_LT_THRESHOLD,99.703 張 < 1000 張,False
 1781,合世,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,9012.0,9.012,cache,VOLUME_LT_THRESHOLD,9.012 張 < 1000 張,False
 1784,訊聯,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-1785,光洋科,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,7507319.0,7507.319,cache,,,True
+1785,光洋科,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,6054633.0,6054.633,cache,,,True
 1788,杏昌,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,12171.0,12.171,cache,VOLUME_LT_THRESHOLD,12.171 張 < 1000 張,False
 1796,金穎生技,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,4005.0,4.005,cache,VOLUME_LT_THRESHOLD,4.005 張 < 1000 張,False
 1799,易威,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,54875.0,54.875,cache,VOLUME_LT_THRESHOLD,54.875 張 < 1000 張,False
@@ -1168,7 +1169,7 @@
 3071,協禧,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3073,天方能源,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,7331.0,7.331,cache,VOLUME_LT_THRESHOLD,7.331 張 < 1000 張,False
 3078,僑威,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3081,聯亞,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,4649434.0,4649.434,cache,,,True
+3081,聯亞,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,7078580.0,7078.58,cache,,,True
 3083,網龍,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,44063.0,44.063,cache,VOLUME_LT_THRESHOLD,44.063 張 < 1000 張,False
 3086,華義*,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3088,艾訊,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1208,7 +1209,7 @@
 3228,金麗科,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3230,錦明,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,641044.0,641.044,cache,VOLUME_LT_THRESHOLD,641.044 張 < 1000 張,False
 3232,昱捷,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,12261.0,12.261,cache,VOLUME_LT_THRESHOLD,12.261 張 < 1000 張,False
-3234,光環,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,4388524.0,4388.524,cache,,,True
+3234,光環,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,4340872.0,4340.872,cache,,,True
 3236,千如,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3252,海灣,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,2003.0,2.003,cache,VOLUME_LT_THRESHOLD,2.003 張 < 1000 張,False
 3259,鑫創,TPEx,COMMON_STOCK,official:tpex_main,ABNORMAL,official:tpex_cmode,,,,unavailable,STATUS_ABNORMAL,交易狀態：ABNORMAL,False
@@ -1237,16 +1238,16 @@
 3324,雙鴻,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3325,旭品,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,42888.0,42.888,cache,VOLUME_LT_THRESHOLD,42.888 張 < 1000 張,False
 3332,幸康,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,11050.0,11.05,cache,VOLUME_LT_THRESHOLD,11.050 張 < 1000 張,False
-3339,泰谷,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,2442015.0,2442.015,cache,,,True
+3339,泰谷,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,1801718.0,1801.718,cache,,,True
 3349,寶德,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,48261.0,48.261,cache,VOLUME_LT_THRESHOLD,48.261 張 < 1000 張,False
 3354,律勝,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-29,761467.0,761.467,cache,VOLUME_LT_THRESHOLD,761.467 張 < 1000 張,False
 3357,臺慶科,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3360,尚立,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,128015.0,128.015,cache,VOLUME_LT_THRESHOLD,128.015 張 < 1000 張,False
 3362,先進光,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3363,上詮,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,3799707.0,3799.707,cache,,,True
+3363,上詮,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,2943478.0,2943.478,cache,,,True
 3372,典範,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,253727.0,253.727,cache,VOLUME_LT_THRESHOLD,253.727 張 < 1000 張,False
 3373,熱映,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,20251.0,20.251,cache,VOLUME_LT_THRESHOLD,20.251 張 < 1000 張,False
-3374,精材,TPEx,WARRANT,official:tpex_warrant,DISPOSAL,official:disposal,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+3374,精材,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3379,彬台,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,17148.0,17.148,cache,VOLUME_LT_THRESHOLD,17.148 張 < 1000 張,False
 3388,崇越電,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3390,旭軟,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,85302.0,85.302,cache,VOLUME_LT_THRESHOLD,85.302 張 < 1000 張,False
@@ -1254,7 +1255,7 @@
 3430,奇鈦科,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3434,哲固,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,117062.0,117.062,cache,VOLUME_LT_THRESHOLD,117.062 張 < 1000 張,False
 3438,類比科,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3441,聯一光,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,598665.0,598.665,cache,VOLUME_LT_THRESHOLD,598.665 張 < 1000 張,False
+3441,聯一光,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,9682549.0,9682.549,cache,,,True
 3444,利機,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3455,由田,TPEx,WARRANT,official:tpex_warrant,DISPOSAL,official:disposal,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3465,進泰電子,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,42000.0,42.0,cache,VOLUME_LT_THRESHOLD,42.000 張 < 1000 張,False
@@ -1265,7 +1266,7 @@
 3484,崧騰,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3485,敘豐,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3489,森寶,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,63040.0,63.04,cache,VOLUME_LT_THRESHOLD,63.040 張 < 1000 張,False
-3490,單井,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,18648176.0,18648.176,cache,,,True
+3490,單井,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,8282809.0,8282.809,cache,,,True
 3491,昇達科,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3492,長盛,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,10153.0,10.153,cache,VOLUME_LT_THRESHOLD,10.153 張 < 1000 張,False
 3498,陽程,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1292,7 +1293,7 @@
 3555,博士旺,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3556,禾瑞亞,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3558,神準,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3564,其陽,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,1975553.0,1975.553,cache,,,True
+3564,其陽,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,891986.0,891.986,cache,VOLUME_LT_THRESHOLD,891.986 張 < 1000 張,False
 3567,逸昌,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,255146.0,255.146,cache,VOLUME_LT_THRESHOLD,255.146 張 < 1000 張,False
 3570,大塚,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,9448.0,9.448,cache,VOLUME_LT_THRESHOLD,9.448 張 < 1000 張,False
 3577,泓格,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1300,7 +1301,7 @@
 3581,博磊,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3587,閎康,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 3594,磐儀,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-3597,映興,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,79930.0,79.93,cache,VOLUME_LT_THRESHOLD,79.930 張 < 1000 張,False
+3597,映興,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,1214738.0,1214.738,cache,,,True
 3609,三一東林,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,42040.0,42.04,cache,VOLUME_LT_THRESHOLD,42.040 張 < 1000 張,False
 3611,鼎翰,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,10272.0,10.272,cache,VOLUME_LT_THRESHOLD,10.272 張 < 1000 張,False
 3615,安可,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1398,18 +1399,18 @@
 4535,至興,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,12452.0,12.452,cache,VOLUME_LT_THRESHOLD,12.452 張 < 1000 張,False
 4538,大詠城,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,13000.0,13.0,cache,VOLUME_LT_THRESHOLD,13.000 張 < 1000 張,False
 4541,晟田,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-4542,科嶠,TPEx,COMMON_STOCK,official:tpex_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
+4542,科嶠,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,2606774.0,2606.774,cache,,,True
 4543,萬在,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,31633.0,31.633,cache,VOLUME_LT_THRESHOLD,31.633 張 < 1000 張,False
 4549,桓達,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4550,長佳,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,2050.0,2.05,cache,VOLUME_LT_THRESHOLD,2.050 張 < 1000 張,False
 4554,橙的,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,6561.0,6.561,cache,VOLUME_LT_THRESHOLD,6.561 張 < 1000 張,False
-4556,旭然,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+4556,旭然,TPEx,WARRANT,official:tpex_warrant,DISPOSAL,official:disposal,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4558,寶緯,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,23000.0,23.0,cache,VOLUME_LT_THRESHOLD,23.000 張 < 1000 張,False
 4561,健椿,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,73012.0,73.012,cache,VOLUME_LT_THRESHOLD,73.012 張 < 1000 張,False
 4563,百德,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,290590.0,290.59,cache,VOLUME_LT_THRESHOLD,290.590 張 < 1000 張,False
 4568,科際精密,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,3000.0,3.0,cache,VOLUME_LT_THRESHOLD,3.000 張 < 1000 張,False
 4577,達航科技,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-4580,捷流閥業,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,125384.0,125.384,cache,VOLUME_LT_THRESHOLD,125.384 張 < 1000 張,False
+4580,捷流閥業,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4584,君帆,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,5792.0,5.792,cache,VOLUME_LT_THRESHOLD,5.792 張 < 1000 張,False
 4609,唐鋒,TPEx,COMMON_STOCK,official:tpex_main,ABNORMAL,official:tpex_cmode,,,,unavailable,STATUS_ABNORMAL,交易狀態：ABNORMAL,False
 4702,中美實,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,56691.0,56.691,cache,VOLUME_LT_THRESHOLD,56.691 張 < 1000 張,False
@@ -1424,7 +1425,7 @@
 4729,熒茂,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,34633.0,34.633,cache,VOLUME_LT_THRESHOLD,34.633 張 < 1000 張,False
 4735,豪展,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,17246.0,17.246,cache,VOLUME_LT_THRESHOLD,17.246 張 < 1000 張,False
 4741,泓瀚,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,37866.0,37.866,cache,VOLUME_LT_THRESHOLD,37.866 張 < 1000 張,False
-4743,合一,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,627284.0,627.284,cache,VOLUME_LT_THRESHOLD,627.284 張 < 1000 張,False
+4743,合一,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4744,皇將,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,50162.0,50.162,cache,VOLUME_LT_THRESHOLD,50.162 張 < 1000 張,False
 4745,合富-KY,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,6122.0,6.122,cache,VOLUME_LT_THRESHOLD,6.122 張 < 1000 張,False
 4747,強生*,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,37498.0,37.498,cache,VOLUME_LT_THRESHOLD,37.498 張 < 1000 張,False
@@ -1435,7 +1436,7 @@
 4768,晶呈科技,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4772,台特化,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4806,桂田文創,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,,,,unavailable,VOLUME_UNKNOWN,最近可得交易日成交量 Cache 不存在或無有效值,False
-4903,聯光通,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,10524817.0,10524.817,cache,,,True
+4903,聯光通,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,4446162.0,4446.162,cache,,,True
 4905,台聯電,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,16103.0,16.103,cache,VOLUME_LT_THRESHOLD,16.103 張 < 1000 張,False
 4907,富宇,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,28864.0,28.864,cache,VOLUME_LT_THRESHOLD,28.864 張 < 1000 張,False
 4908,前鼎,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1455,12 +1456,12 @@
 4972,湯石照明,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,11728.0,11.728,cache,VOLUME_LT_THRESHOLD,11.728 張 < 1000 張,False
 4973,廣穎,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4974,亞泰,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-4979,華星光,TPEx,WARRANT,official:tpex_warrant,DISPOSAL,official:disposal,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-4991,環宇-KY,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,8592538.0,8592.538,cache,,,True
+4979,華星光,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+4991,環宇-KY,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,10218442.0,10218.442,cache,,,True
 4995,晶達,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,7445.0,7.445,cache,VOLUME_LT_THRESHOLD,7.445 張 < 1000 張,False
 5009,榮剛,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 5011,久陽,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,142127.0,142.127,cache,VOLUME_LT_THRESHOLD,142.127 張 < 1000 張,False
-5013,強新,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,61857.0,61.857,cache,VOLUME_LT_THRESHOLD,61.857 張 < 1000 張,False
+5013,強新,TPEx,COMMON_STOCK,official:tpex_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 5014,建錩,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,50550.0,50.55,cache,VOLUME_LT_THRESHOLD,50.550 張 < 1000 張,False
 5015,華祺,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,10006.0,10.006,cache,VOLUME_LT_THRESHOLD,10.006 張 < 1000 張,False
 5016,松和,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,3052.0,3.052,cache,VOLUME_LT_THRESHOLD,3.052 張 < 1000 張,False
@@ -1529,7 +1530,7 @@
 5465,富驊,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,631794.0,631.794,cache,VOLUME_LT_THRESHOLD,631.794 張 < 1000 張,False
 5468,凱鈺,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,95283.0,95.283,cache,VOLUME_LT_THRESHOLD,95.283 張 < 1000 張,False
 5474,聰泰,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-5475,德宏,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,2782730.0,2782.73,cache,,,True
+5475,德宏,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,6525422.0,6525.422,cache,,,True
 5478,智冠,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 5481,新華,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,139586.0,139.586,cache,VOLUME_LT_THRESHOLD,139.586 張 < 1000 張,False
 5483,中美晶,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1559,14 +1560,14 @@
 5701,劍湖山,TPEx,COMMON_STOCK,official:tpex_main,ABNORMAL,official:tpex_cmode,,,,unavailable,STATUS_ABNORMAL,交易狀態：ABNORMAL,False
 5703,亞都,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,0.0,0.0,cache,VOLUME_LT_THRESHOLD,0.000 張 < 1000 張,False
 5704,老爺知,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,7168.0,7.168,cache,VOLUME_LT_THRESHOLD,7.168 張 < 1000 張,False
-5864,致和證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,2467833.0,2467.833,cache,,,True
+5864,致和證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,3190975.0,3190.975,cache,,,True
 5878,台名,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,2222.0,2.222,cache,VOLUME_LT_THRESHOLD,2.222 張 < 1000 張,False
 5902,德記,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,81017.0,81.017,cache,VOLUME_LT_THRESHOLD,81.017 張 < 1000 張,False
 5903,全家,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,45042.0,45.042,cache,VOLUME_LT_THRESHOLD,45.042 張 < 1000 張,False
 5904,寶雅*,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 5905,南仁湖,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,233888.0,233.888,cache,VOLUME_LT_THRESHOLD,233.888 張 < 1000 張,False
-6015,宏遠證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,1581846.0,1581.846,cache,,,True
-6016,康和證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,2871037.0,2871.037,cache,,,True
+6015,宏遠證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,2983475.0,2983.475,cache,,,True
+6016,康和證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,5017815.0,5017.815,cache,,,True
 6020,大展證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,11031.0,11.031,cache,VOLUME_LT_THRESHOLD,11.031 張 < 1000 張,False
 6021,美好證,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,183477.0,183.477,cache,VOLUME_LT_THRESHOLD,183.477 張 < 1000 張,False
 6023,元大期,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-29,445256.0,445.256,cache,VOLUME_LT_THRESHOLD,445.256 張 < 1000 張,False
@@ -1596,7 +1597,7 @@
 6144,得利影,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,5504.0,5.504,cache,VOLUME_LT_THRESHOLD,5.504 張 < 1000 張,False
 6146,耕興,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6147,頎邦,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6148,驊宏資,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,1119625.0,1119.625,cache,,,True
+6148,驊宏資,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,1112254.0,1112.254,cache,,,True
 6150,撼訊,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6151,晉倫,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,78049.0,78.049,cache,VOLUME_LT_THRESHOLD,78.049 張 < 1000 張,False
 6154,順發,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,43395.0,43.395,cache,VOLUME_LT_THRESHOLD,43.395 張 < 1000 張,False
@@ -1610,7 +1611,7 @@
 6170,統振,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6171,大城地產,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,35141.0,35.141,cache,VOLUME_LT_THRESHOLD,35.141 張 < 1000 張,False
 6173,信昌電,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6174,安碁,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,1576195.0,1576.195,cache,,,True
+6174,安碁,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,1341802.0,1341.802,cache,,,True
 6175,立敦,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6179,亞通,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6180,橘子,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,134532.0,134.532,cache,VOLUME_LT_THRESHOLD,134.532 張 < 1000 張,False
@@ -1631,7 +1632,7 @@
 6210,慶生,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,21155.0,21.155,cache,VOLUME_LT_THRESHOLD,21.155 張 < 1000 張,False
 6212,理銘,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,1633.0,1.633,cache,VOLUME_LT_THRESHOLD,1.633 張 < 1000 張,False
 6217,中探針,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6218,豪勉,TPEx,COMMON_STOCK,official:tpex_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
+6218,豪勉,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,1930091.0,1930.091,cache,,,True
 6219,富旺,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,22005.0,22.005,cache,VOLUME_LT_THRESHOLD,22.005 張 < 1000 張,False
 6220,岳豐,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6221,晉泰,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,839747.0,839.747,cache,VOLUME_LT_THRESHOLD,839.747 張 < 1000 張,False
@@ -1666,7 +1667,7 @@
 6284,佳邦,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6290,良維,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6291,沛亨,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6292,迅德,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,169940.0,169.94,cache,VOLUME_LT_THRESHOLD,169.940 張 < 1000 張,False
+6292,迅德,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6294,智基,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,10660.0,10.66,cache,VOLUME_LT_THRESHOLD,10.660 張 < 1000 張,False
 6411,晶焱,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6417,韋僑,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1701,7 +1702,7 @@
 6517,保勝光學,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,81269.0,81.269,cache,VOLUME_LT_THRESHOLD,81.269 張 < 1000 張,False
 6523,達爾膚,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,27692.0,27.692,cache,VOLUME_LT_THRESHOLD,27.692 張 < 1000 張,False
 6527,明達醫,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,24054.0,24.054,cache,VOLUME_LT_THRESHOLD,24.054 張 < 1000 張,False
-6530,創威,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,1612325.0,1612.325,cache,,,True
+6530,創威,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6532,瑞耘,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6535,順藥,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,233476.0,233.476,cache,VOLUME_LT_THRESHOLD,233.476 張 < 1000 張,False
 6538,倉和,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1720,12 +1721,13 @@
 6577,勁豐,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,12391.0,12.391,cache,VOLUME_LT_THRESHOLD,12.391 張 < 1000 張,False
 6578,達邦蛋白,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,183201.0,183.201,cache,VOLUME_LT_THRESHOLD,183.201 張 < 1000 張,False
 6584,南俊國際,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6588,東典光電,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,601642.0,601.642,cache,VOLUME_LT_THRESHOLD,601.642 張 < 1000 張,False
+6588,東典光電,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6590,普鴻,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,18708.0,18.708,cache,VOLUME_LT_THRESHOLD,18.708 張 < 1000 張,False
 6593,台灣銘板,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,17332.0,17.332,cache,VOLUME_LT_THRESHOLD,17.332 張 < 1000 張,False
 6596,寬宏藝術,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6597,立誠,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,4340.0,4.34,cache,VOLUME_LT_THRESHOLD,4.340 張 < 1000 張,False
 6603,富強鑫,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
+6604,儒億,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,,,,unavailable,VOLUME_UNKNOWN,最近可得交易日成交量 Cache 不存在或無有效值,False
 6609,瀧澤科,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,33156.0,33.156,cache,VOLUME_LT_THRESHOLD,33.156 張 < 1000 張,False
 6612,奈米醫材,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,38013.0,38.013,cache,VOLUME_LT_THRESHOLD,38.013 張 < 1000 張,False
 6613,朋億*,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1737,7 +1739,7 @@
 6629,泰金-KY,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,14779.0,14.779,cache,VOLUME_LT_THRESHOLD,14.779 張 < 1000 張,False
 6637,醫影,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,17564.0,17.564,cache,VOLUME_LT_THRESHOLD,17.564 張 < 1000 張,False
 6640,均華,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6642,富致,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,49127.0,49.127,cache,VOLUME_LT_THRESHOLD,49.127 張 < 1000 張,False
+6642,富致,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6643,M31,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6649,台生材,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,92863.0,92.863,cache,VOLUME_LT_THRESHOLD,92.863 張 < 1000 張,False
 6651,全宇昕,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1757,7 +1759,7 @@
 6703,軒郁,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,10371.0,10.371,cache,VOLUME_LT_THRESHOLD,10.371 張 < 1000 張,False
 6708,天擎,TPEx,COMMON_STOCK,official:tpex_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 6712,長聖,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6716,應廣,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,280946.0,280.946,cache,VOLUME_LT_THRESHOLD,280.946 張 < 1000 張,False
+6716,應廣,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6720,久昌,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6721,信實,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,3145.0,3.145,cache,VOLUME_LT_THRESHOLD,3.145 張 < 1000 張,False
 6725,矽科宏晟,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
@@ -1784,7 +1786,7 @@
 6821,聯寶,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,31527.0,31.527,cache,VOLUME_LT_THRESHOLD,31.527 張 < 1000 張,False
 6823,濾能,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,43212.0,43.212,cache,VOLUME_LT_THRESHOLD,43.212 張 < 1000 張,False
 6829,千附精密,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
-6840,東研信超,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,262118.0,262.118,cache,VOLUME_LT_THRESHOLD,262.118 張 < 1000 張,False
+6840,東研信超,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6841,長佳智能,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6843,進典,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,6000.0,6.0,cache,VOLUME_LT_THRESHOLD,6.000 張 < 1000 張,False
 6844,諾貝兒,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,9419.0,9.419,cache,VOLUME_LT_THRESHOLD,9.419 張 < 1000 張,False
@@ -1865,9 +1867,9 @@
 7828,創新服務,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 7839,達人網,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,15312.0,15.312,cache,VOLUME_LT_THRESHOLD,15.312 張 < 1000 張,False
 7842,天能綠電,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,2148.0,2.148,cache,VOLUME_LT_THRESHOLD,2.148 張 < 1000 張,False
-7856,漢測,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,275196.0,275.196,cache,VOLUME_LT_THRESHOLD,275.196 張 < 1000 張,False
+7856,漢測,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 8024,佑華,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,43221.0,43.221,cache,VOLUME_LT_THRESHOLD,43.221 張 < 1000 張,False
-8027,鈦昇,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-02,5424690.0,5424.69,cache,,,True
+8027,鈦昇,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-05,3968841.0,3968.841,cache,,,True
 8032,光菱,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,15398.0,15.398,cache,VOLUME_LT_THRESHOLD,15.398 張 < 1000 張,False
 8034,榮群,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,119033.0,119.033,cache,VOLUME_LT_THRESHOLD,119.033 張 < 1000 張,False
 8038,長園科,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,97545.0,97.545,cache,VOLUME_LT_THRESHOLD,97.545 張 < 1000 張,False

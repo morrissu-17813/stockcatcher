@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "2466",
+  "name": "冠西電",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-06T00:00:00.000",
+  "previous_close": 170.5,
+  "k1_high": 155.0,
+  "k2_high": 141.0,
+  "breakout_level": 155.0,
+  "ma20": 115.955,
+  "ma60": 105.625,
+  "ma20_prev": 112.29,
+  "vma5_lots": 3553.1531999999997,
+  "yesterday_volume_lots": 4574.285,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}
