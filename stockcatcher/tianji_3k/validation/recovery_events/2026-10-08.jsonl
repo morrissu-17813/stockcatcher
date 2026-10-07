@@ -1,0 +1,17 @@
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-08T00:11:26.984667+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:14:20.614079+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:14:38.570948+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:14:57.894569+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:15:19.698625+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:15:37.571732+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:15:58.999907+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:16:18.047435+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:16:37.455931+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:16:57.583077+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:17:18.922036+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:17:37.281194+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:17:57.404262+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:18:17.325579+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:18:38.643771+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:18:58.268110+08:00"}
+{"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-08T00:19:15.769096+08:00"}

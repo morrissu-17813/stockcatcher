@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "1304",
+  "name": "台聚",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 13.05,
+  "k1_high": 12.65,
+  "k2_high": 12.7,
+  "breakout_level": 12.7,
+  "ma20": 12.45,
+  "ma60": 12.3225,
+  "ma20_prev": 12.4075,
+  "vma5_lots": 2220.1585999999998,
+  "yesterday_volume_lots": 1369.385,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

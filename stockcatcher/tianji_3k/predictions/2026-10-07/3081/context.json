@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "3081",
+  "name": "聯亞",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 3140.0,
+  "k1_high": 3055.0,
+  "k2_high": 3105.0,
+  "breakout_level": 3105.0,
+  "ma20": 2812.5,
+  "ma60": 2540.0833333333335,
+  "ma20_prev": 2809.0,
+  "vma5_lots": 3511.9093999999996,
+  "yesterday_volume_lots": 2492.235,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

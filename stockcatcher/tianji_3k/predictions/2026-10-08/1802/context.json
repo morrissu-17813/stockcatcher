@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-08",
+  "symbol": "1802",
+  "name": "台玻",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 65.7,
+  "k1_high": 60.7,
+  "k2_high": 61.4,
+  "breakout_level": 61.4,
+  "ma20": 59.15,
+  "ma60": 56.935833333333335,
+  "ma20_prev": 58.9,
+  "vma5_lots": 19667.7812,
+  "yesterday_volume_lots": 23901.898,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

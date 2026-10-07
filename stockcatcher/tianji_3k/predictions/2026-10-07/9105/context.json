@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "9105",
+  "name": "泰金寶-DR",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 8.89,
+  "k1_high": 8.57,
+  "k2_high": 8.48,
+  "breakout_level": 8.57,
+  "ma20": 8.503499999999999,
+  "ma60": 8.433166666666667,
+  "ma20_prev": 8.5015,
+  "vma5_lots": 16800.8454,
+  "yesterday_volume_lots": 21971.312,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -44,3 +44,5 @@
 {"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:42:37.853314+08:00"}
 {"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:42:57.374219+08:00"}
 {"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:43:16.870116+08:00"}
+{"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-07T23:43:27.668627+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-07T23:43:45.761394+08:00"}

@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-08",
+  "symbol": "6278",
+  "name": "台表科",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 250.5,
+  "k1_high": 237.5,
+  "k2_high": 222.0,
+  "breakout_level": 237.5,
+  "ma20": 204.5,
+  "ma60": 183.05833333333334,
+  "ma20_prev": 201.725,
+  "vma5_lots": 10222.6558,
+  "yesterday_volume_lots": 19489.443,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

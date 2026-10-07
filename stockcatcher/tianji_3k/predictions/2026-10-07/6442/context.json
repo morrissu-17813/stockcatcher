@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "6442",
+  "name": "光聖",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 1815.0,
+  "k1_high": 1710.0,
+  "k2_high": 1755.0,
+  "breakout_level": 1755.0,
+  "ma20": 1598.5,
+  "ma60": 1502.5833333333333,
+  "ma20_prev": 1592.75,
+  "vma5_lots": 2335.8502,
+  "yesterday_volume_lots": 1502.435,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

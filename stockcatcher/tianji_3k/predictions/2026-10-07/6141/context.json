@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-07",
+  "symbol": "6141",
+  "name": "柏承",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-07T00:00:00.000",
+  "previous_close": 53.4,
+  "k1_high": 52.1,
+  "k2_high": 52.7,
+  "breakout_level": 52.7,
+  "ma20": 50.989999999999995,
+  "ma60": 44.66583333333333,
+  "ma20_prev": 50.915,
+  "vma5_lots": 1626.1486,
+  "yesterday_volume_lots": 1053.545,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}
