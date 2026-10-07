@@ -2790,6 +2790,24 @@
     "detail": "Stage 1 四條件全部通過"
   },
   {
+    "symbol": "4171",
+    "name": "瑞基",
+    "stage0_pass": true,
+    "latest_date": "2026-10-07",
+    "close": 18.4,
+    "ma20": 16.5375,
+    "ma60": 17.13083333333333,
+    "ma20_prev": 16.4575,
+    "close_gt_ma20": true,
+    "close_gt_ma60": true,
+    "ma20_gt_ma60": false,
+    "ma20_slope_up": true,
+    "history_bars": 81,
+    "status": "FAIL",
+    "first_failure": "MA20_LE_MA60",
+    "detail": "Close=18.4; MA20=16.5375; MA60=17.13083333333333; MA20_prev=16.4575"
+  },
+  {
     "symbol": "4551",
     "name": "智伸科",
     "stage0_pass": true,
@@ -3706,6 +3724,24 @@
     "status": "FAIL",
     "first_failure": "CLOSE_LE_MA20",
     "detail": "Close=1205.0; MA20=1214.0; MA60=1276.6666666666667; MA20_prev=1220.0"
+  },
+  {
+    "symbol": "6449",
+    "name": "鈺邦",
+    "stage0_pass": true,
+    "latest_date": "2026-10-07",
+    "close": 261.5,
+    "ma20": 220.3,
+    "ma60": 230.00833333333333,
+    "ma20_prev": 218.8,
+    "close_gt_ma20": true,
+    "close_gt_ma60": true,
+    "ma20_gt_ma60": false,
+    "ma20_slope_up": true,
+    "history_bars": 81,
+    "status": "FAIL",
+    "first_failure": "MA20_LE_MA60",
+    "detail": "Close=261.5; MA20=220.3; MA60=230.00833333333333; MA20_prev=218.8"
   },
   {
     "symbol": "6456",

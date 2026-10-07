@@ -846,7 +846,7 @@
 6442,光聖,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-07,3981562.0,3981.562,cache,,,True
 6443,元晶,TWSE,WARRANT,official:twse_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 6446,藥華藥,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-07,1490041.0,1490.041,cache,,,True
-6449,鈺邦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,447534.0,447.534,cache,VOLUME_LT_THRESHOLD,447.534 張 < 1000 張,False
+6449,鈺邦,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-07,8074670.0,8074.67,cache,,,True
 6451,訊芯-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,992621.0,992.621,cache,VOLUME_LT_THRESHOLD,992.621 張 < 1000 張,False
 6456,GIS-KY,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-10-07,71277531.0,71277.531,cache,,,True
 6464,台數科,TWSE,COMMON_STOCK,official:twse_main,NORMAL,official:status_feeds,2026-09-24,1105.0,1.105,cache,VOLUME_LT_THRESHOLD,1.105 張 < 1000 張,False
@@ -1358,7 +1358,7 @@
 4166,友霖,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,66000.0,66.0,cache,VOLUME_LT_THRESHOLD,66.000 張 < 1000 張,False
 4167,松瑞藥,TPEx,WARRANT,official:tpex_warrant,NORMAL,official:status_feeds,,,,unavailable,PRODUCT_WARRANT,排除商品類型：WARRANT,False
 4168,醣聯,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,103176.0,103.176,cache,VOLUME_LT_THRESHOLD,103.176 張 < 1000 張,False
-4171,瑞基,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,11067.0,11.067,cache,VOLUME_LT_THRESHOLD,11.067 張 < 1000 張,False
+4171,瑞基,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-10-07,1035004.0,1035.004,cache,,,True
 4173,久裕,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,29326.0,29.326,cache,VOLUME_LT_THRESHOLD,29.326 張 < 1000 張,False
 4174,浩鼎,TPEx,COMMON_STOCK,official:tpex_main,DISPOSAL,official:disposal,,,,unavailable,STATUS_DISPOSAL,交易狀態：DISPOSAL,False
 4175,杏一,TPEx,COMMON_STOCK,official:tpex_main,NORMAL,official:status_feeds,2026-09-24,4426.0,4.426,cache,VOLUME_LT_THRESHOLD,4.426 張 < 1000 張,False

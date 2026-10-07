@@ -13559,13 +13559,13 @@
     "product_source": "official:twse_main",
     "status": "NORMAL",
     "status_source": "official:status_feeds",
-    "latest_cache_date": "2026-09-24",
-    "volume_shares": 447534.0,
-    "volume_lots": 447.534,
+    "latest_cache_date": "2026-10-07",
+    "volume_shares": 8074670.0,
+    "volume_lots": 8074.67,
     "volume_source": "cache",
-    "first_exclusion": "VOLUME_LT_THRESHOLD",
-    "first_exclusion_detail": "447.534 張 < 1000 張",
-    "final_stage0_pass": false
+    "first_exclusion": "",
+    "first_exclusion_detail": "",
+    "final_stage0_pass": true
   },
   {
     "symbol": "6451",
@@ -21751,13 +21751,13 @@
     "product_source": "official:tpex_main",
     "status": "NORMAL",
     "status_source": "official:status_feeds",
-    "latest_cache_date": "2026-09-24",
-    "volume_shares": 11067.0,
-    "volume_lots": 11.067,
+    "latest_cache_date": "2026-10-07",
+    "volume_shares": 1035004.0,
+    "volume_lots": 1035.004,
     "volume_source": "cache",
-    "first_exclusion": "VOLUME_LT_THRESHOLD",
-    "first_exclusion_detail": "11.067 張 < 1000 張",
-    "final_stage0_pass": false
+    "first_exclusion": "",
+    "first_exclusion_detail": "",
+    "final_stage0_pass": true
   },
   {
     "symbol": "4173",

@@ -15,3 +15,4 @@
 {"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:18:38.643771+08:00"}
 {"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:18:58.268110+08:00"}
 {"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-08T00:19:15.769096+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-08T00:35:00.630532+08:00"}

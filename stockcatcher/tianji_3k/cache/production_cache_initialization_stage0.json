@@ -5,7 +5,7 @@
   "latest_completed_date": "2026-10-07",
   "start_date": "2026-06-11",
   "bars_required": 61,
-  "total_symbols": 236,
+  "total_symbols": 238,
   "completed_symbols": [
     "1101",
     "1102",
@@ -162,6 +162,7 @@
     "3714",
     "3715",
     "3717",
+    "4171",
     "4551",
     "4566",
     "4720",
@@ -213,6 +214,7 @@
     "6426",
     "6442",
     "6446",
+    "6449",
     "6456",
     "6505",
     "6526",
@@ -246,18 +248,18 @@
   ],
   "pending_symbols": [],
   "current_symbol": null,
-  "requests_used": 2,
+  "requests_used": 4,
   "budget": {
     "limit": 580,
     "window_seconds": 3600,
-    "used": 2,
-    "remaining": 578,
-    "total_reserved": 2,
+    "used": 4,
+    "remaining": 576,
+    "total_reserved": 4,
     "total_blocked": 0,
     "total_failures": 0,
     "circuit_open": false
   },
-  "updated_at": "2026-10-08T00:13:08.958631+08:00",
+  "updated_at": "2026-10-08T00:36:25.792692+08:00",
   "message": "Production daily cache initialization complete.",
   "all_symbols": [
     "1101",
@@ -415,6 +417,7 @@
     "3714",
     "3715",
     "3717",
+    "4171",
     "4551",
     "4566",
     "4720",
@@ -466,6 +469,7 @@
     "6426",
     "6442",
     "6446",
+    "6449",
     "6456",
     "6505",
     "6526",
@@ -499,5 +503,5 @@
   ],
   "skipped_symbols": [],
   "symbol_failures": [],
-  "completed_at": "2026-10-08T00:13:08.958648+08:00"
+  "completed_at": "2026-10-08T00:36:25.792735+08:00"
 }
