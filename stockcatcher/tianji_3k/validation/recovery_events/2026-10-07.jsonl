@@ -21,3 +21,15 @@
 {"event_type":"RADAR_COMPLETE","snapshot_count":592,"at":"2026-10-07T00:22:47.986632+08:00"}
 {"event_type":"RADAR_COMPLETE","snapshot_count":592,"at":"2026-10-07T00:23:08.370173+08:00"}
 {"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-07T00:23:17.919335+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:36:06.706377+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:36:21.140817+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:36:41.762996+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:36:57.937600+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:37:16.938340+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:37:38.782930+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:37:59.136753+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:38:18.297392+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:38:38.660547+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:38:57.701018+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:39:18.030782+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-07T23:39:37.277570+08:00"}

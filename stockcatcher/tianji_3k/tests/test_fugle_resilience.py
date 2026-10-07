@@ -104,7 +104,7 @@ def test_runner_trigger_reaches_fugle_and_prediction(tmp_path, monkeypatch):
         def check_5m_access(self, symbol):
             self.health_calls += 1
             return {"ok": True, "status": "OK", "symbol": symbol, "bars": 24}
-        def evaluate_3k_micro_breakout(self, symbol):
+        def evaluate_3k_micro_breakout(self, symbol, min_volume_ratio=1.05):
             self.micro_calls += 1
             return {
                 "bar_time": "2026-10-06T09:55:00+08:00",

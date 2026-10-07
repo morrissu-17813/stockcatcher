@@ -648,7 +648,7 @@ class TianjiProductionRunner:
 
             try:
                 print(f"🔵 FUGLE 5M REQUEST | {sid} | timeframe=5", flush=True)
-                micro = self.fugle_provider.evaluate_3k_micro_breakout(sid)
+                micro = self.fugle_provider.evaluate_3k_micro_breakout(sid, min_volume_ratio=1.05)
             except FugleAPIError as exc:
                 print(f"🔴 FUGLE 5M ERROR | {sid} | HTTP={exc.status_code or 'N/A'} | {exc.message} | ACTION=RETRY", flush=True)
                 self.ledger.append_event(ctx["trade_date"], sid, {
@@ -687,17 +687,23 @@ class TianjiProductionRunner:
                 self._save_runtime_state()
                 continue
 
-            print(f"🟢 FUGLE 5M SUCCESS | {sid} | bars_used={micro.get('bars_used')} | volume_ratio={micro.get('volume_ratio', 0):.2f}x", flush=True)
+            micro_ratio = float(micro.get("volume_ratio") or 0.0)
+            micro_strong = micro_ratio >= 1.20
+            print(
+                f"🟢 FUGLE 5M SUCCESS | {sid} | bars_used={micro.get('bars_used')} "
+                f"| volume_ratio={micro_ratio:.2f}x | micro_level={'STRONG' if micro_strong else 'EARLY'}",
+                flush=True,
+            )
 
             projection = self.volume_predictor.project(
                 snap.cumulative_volume_lots,
                 self._as_datetime(snap.observed_at),
                 ctx["vma5_lots"],
             )
-            volume_ratio_ok = (
-                projection.projected_ratio is not None
-                and projection.projected_ratio >= 1.5
-            )
+            projected_ratio = projection.projected_ratio
+            projected_strong = projected_ratio is not None and projected_ratio >= 1.50
+            projected_early = projected_ratio is not None and projected_ratio >= 1.30
+            volume_ratio_ok = projected_strong or projected_early
             effective = snap.current_price >= ctx["breakout_level"] * (
                 1 + BREAKOUT_BUFFER_PCT / 100
             )
@@ -724,16 +730,16 @@ class TianjiProductionRunner:
                 "projection_ready": projection.ready,
             }
 
-            # Price trigger without projected Stage-3 volume is retained as an audit event,
-            # but it is not promoted to an INTRADAY_3K_PREDICTION.
+            # EARLY allows the lower projected-volume threshold. STRONG keeps the
+            # original Production threshold. Anything below 1.30x remains audit-only.
             if not volume_ratio_ok:
-                print(f"🟡 PROJECTED VOLUME REJECT | {sid} | ratio={projection.projected_ratio if projection.projected_ratio is not None else 'N/A'} | required=1.50x", flush=True)
+                print(f"🟡 PROJECTED VOLUME REJECT | {sid} | ratio={projection.projected_ratio if projection.projected_ratio is not None else 'N/A'} | required=1.30x", flush=True)
                 self.ledger.append_event(ctx["trade_date"], sid, {
                     "event_type": "BREAKOUT_PRICE_TRIGGER_REJECTED",
                     "observed_at": snap.observed_at,
                     "trigger_snapshot": trigger,
                     "volume_snapshot": vol,
-                    "reason": "PROJECTED_VOLUME_RATIO_LT_1_5",
+                    "reason": "PROJECTED_VOLUME_RATIO_LT_1_3",
                 })
                 continue
 
@@ -745,6 +751,12 @@ class TianjiProductionRunner:
                 effective_breakout=effective,
                 confirmed_snapshots=2,
             )
+            signal_level = (
+                "MOMENTUM" if float(snap.up_pct) >= 9.5
+                else ("STRONG" if (micro_strong and projected_strong) else "EARLY")
+            )
+            trigger["signal_level"] = signal_level
+            vol["signal_level"] = signal_level
             trigger["prediction_score"] = score.total
             trigger["prediction_score_breakdown"] = score.to_dict()
             vol["prediction_score_volume_component"] = score.volume

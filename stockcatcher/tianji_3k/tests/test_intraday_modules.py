@@ -24,10 +24,10 @@ def test_two_distinct():
     assert not sm.evaluate(build_snapshot("2221",raw("a")),120)[0]
     assert sm.evaluate(build_snapshot("2221",raw("b")),120)[0]
 
-def test_9_5_gate():
+def test_momentum_gate_is_not_suppressed():
     assert evaluate_intraday_notification(9.49).should_send
     d=evaluate_intraday_notification(9.50)
-    assert not d.should_send and d.suppression_reason=="UP_PCT_GE_9_5"
+    assert d.should_send and d.status == "MOMENTUM"
 
 def test_trigger_requires_invalidation_before_rearm():
     sm = IntradayStateMachine()

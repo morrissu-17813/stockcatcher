@@ -92,7 +92,7 @@ class FugleProvider:
         bars = self.get_5m_bars(symbol)
         return {"ok": True, "status": "OK", "symbol": str(symbol), "bars": len(bars)}
 
-    def evaluate_3k_micro_breakout(self, symbol: str) -> dict[str, Any] | None:
+    def evaluate_3k_micro_breakout(self, symbol: str, min_volume_ratio: float = 1.05) -> dict[str, Any] | None:
         """Use the scanner.py-style completed-5m-bar structure.
 
         The 5m layer is a confirmation layer. The existing Production
@@ -113,7 +113,7 @@ class FugleProvider:
         # Keep the scanner's basic 5m volume multiplier (1.2x) as the
         # micro-confirmation threshold; the Production 1.5x projected daily
         # volume gate remains unchanged and is checked separately.
-        if third_close <= breakout_price or volume_ratio < 1.2:
+        if third_close <= breakout_price or volume_ratio < float(min_volume_ratio):
             return None
         return {
             "bar_time": third["date"],
@@ -121,7 +121,8 @@ class FugleProvider:
             "close": third_close,
             "volume": third_volume,
             "volume_ratio": volume_ratio,
-            "required_volume": avg_volume * 1.2,
+            "required_volume": avg_volume * float(min_volume_ratio),
+            "required_volume_ratio": float(min_volume_ratio),
             "ma20": sum(float(x["close"]) for x in baseline) / len(baseline),
             "stop_price": min(float(first["low"]), float(second["low"]), float(third["low"])),
             "bars_used": 23,

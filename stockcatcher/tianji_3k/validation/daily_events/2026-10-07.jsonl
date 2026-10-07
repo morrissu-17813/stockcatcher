@@ -1,2 +1,3 @@
 {"event_type":"PREMARKET_WATCHLIST","trade_date":"2026-10-07","symbols":["1711","2254","2466","3441","6257","6278","6668"],"pool_count":7,"source_data_dates":["2026-10-06T00:00:00.000"],"created_at":"2026-10-07T00:16:25.097344+08:00"}
 {"event_type":"PREMARKET_WATCHLIST_NOTIFICATION","trade_date":"2026-10-07","status":"SENT","telegram_message_id":18854,"created_at":"2026-10-07T00:16:26.394413+08:00"}
+{"event_type":"INTRADAY_3K_PREDICTION_NOTIFICATION","trade_date":"2026-10-07","status":"SENT","telegram_message_id":19032,"created_at":"2026-10-07T23:36:06.540899+08:00","prediction_id":"20261007-6278-48d8a4682257","symbol":"6278","up_pct":7.0513}
