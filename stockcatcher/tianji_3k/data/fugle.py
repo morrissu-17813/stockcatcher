@@ -93,10 +93,12 @@ class FugleProvider:
         return {"ok": True, "status": "OK", "symbol": str(symbol), "bars": len(bars)}
 
     def evaluate_3k_micro_breakout(self, symbol: str, min_volume_ratio: float = 1.05) -> dict[str, Any] | None:
-        """Use the scanner.py-style completed-5m-bar structure.
+        """Evaluate the completed 5m bar using EARLY-friendly OR logic.
 
-        The 5m layer is a confirmation layer. The existing Production
-        projected-volume >=1.5 gate remains the final volume gate.
+        EARLY needs at least one of: price structure OR volume.  The caller
+        decides whether the resulting evidence is EARLY or STRONG after the
+        projected-volume check.  We therefore return both independent flags
+        instead of rejecting when one side is not yet confirmed.
         """
         bars = self.get_5m_bars(symbol)
         if len(bars) < 23:
@@ -110,10 +112,9 @@ class FugleProvider:
         third_close = float(third["close"])
         third_volume = float(third["volume"])
         volume_ratio = third_volume / avg_volume
-        # Keep the scanner's basic 5m volume multiplier (1.2x) as the
-        # micro-confirmation threshold; the Production 1.5x projected daily
-        # volume gate remains unchanged and is checked separately.
-        if third_close <= breakout_price or volume_ratio < float(min_volume_ratio):
+        structure_pass = third_close > breakout_price
+        volume_pass = volume_ratio >= float(min_volume_ratio)
+        if not (structure_pass or volume_pass):
             return None
         return {
             "bar_time": third["date"],
@@ -123,6 +124,9 @@ class FugleProvider:
             "volume_ratio": volume_ratio,
             "required_volume": avg_volume * float(min_volume_ratio),
             "required_volume_ratio": float(min_volume_ratio),
+            "structure_pass": structure_pass,
+            "volume_pass": volume_pass,
+            "micro_pass": True,
             "ma20": sum(float(x["close"]) for x in baseline) / len(baseline),
             "stop_price": min(float(first["low"]), float(second["low"]), float(third["low"])),
             "bars_used": 23,

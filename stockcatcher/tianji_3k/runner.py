@@ -688,10 +688,23 @@ class TianjiProductionRunner:
                 continue
 
             micro_ratio = float(micro.get("volume_ratio") or 0.0)
-            micro_strong = micro_ratio >= 1.20
+            micro_structure = bool(
+                micro.get("structure_pass")
+                if "structure_pass" in micro
+                else float(micro.get("close") or 0.0) > float(micro.get("breakout_price") or 0.0)
+            )
+            micro_volume = bool(
+                micro.get("volume_pass")
+                if "volume_pass" in micro
+                else micro_ratio >= 1.05
+            )
+            micro_pass = micro_structure or micro_volume
+            micro_strong = micro_structure and micro_volume and micro_ratio >= 1.20
             print(
                 f"🟢 FUGLE 5M SUCCESS | {sid} | bars_used={micro.get('bars_used')} "
-                f"| volume_ratio={micro_ratio:.2f}x | micro_level={'STRONG' if micro_strong else 'EARLY'}",
+                f"| structure={'✔' if micro_structure else '✖'} "
+                f"| volume={'✔' if micro_volume else '✖'} "
+                f"| volume_ratio={micro_ratio:.2f}x",
                 flush=True,
             )
 
@@ -714,7 +727,7 @@ class TianjiProductionRunner:
                 "k2_high": ctx["k2_high"],
                 "breakout_level": ctx["breakout_level"],
                 "effective_breakout": effective,
-                "volume_prediction_pass": volume_ratio_ok,
+                "volume_prediction_pass": projected_early,
                 "fugle_5m_confirmation": micro,
                 "state": sm.state.value,
                 "confirmed_snapshots": sm.pending_count if sm.state.value == "BREAKOUT_PENDING" else 2,
@@ -730,17 +743,12 @@ class TianjiProductionRunner:
                 "projection_ready": projection.ready,
             }
 
-            # EARLY allows the lower projected-volume threshold. STRONG keeps the
-            # original Production threshold. Anything below 1.30x remains audit-only.
-            if not volume_ratio_ok:
-                print(f"🟡 PROJECTED VOLUME REJECT | {sid} | ratio={projection.projected_ratio if projection.projected_ratio is not None else 'N/A'} | required=1.30x", flush=True)
-                self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "BREAKOUT_PRICE_TRIGGER_REJECTED",
-                    "observed_at": snap.observed_at,
-                    "trigger_snapshot": trigger,
-                    "volume_snapshot": vol,
-                    "reason": "PROJECTED_VOLUME_RATIO_LT_1_3",
-                })
+            # EARLY is intentionally not gated by projected volume.
+            # It exists to catch the first actionable 5m evidence: structure OR volume.
+            # STRONG requires both 5m structure + 5m volume and projected volume >=1.30x.
+            early_evidence = micro_pass
+            strong_evidence = micro_structure and micro_volume and projected_early
+            if not early_evidence:
                 continue
 
             score = self.prediction_scorer.score(
@@ -752,8 +760,8 @@ class TianjiProductionRunner:
                 confirmed_snapshots=2,
             )
             signal_level = (
-                "MOMENTUM" if float(snap.up_pct) >= 9.5
-                else ("STRONG" if (micro_strong and projected_strong) else "EARLY")
+                "MOMENTUM" if (float(snap.up_pct) >= 9.5 and micro_strong and projected_strong)
+                else ("STRONG" if strong_evidence else "EARLY")
             )
             trigger["signal_level"] = signal_level
             vol["signal_level"] = signal_level
@@ -765,6 +773,21 @@ class TianjiProductionRunner:
             existing = self.ledger.find_prediction_by_snapshot(ctx["trade_date"], sid, snap.snapshot_id)
             if existing is not None:
                 continue
+
+            # One Telegram notification per signal level per symbol/day.
+            # EARLY may later upgrade to STRONG/MOMENTUM, so different levels
+            # remain independently notify-able. Failed notifications are left
+            # in the ledger for the existing reconciliation path.
+            prior_predictions = self.ledger.iter_predictions(ctx["trade_date"])
+            already_sent_level = any(
+                e.get("symbol") == sid
+                and str(e.get("trigger_snapshot", {}).get("signal_level", "")).upper() == signal_level
+                and self.ledger.notification_status(ctx["trade_date"], sid, e.get("prediction_id")) == "SENT"
+                for e in prior_predictions
+            )
+            if already_sent_level:
+                continue
+
             event = self.ledger.create_prediction(ctx, trigger, vol, gate)
             self.events.append(event)
 

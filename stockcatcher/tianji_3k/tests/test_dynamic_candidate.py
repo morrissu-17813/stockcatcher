@@ -56,3 +56,45 @@ def test_fugle_micro_breakout_uses_completed_bars(monkeypatch):
     assert signal is not None
     assert signal["breakout_price"] == 100.5
     assert signal["volume_ratio"] >= 1.2
+
+
+def _make_micro_bars(*, structure: bool, volume_ratio: float):
+    bars = []
+    for i in range(23):
+        base = 100 + i * 0.1
+        bars.append({
+            "date": f"2026-10-02T09:{i:02d}:00+08:00",
+            "open": base - 0.1,
+            "high": base,
+            "low": base - 0.5,
+            "close": base - 0.05,
+            "volume": 1000,
+        })
+    bars[-3]["high"] = 100.0
+    bars[-2]["high"] = 100.5
+    bars[-1]["close"] = 100.6 if structure else 100.4
+    bars[-1]["high"] = 100.8
+    bars[-1]["volume"] = 1000 * volume_ratio
+    return bars
+
+
+def test_fugle_micro_breakout_accepts_structure_without_volume(monkeypatch):
+    provider = FugleProvider("key")
+    bars = _make_micro_bars(structure=True, volume_ratio=0.9)
+    monkeypatch.setattr(provider, "get_5m_bars", lambda symbol, limit=200: bars)
+    signal = provider.evaluate_3k_micro_breakout("1234")
+    assert signal is not None
+    assert signal["structure_pass"] is True
+    assert signal["volume_pass"] is False
+    assert signal["micro_pass"] is True
+
+
+def test_fugle_micro_breakout_accepts_volume_without_structure(monkeypatch):
+    provider = FugleProvider("key")
+    bars = _make_micro_bars(structure=False, volume_ratio=1.10)
+    monkeypatch.setattr(provider, "get_5m_bars", lambda symbol, limit=200: bars)
+    signal = provider.evaluate_3k_micro_breakout("1234")
+    assert signal is not None
+    assert signal["structure_pass"] is False
+    assert signal["volume_pass"] is True
+    assert signal["micro_pass"] is True

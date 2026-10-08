@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-08",
+  "symbol": "6174",
+  "name": "安碁",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-10-08T00:00:00.000",
+  "previous_close": 64.0,
+  "k1_high": 59.8,
+  "k2_high": 58.5,
+  "breakout_level": 59.8,
+  "ma20": 47.67,
+  "ma60": 45.72416666666666,
+  "ma20_prev": 46.64,
+  "vma5_lots": 2654.025,
+  "yesterday_volume_lots": 5885.406,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

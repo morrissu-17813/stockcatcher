@@ -1,6 +1,6 @@
 {
   "trade_date": "2026-10-08",
-  "latest_completed_date": "2026-10-07",
+  "latest_completed_date": "2026-10-08",
   "cache_latest_before": "2026-10-07",
   "cache_latest_after": "2026-10-07",
   "symbols_requested": 0,
@@ -47,7 +47,7 @@
   },
   "calendar": {
     "source": "finmind",
-    "fetched_at": "2026-10-08T00:35:01.611763+08:00",
+    "fetched_at": "2026-10-08T20:59:54.552442+08:00",
     "rows": 6936,
     "min_date": "1999-01-05",
     "max_date": "2026-12-31"

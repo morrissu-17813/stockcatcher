@@ -76,7 +76,6 @@ class TelegramNotifier:
         current_price = float(snapshot.get("current_price") or 0)
         up_pct = float(snapshot.get("up_pct") or 0)
         breakout_level = float(snapshot.get("breakout_level") or 0)
-        projected_volume = float(volume.get("projected_volume_lots") or 0)
         projected_ratio = self._format_ratio(volume.get("projected_ratio"))
         effective_breakout = bool(snapshot.get("effective_breakout"))
 
@@ -93,19 +92,38 @@ class TelegramNotifier:
         micro = snapshot.get("fugle_5m_confirmation") or event.get("fugle_5m_confirmation") or {}
         k3_volume_ratio = self._format_ratio(micro.get("volume_ratio"))
 
-        text = (
-            f"<b>{fire} 天機 3K {signal_level}</b>\n"
-            f"━━━━━━━━━━━━\n"
-            f"📈 標的：<a href=\"{nstock_url}\"><b>{html.escape(symbol)} {name}</b></a>\n"
-            f"💰 現價：{current_price:.1f} 📈 {up_pct:+.1f}%\n"
-            f"📊 預估量比：{projected_ratio}\n"
-            f"📐 突破基準價：{breakout_level:.1f}\n"
-            f"📒 K3突破的5分K量比：{k3_volume_ratio}\n"
-            f"🚀 有效突破：{'☑️' if effective_breakout else '⬜'}\n"
-            f"━━━━━━━━━━━━\n"
-            f"⏰ 觸發時間：{self._trigger_time(snapshot.get('observed_at') or event.get('created_at'))}\n\n"
-            f"📝 <i>{wording}，收盤後以 GROUND_TRUTH 驗證。</i>"
-        )
+        if signal_level == "EARLY":
+            structure_mark = "✔" if bool(micro.get("structure_pass")) else "✖"
+            volume_mark = "✔" if bool(micro.get("volume_pass")) else "✖"
+            text = (
+                f"<b>🟡 天機 3K EARLY</b>\n"
+                f"━━━━━━━━━━━━\n"
+                f"📈 標的：<a href=\"{nstock_url}\"><b>{html.escape(symbol)} {name}</b></a>\n"
+                f"💰 現價：{current_price:.1f} 📈 {up_pct:+.1f}%\n"
+                f"📐 突破基準價：{breakout_level:.1f}\n\n"
+                f"🔎 EARLY 觸發：\n"
+                f"🏗️ 5M 結構：{structure_mark}\n"
+                f"📊 5M 量能：{volume_mark}\n"
+                f"📒 K3突破的5分K量比：{k3_volume_ratio}\n\n"
+                f"🚀 有效突破：{'☑️' if effective_breakout else '⬜'}\n"
+                f"━━━━━━━━━━━━\n"
+                f"⏰ 觸發時間：{self._trigger_time(snapshot.get('observed_at') or event.get('created_at'))}\n\n"
+                f"📝 <i>盤中提前預警，等待 STRONG 確認。</i>"
+            )
+        else:
+            text = (
+                f"<b>{fire} 天機 3K {signal_level}</b>\n"
+                f"━━━━━━━━━━━━\n"
+                f"📈 標的：<a href=\"{nstock_url}\"><b>{html.escape(symbol)} {name}</b></a>\n"
+                f"💰 現價：{current_price:.1f} 📈 {up_pct:+.1f}%\n"
+                f"📊 預估量比：{projected_ratio}\n"
+                f"📐 突破基準價：{breakout_level:.1f}\n"
+                f"📒 K3突破的5分K量比：{k3_volume_ratio}\n"
+                f"🚀 有效突破：{'☑️' if effective_breakout else '⬜'}\n"
+                f"━━━━━━━━━━━━\n"
+                f"⏰ 觸發時間：{self._trigger_time(snapshot.get('observed_at') or event.get('created_at'))}\n\n"
+                f"📝 <i>{wording}，收盤後以 GROUND_TRUTH 驗證。</i>"
+            )
         return self.send(text)
 
     @staticmethod

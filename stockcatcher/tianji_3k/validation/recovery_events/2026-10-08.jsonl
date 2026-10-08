@@ -16,3 +16,13 @@
 {"event_type":"RADAR_COMPLETE","snapshot_count":546,"at":"2026-10-08T00:18:58.268110+08:00"}
 {"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-08T00:19:15.769096+08:00"}
 {"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-08T00:35:00.630532+08:00"}
+{"event_type":"RUN_START","phase":"BUILD_PREMARKET_POOL","at":"2026-10-08T20:59:52.087583+08:00"}
+{"event_type":"HISTORY_SYMBOLS_SKIPPED_AFTER_3_FAILURES","count":1,"symbols":["3718"],"message":"Production daily cache initialization complete with 1 skipped symbol(s) after 3 failures.","at":"2026-10-08T21:08:59.175410+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:10:19.460178+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:10:36.576076+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:10:55.593083+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:11:17.265107+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:11:36.488351+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:11:55.593998+08:00"}
+{"event_type":"RADAR_COMPLETE","snapshot_count":548,"at":"2026-10-08T21:12:15.657096+08:00"}
+{"event_type":"MANUAL_MONITOR_STOPPED","at":"2026-10-08T21:12:28.530625+08:00"}
