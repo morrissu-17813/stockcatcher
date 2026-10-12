@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "2603",
+  "name": "長榮",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 255.5,
+  "k1_high": 236.0,
+  "k2_high": 238.0,
+  "breakout_level": 238.0,
+  "ma20": 238.775,
+  "ma60": 226.36666666666667,
+  "ma20_prev": 237.7,
+  "vma5_lots": 6780.5784,
+  "yesterday_volume_lots": 6766.137,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

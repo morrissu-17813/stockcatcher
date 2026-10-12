@@ -132,8 +132,42 @@ def test_runner_trigger_reaches_fugle_and_prediction(tmp_path, monkeypatch):
     assert runner.fugle_provider.micro_calls == 0
 
     runner.poll_once()
+    # Health check and 5m confirmation now run in the worker pool. Continue
+    # polling until the completed result is consumed by the Radar thread.
+    import time
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
+        runner.poll_once()
+        if runner.fugle_provider.micro_calls >= 1:
+            predictions = list(runner.ledger.iter_predictions(runner.trade_date))
+            if predictions:
+                break
+        time.sleep(0.01)
     assert runner.fugle_provider.health_calls == 1
     assert runner.fugle_provider.micro_calls == 1
     predictions = list(runner.ledger.iter_predictions(runner.trade_date))
     assert len(predictions) == 1
     assert predictions[0]["symbol"] == "2330"
+
+
+def test_fugle_5m_bars_cache_avoids_duplicate_http_calls(monkeypatch):
+    from types import SimpleNamespace
+
+    provider = FugleProvider("key")
+    calls = {"count": 0}
+
+    class FakeResponse:
+        status_code = 200
+        def raise_for_status(self):
+            return None
+        def json(self):
+            return {"data": []}
+
+    def fake_get(*args, **kwargs):
+        calls["count"] += 1
+        return FakeResponse()
+
+    monkeypatch.setattr("tianji_3k.data.fugle.requests.get", fake_get)
+    assert provider.get_5m_bars("2330") == []
+    assert provider.get_5m_bars("2330") == []
+    assert calls["count"] == 1

@@ -114,4 +114,42 @@ def test_early_message_shows_structure_or_volume_reason(monkeypatch):
     assert "📒 K3突破的5分K量比：1.4x" in text
     assert "🚀 有效突破：☑️" in text
     assert "📝 <i>盤中提前預警，等待 STRONG 確認。</i>" in text
-    assert "📊 預估量比：" not in text
+    assert "📊 預估量比：0.8x" in text
+
+
+def test_early_mis_message_identifies_live_mis_evidence(monkeypatch):
+    notifier = TelegramNotifier(token="t", chat_id="c")
+    captured = {}
+
+    def fake_post(url, json, timeout):
+        captured.update(json)
+        class R:
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"ok": True, "result": {"message_id": 3}}
+        return R()
+
+    monkeypatch.setattr("tianji_3k.notification.telegram.requests.post", fake_post)
+    notifier.send_intraday_prediction({
+        "trade_date": "2026-10-12",
+        "trigger_snapshot": {
+            "current_price": 56.2, "up_pct": 10.0, "breakout_level": 53.0,
+            "effective_breakout": True, "signal_level": "EARLY",
+            "early_evidence_source": "MIS_LIVE", "confirmed_snapshots": 2,
+            "mis_volume_delta_lots": 120.0,
+            "observed_at": "2026-10-12T10:05:00+08:00",
+            "fugle_5m_confirmation": {},
+        },
+        "volume_snapshot": {"projected_ratio": 1.25, "volume_delta_lots": 120.0},
+        "context": {"symbol": "6668", "name": "中揚光"},
+    })
+    text = captured["text"]
+    assert "EARLY 證據：MIS 即時量價" in text
+    assert "連續快照確認：2 次" in text
+    assert "量能速度比：-" in text
+    assert "觀察窗增量：120.0 張 / 0 秒" in text
+    assert "量能基準：VMA5_DAILY_DIV_54" in text
+    assert "Fugle 5M：背景驗證中" in text
+    assert "預估量比：1.2x" in text
+

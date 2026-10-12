@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "2468",
+  "name": "華經",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 44.7,
+  "k1_high": 42.85,
+  "k2_high": 43.75,
+  "breakout_level": 43.75,
+  "ma20": 42.985,
+  "ma60": 37.163333333333334,
+  "ma20_prev": 42.3725,
+  "vma5_lots": 3702.8682,
+  "yesterday_volume_lots": 1543.949,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "6834",
+  "name": "天二科技",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 145.0,
+  "k1_high": 137.0,
+  "k2_high": 135.0,
+  "breakout_level": 137.0,
+  "ma20": 114.965,
+  "ma60": 100.615,
+  "ma20_prev": 112.76500000000001,
+  "vma5_lots": 12721.2958,
+  "yesterday_volume_lots": 18632.795,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

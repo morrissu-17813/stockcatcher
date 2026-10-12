@@ -93,22 +93,42 @@ class TelegramNotifier:
         k3_volume_ratio = self._format_ratio(micro.get("volume_ratio"))
 
         if signal_level == "EARLY":
-            structure_mark = "✔" if bool(micro.get("structure_pass")) else "✖"
-            volume_mark = "✔" if bool(micro.get("volume_pass")) else "✖"
+            evidence_source = str(snapshot.get("early_evidence_source") or "FUGLE_5M")
+            if evidence_source == "MIS_LIVE":
+                evidence_label = "MIS 即時量價"
+                evidence_lines = (
+                    f"🔎 EARLY 證據：MIS 即時量價\n"
+                    f"📈 連續快照確認：{int(snapshot.get('confirmed_snapshots') or 2)} 次\n"
+                    f"📊 量能速度比：{self._format_ratio(snapshot.get('mis_live_volume_ratio') or volume.get('live_volume_ratio'))}\n"
+                    f"📦 觀察窗增量：{float(snapshot.get('mis_volume_delta_lots') or volume.get('volume_delta_lots') or 0):.1f} 張 / "
+                    f"{float(snapshot.get('mis_volume_window_seconds') or volume.get('live_volume_window_seconds') or 0):.0f} 秒\n"
+                    f"📐 量能基準：{html.escape(str(snapshot.get('mis_volume_baseline_source') or volume.get('live_volume_baseline_source') or 'VMA5_DAILY_DIV_54'))}\n"
+                    f"🏗️ Fugle 5M：背景驗證中"
+                )
+                footer = "MIS 即時量價先行預警，Fugle 5M 持續補充證據。"
+            else:
+                evidence_label = "Fugle 已完成 5M K"
+                structure_mark = "✔" if bool(micro.get("structure_pass")) else "✖"
+                volume_mark = "✔" if bool(micro.get("volume_pass")) else "✖"
+                evidence_lines = (
+                    f"🔎 EARLY 證據：{evidence_label}\n"
+                    f"🏗️ 5M 結構：{structure_mark}\n"
+                    f"📊 5M 量能：{volume_mark}\n"
+                    f"📒 K3突破的5分K量比：{k3_volume_ratio}"
+                )
+                footer = "盤中提前預警，等待 STRONG 確認。"
             text = (
                 f"<b>🟡 天機 3K EARLY</b>\n"
                 f"━━━━━━━━━━━━\n"
                 f"📈 標的：<a href=\"{nstock_url}\"><b>{html.escape(symbol)} {name}</b></a>\n"
                 f"💰 現價：{current_price:.1f} 📈 {up_pct:+.1f}%\n"
+                f"📊 預估量比：{projected_ratio}\n"
                 f"📐 突破基準價：{breakout_level:.1f}\n\n"
-                f"🔎 EARLY 觸發：\n"
-                f"🏗️ 5M 結構：{structure_mark}\n"
-                f"📊 5M 量能：{volume_mark}\n"
-                f"📒 K3突破的5分K量比：{k3_volume_ratio}\n\n"
+                f"{evidence_lines}\n\n"
                 f"🚀 有效突破：{'☑️' if effective_breakout else '⬜'}\n"
                 f"━━━━━━━━━━━━\n"
                 f"⏰ 觸發時間：{self._trigger_time(snapshot.get('observed_at') or event.get('created_at'))}\n\n"
-                f"📝 <i>盤中提前預警，等待 STRONG 確認。</i>"
+                f"📝 <i>{footer}</i>"
             )
         else:
             text = (

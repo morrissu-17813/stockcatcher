@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "4938",
+  "name": "和碩",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 98.6,
+  "k1_high": 90.1,
+  "k2_high": 90.1,
+  "breakout_level": 90.1,
+  "ma20": 90.53,
+  "ma60": 89.095,
+  "ma20_prev": 90.155,
+  "vma5_lots": 4617.6774,
+  "yesterday_volume_lots": 4938.548,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

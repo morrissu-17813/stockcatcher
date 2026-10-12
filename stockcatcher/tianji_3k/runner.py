@@ -5,6 +5,7 @@ import json
 import subprocess
 import sys
 import time
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime, time as dtime, timezone, timedelta
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from .data.mis import MISProvider
 from .core.snapshot import build_snapshot
 from .core.state_machine import IntradayStateMachine
 from .core.volume_predictor import IntradayVolumePredictor
+from .core.mis_live_volume import MISLiveVolumeEstimator
 from .core.prediction_score import IntradayPredictionScorer
 from .core.simulator import IntradaySimulator
 from .data.snapshot_filter import SnapshotUniverseFilter
@@ -70,6 +72,8 @@ class TianjiProductionRunner:
         self.ground_truth: list[dict] = []
         self.validation_rows: list[dict] = []
         self.volume_predictor = IntradayVolumePredictor()
+        # In-memory only: EARLY-MIS volume estimation must never call a history API.
+        self.mis_live_volume = MISLiveVolumeEstimator()
         self.prediction_scorer = IntradayPredictionScorer()
         self.mis_provider = None
         self.session = TradingSession()
@@ -95,8 +99,17 @@ class TianjiProductionRunner:
         self.dynamic_discovery_config = DynamicDiscoveryConfig()
         self._next_radar_deadline = 0.0
         self._fugle_health_checked = False
+        self._fugle_health_future: Future | None = None
         self._fugle_health_status = "NOT_CHECKED"
         self._fugle_pending: dict[str, str] = {}
+        # Fugle runs off the Radar thread so a slow stock cannot block updates
+        # for the rest of the market. Futures are consumed only by poll_once.
+        self._fugle_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="tianji-fugle")
+        self._fugle_futures: dict[str, Future] = {}
+        self._fugle_last_attempt: dict[str, float] = {}
+        self._latest_snapshots: dict[str, object] = {}
+        self._latest_snapshot_received_at: dict[str, float] = {}
+        self._fugle_retry_seconds = 30.0
 
     @staticmethod
     def _today() -> str:
@@ -539,6 +552,255 @@ class TianjiProductionRunner:
         print(f"✅ RADAR ACTIVE | 下一次監控約 {MIS_INTERVAL_SECONDS} 秒", flush=True)
         print("=" * 96, flush=True)
 
+    def _timed_fugle_evaluate(self, symbol: str):
+        started = time.monotonic()
+        print(f"🔵 FUGLE 5M REQUEST | {symbol} | timeframe=5 | mode=ASYNC", flush=True)
+        try:
+            result = self.fugle_provider.evaluate_3k_micro_breakout(symbol, min_volume_ratio=1.05)
+            return result
+        finally:
+            elapsed_ms = (time.monotonic() - started) * 1000
+            print(f"⏱️ FUGLE REQUEST TIMING | {symbol} | elapsed_ms={elapsed_ms:.1f}", flush=True)
+
+    def _finalize_mis_early(self, sid: str, ctx: dict, snap, previous_snap=None):
+        """Send EARLY from MIS price + lightweight live-volume pace evidence.
+
+        The estimator uses only current MIS cumulative-volume snapshots and the
+        already-loaded daily VMA5. It never requests Fugle/history data. The
+        first valid alert waits for a 45-90s observation window to avoid treating
+        a single small volume tick as meaningful acceleration.
+        """
+        sm = self.states.setdefault(sid, IntradayStateMachine())
+        received_age = time.monotonic() - self._latest_snapshot_received_at.get(sid, 0.0)
+        if received_age > 45.0:
+            return
+
+        effective = snap.current_price >= float(ctx["breakout_level"]) * (1 + BREAKOUT_BUFFER_PCT / 100)
+        live_valid = (
+            snap.is_traded and snap.current_price > snap.today_open
+            and snap.up_pct >= 4.0 and effective
+            and snap.previous_close > 0 and snap.today_open > 0
+        )
+        if not live_valid:
+            print(f"🟡 EARLY MIS WAIT | {sid} | live_valid=False", flush=True)
+            return
+
+        estimator = getattr(self, "mis_live_volume", None)
+        if estimator is None:
+            estimator = MISLiveVolumeEstimator()
+            self.mis_live_volume = estimator
+        volume_evidence = estimator.observe(
+            sid, snap.observed_at, snap.cumulative_volume_lots, float(ctx.get("vma5_lots") or 0.0)
+        )
+        if not volume_evidence["pass"]:
+            print(
+                f"🟡 EARLY MIS VOLUME WAIT | {sid} | ready={volume_evidence['ready']} "
+                f"| reason={volume_evidence['reason']} | window_s={volume_evidence['window_seconds']:.1f} "
+                f"| delta_lots={volume_evidence['volume_delta_lots']:.1f} "
+                f"| live_ratio={volume_evidence['live_volume_ratio']}", flush=True,
+            )
+            return
+
+        prior_predictions = list(self.ledger.iter_predictions(ctx["trade_date"]))
+        already_created = any(
+            e.get("symbol") == sid
+            and str(e.get("trigger_snapshot", {}).get("signal_level", "")).upper() == "EARLY"
+            and str(e.get("trigger_snapshot", {}).get("early_evidence_source", "")) == "MIS_LIVE"
+            for e in prior_predictions
+        )
+        if already_created:
+            return
+
+        projection = self.volume_predictor.project(
+            snap.cumulative_volume_lots, self._as_datetime(snap.observed_at), ctx["vma5_lots"]
+        )
+        projected_ratio = projection.projected_ratio
+        trigger = {
+            **snap.to_dict(), "k1_high": ctx["k1_high"], "k2_high": ctx["k2_high"],
+            "breakout_level": ctx["breakout_level"], "effective_breakout": effective,
+            "volume_prediction_pass": True, "fugle_5m_confirmation": {},
+            "early_evidence_source": "MIS_LIVE", "signal_level": "EARLY",
+            "confirmed_snapshots": 2,
+            "mis_volume_delta_lots": volume_evidence["volume_delta_lots"],
+            "mis_live_volume_ratio": volume_evidence["live_volume_ratio"],
+            "mis_volume_window_seconds": volume_evidence["window_seconds"],
+            "mis_volume_expected_lots": volume_evidence["expected_volume_lots"],
+            "mis_volume_baseline_source": volume_evidence["baseline_source"],
+            "mis_volume_required_ratio": volume_evidence["required_ratio"],
+            "state": sm.state.value,
+        }
+        vol = {
+            "cumulative_volume_lots": snap.cumulative_volume_lots,
+            "volume_delta_lots": volume_evidence["volume_delta_lots"],
+            "live_volume_ratio": volume_evidence["live_volume_ratio"],
+            "live_volume_window_seconds": volume_evidence["window_seconds"],
+            "live_volume_expected_lots": volume_evidence["expected_volume_lots"],
+            "live_volume_baseline_5m_lots": volume_evidence["baseline_5m_lots"],
+            "live_volume_baseline_source": volume_evidence["baseline_source"],
+            "live_volume_required_ratio": volume_evidence["required_ratio"],
+            "elapsed_minutes": projection.elapsed_minutes,
+            "projected_volume_lots": projection.projected_volume_lots,
+            "projected_ratio": projected_ratio, "baseline_start": projection.baseline_start,
+            "baseline_end": projection.baseline_end, "vma5_lots": ctx["vma5_lots"],
+            "projection_ready": projection.ready, "signal_level": "EARLY",
+            "early_evidence_source": "MIS_LIVE",
+        }
+        score = self.prediction_scorer.score(
+            context=ctx, current_price=snap.current_price, up_pct=snap.up_pct,
+            projected_ratio=projected_ratio, effective_breakout=effective, confirmed_snapshots=2,
+        )
+        trigger["prediction_score"] = score.total
+        trigger["prediction_score_breakdown"] = score.to_dict()
+        vol["prediction_score_volume_component"] = score.volume
+        gate = evaluate_intraday_notification(snap.up_pct).to_dict()
+        event = self.ledger.create_prediction(ctx, trigger, vol, gate)
+        self.events.append(event)
+        print(
+            f"🟡 INTRADAY_3K_PREDICTION | {sid} | level=EARLY | evidence=MIS_LIVE "
+            f"| price={snap.current_price:.2f} | breakout={ctx['breakout_level']:.2f} "
+            f"| volume_delta_lots={volume_evidence['volume_delta_lots']:.1f} "
+            f"| live_volume_ratio={volume_evidence['live_volume_ratio']:.2f}x "
+            f"| window_s={volume_evidence['window_seconds']:.1f} | projected_ratio={projected_ratio}",
+            flush=True,
+        )
+        if gate["should_send"] and self.notifier.enabled:
+            result = self.notifier.send_intraday_prediction(event)
+            status = result.get("status", "FAILED")
+            self._record_notification(
+                event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
+                message_id=result.get("message_id"), prediction_id=event["prediction_id"],
+                symbol=sid, up_pct=snap.up_pct,
+            )
+            self.ledger.append_event(ctx["trade_date"], sid, {
+                "event_type": "NOTIFICATION", "prediction_id": event["prediction_id"],
+                "notification_status": status, "telegram_message_id": result.get("message_id"),
+                "sent_at": datetime.now(TAIPEI).isoformat(), "snapshot_id": snap.snapshot_id,
+                "current_price": snap.current_price, "signal_level": "EARLY",
+                "early_evidence_source": "MIS_LIVE",
+                "mis_live_volume_ratio": volume_evidence["live_volume_ratio"],
+            })
+        else:
+            status = "SUPPRESSED" if not gate["should_send"] else "DISABLED"
+            self._record_notification(
+                event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
+                prediction_id=event["prediction_id"], symbol=sid, up_pct=snap.up_pct,
+            )
+        self._save_runtime_state()
+
+    def _finalize_fugle_result(self, sid: str, ctx: dict, snap, micro):
+        """Finalize a completed 5M result against the newest MIS quote."""
+        sm = self.states.setdefault(sid, IntradayStateMachine())
+        snapshot_age = time.monotonic() - self._latest_snapshot_received_at.get(sid, 0.0)
+        if snapshot_age > 45.0:
+            print(f"🟡 SIGNAL WAITING FOR FRESH MIS | {sid} | snapshot_age_s={snapshot_age:.1f} | no stale-price notification", flush=True)
+            self.ledger.append_event(ctx["trade_date"], sid, {
+                "event_type": "SIGNAL_WAITING_FOR_FRESH_MIS",
+                "observed_at": datetime.now(TAIPEI).isoformat(),
+                "snapshot_age_seconds": round(snapshot_age, 2),
+            })
+            return
+        if not micro:
+            print(f"🟡 FUGLE 5M REJECT | {sid} | micro confirmation not met | ACTION=RETRY", flush=True)
+            self.ledger.append_event(ctx["trade_date"], sid, {
+                "event_type": "FUGLE_5M_CONFIRMATION_REJECTED",
+                "observed_at": snap.observed_at,
+                "reason": "5M_BREAKOUT_OR_VOLUME_NOT_CONFIRMED",
+                "snapshot_id": snap.snapshot_id,
+            })
+            return
+
+        micro_ratio = float(micro.get("volume_ratio") or 0.0)
+        micro_structure = bool(micro.get("structure_pass") if "structure_pass" in micro else float(micro.get("close") or 0.0) > float(micro.get("breakout_price") or 0.0))
+        micro_volume = bool(micro.get("volume_pass") if "volume_pass" in micro else micro_ratio >= 1.05)
+        micro_pass = micro_structure or micro_volume
+        micro_strong = micro_structure and micro_volume and micro_ratio >= 1.20
+        print(
+            f"🟢 FUGLE 5M SUCCESS | {sid} | bars_used={micro.get('bars_used')} "
+            f"| structure={'✔' if micro_structure else '✖'} | volume={'✔' if micro_volume else '✖'} "
+            f"| volume_ratio={micro_ratio:.2f}x | price_source=LATEST_MIS:{snap.current_price:.2f}",
+            flush=True,
+        )
+        # EARLY is intentionally not gated by projected volume; the volume
+        # projection is retained as displayed evidence and STRONG upgrade input.
+        if not micro_pass:
+            return
+
+        # Do not notify from a stale price that no longer meets the live gate.
+        effective = snap.current_price >= float(ctx["breakout_level"]) * (1 + BREAKOUT_BUFFER_PCT / 100)
+        live_valid = snap.current_price > snap.today_open and snap.up_pct >= 4.0 and effective and snap.is_traded
+        if not live_valid:
+            print(f"🟡 SIGNAL NOT SENT | {sid} | latest MIS no longer meets live breakout gate | price={snap.current_price:.2f}", flush=True)
+            self.ledger.append_event(ctx["trade_date"], sid, {
+                "event_type": "SIGNAL_SUPPRESSED_STALE_TRIGGER",
+                "observed_at": snap.observed_at, "snapshot_id": snap.snapshot_id,
+                "current_price": snap.current_price, "breakout_level": ctx["breakout_level"],
+            })
+            return
+
+        projection = self.volume_predictor.project(snap.cumulative_volume_lots, self._as_datetime(snap.observed_at), ctx["vma5_lots"])
+        projected_ratio = projection.projected_ratio
+        projected_strong = projected_ratio is not None and projected_ratio >= 1.50
+        projected_early = projected_ratio is not None and projected_ratio >= 1.30
+        trigger = {
+            **snap.to_dict(), "k1_high": ctx["k1_high"], "k2_high": ctx["k2_high"],
+            "breakout_level": ctx["breakout_level"], "effective_breakout": effective,
+            "volume_prediction_pass": projected_early, "fugle_5m_confirmation": micro,
+            "early_evidence_source": "FUGLE_5M",
+            "state": sm.state.value, "confirmed_snapshots": 2,
+            "trigger_to_finalize_ms": max(0.0, (datetime.now(TAIPEI) - self._as_datetime(snap.observed_at)).total_seconds() * 1000),
+        }
+        vol = {
+            "cumulative_volume_lots": snap.cumulative_volume_lots,
+            "elapsed_minutes": projection.elapsed_minutes, "projected_volume_lots": projection.projected_volume_lots,
+            "projected_ratio": projected_ratio, "baseline_start": projection.baseline_start,
+            "baseline_end": projection.baseline_end, "vma5_lots": ctx["vma5_lots"],
+            "projection_ready": projection.ready,
+        }
+        strong_evidence = micro_structure and micro_volume and projected_early
+        score = self.prediction_scorer.score(context=ctx, current_price=snap.current_price, up_pct=snap.up_pct,
+            projected_ratio=projected_ratio, effective_breakout=effective, confirmed_snapshots=2)
+        signal_level = "MOMENTUM" if (float(snap.up_pct) >= 9.5 and micro_strong and projected_strong) else ("STRONG" if strong_evidence else "EARLY")
+        trigger["signal_level"] = signal_level
+        vol["signal_level"] = signal_level
+        trigger["prediction_score"] = score.total
+        trigger["prediction_score_breakdown"] = score.to_dict()
+        vol["prediction_score_volume_component"] = score.volume
+        gate = evaluate_intraday_notification(snap.up_pct).to_dict()
+        existing = self.ledger.find_prediction_by_snapshot(ctx["trade_date"], sid, snap.snapshot_id)
+        if existing is not None:
+            return
+        prior_predictions = self.ledger.iter_predictions(ctx["trade_date"])
+        evidence_source = str(trigger.get("early_evidence_source", "FUGLE_5M"))
+        already_sent_level = any(
+            e.get("symbol") == sid
+            and str(e.get("trigger_snapshot", {}).get("signal_level", "")).upper() == signal_level
+            and str(e.get("trigger_snapshot", {}).get("early_evidence_source", "FUGLE_5M")) == evidence_source
+            and self.ledger.notification_status(ctx["trade_date"], sid, e.get("prediction_id")) == "SENT"
+            for e in prior_predictions
+        )
+        if already_sent_level:
+            return
+        event = self.ledger.create_prediction(ctx, trigger, vol, gate)
+        self.events.append(event)
+        print(f"🟡 INTRADAY_3K_PREDICTION | {sid} | level={signal_level} | price={snap.current_price:.2f} | breakout={ctx['breakout_level']:.2f} | projected_ratio={projected_ratio}", flush=True)
+        if gate["should_send"] and self.notifier.enabled:
+            result = self.notifier.send_intraday_prediction(event)
+            status = result.get("status", "FAILED")
+            self._record_notification(event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
+                message_id=result.get("message_id"), prediction_id=event["prediction_id"], symbol=sid, up_pct=snap.up_pct)
+            self.ledger.append_event(ctx["trade_date"], sid, {"event_type":"NOTIFICATION", "prediction_id":event["prediction_id"],
+                "notification_status":status, "telegram_message_id":result.get("message_id"),
+                "sent_at":datetime.now(TAIPEI).isoformat(), "snapshot_id":snap.snapshot_id,
+                "current_price":snap.current_price, "signal_level":signal_level})
+        else:
+            status = "SUPPRESSED" if not gate["should_send"] else "DISABLED"
+            self._record_notification(event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
+                prediction_id=event["prediction_id"], symbol=sid, suppression_reason=gate.get("suppression_reason"), up_pct=snap.up_pct)
+            self.ledger.append_event(ctx["trade_date"], sid, {"event_type":"NOTIFICATION", "prediction_id":event["prediction_id"],
+                "notification_status":status, "suppression_reason":gate.get("suppression_reason"), "current_price":snap.current_price})
+        self._fugle_pending.pop(sid, None)
+        self._save_runtime_state()
+
     def poll_once(self):
         # If the premarket lifecycle has already been built and the resulting
         # pool is empty, do not rebuild it on every Radar cycle.  Rebuilding
@@ -578,50 +840,76 @@ class TianjiProductionRunner:
             self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_ERROR", **err, "at":datetime.now(TAIPEI).isoformat()})
             return 0
 
-        if not self._fugle_health_checked and self.contexts:
+        # Health checks are also asynchronous: a startup probe must never hold
+        # the Radar thread while the market is moving.
+        if not self._fugle_health_checked and self.contexts and self._fugle_health_future is None:
             probe_symbol = next(iter(self.contexts))
+            print(f"🔵 FUGLE HEALTH CHECK QUEUED | symbol={probe_symbol} | timeframe=5", flush=True)
+            self._fugle_health_future = self._fugle_executor.submit(self.fugle_provider.check_5m_access, probe_symbol)
+        if self._fugle_health_future is not None and self._fugle_health_future.done():
+            future = self._fugle_health_future
+            self._fugle_health_future = None
             try:
-                print(f"🔵 FUGLE HEALTH CHECK | symbol={probe_symbol} | timeframe=5", flush=True)
-                result = self.fugle_provider.check_5m_access(probe_symbol)
+                result = future.result()
                 self._fugle_health_status = "OK" if result.get("ok") else str(result.get("status"))
                 print(f"🟢 FUGLE HEALTH CHECK | status={self._fugle_health_status} | bars={result.get('bars', 0)}", flush=True)
             except FugleAPIError as exc:
                 self._fugle_health_status = f"HTTP_{exc.status_code or 'ERROR'}"
                 print(f"🔴 FUGLE HEALTH CHECK | status={self._fugle_health_status} | symbol={exc.symbol} | {exc.message} | RADAR=CONTINUE", flush=True)
+            except Exception as exc:
+                self._fugle_health_status = f"ERROR_{type(exc).__name__}"
+                print(f"🔴 FUGLE HEALTH CHECK | status={self._fugle_health_status} | {str(exc)[:200]} | RADAR=CONTINUE", flush=True)
             finally:
                 self._fugle_health_checked = True
                 self._save_runtime_state()
 
-        dynamic_candidates = self._dynamic_candidate_gate(raw, self.universe_cache)
-        added = self._enrich_dynamic_candidates(dynamic_candidates)
-        if added:
-            self._save_dynamic_candidates()
-            rows = self._radar_rows()
-        print(
-            f"🧭 DYNAMIC DISCOVERY | candidates={len(dynamic_candidates)} "
-            f"| enriched={added} | active={len(self.dynamic_contexts)} "
-            f"| history_budget/cycle={self.dynamic_discovery_config.max_history_enrich_per_cycle}",
-            flush=True,
-        )
         self._print_radar_monitor(raw, rows)
 
+        radar_started = time.monotonic()
+        fugle_candidates: set[str] = set()
+        state_update_started = time.monotonic()
+
+        # Phase A: update every stock from this MIS snapshot before doing any
+        # Fugle work. This is the key non-blocking guarantee for WATCHING,
+        # BREAKOUT_PENDING, TRIGGERED and cooldown states.
         for sid, ctx in list(self.contexts.items()):
             r = raw.get(sid)
             if not r:
                 continue
-            snap = build_snapshot(sid, r, ctx["name"], ctx["market"], "COMMON_STOCK")
+            try:
+                snap = build_snapshot(sid, r, ctx["name"], ctx["market"], "COMMON_STOCK")
+            except (TypeError, ValueError, KeyError) as exc:
+                print(f"🟡 MIS SNAPSHOT INVALID | {sid} | {type(exc).__name__}: {exc}", flush=True)
+                continue
+            if snap.current_price <= 0 or snap.previous_close <= 0 or not snap.is_traded:
+                # Invalid/no-trade quote must not overwrite last valid price or
+                # transition the state machine to INVALIDATED.
+                print(f"🟡 MIS SNAPSHOT SKIP | {sid} | invalid/no-trade price", flush=True)
+                continue
+            previous_snap = self._latest_snapshots.get(sid)
+            self._latest_snapshots[sid] = snap
+            self._latest_snapshot_received_at[sid] = time.monotonic()
+            # Warm the lightweight volume window continuously for monitored
+            # symbols, so a breakout does not have to wait another 45-90s to
+            # accumulate its first estimator window. This is memory-only work.
+            estimator = getattr(self, "mis_live_volume", None)
+            if estimator is not None:
+                try:
+                    estimator.observe(sid, snap.observed_at, snap.cumulative_volume_lots, float(ctx.get("vma5_lots") or 0.0))
+                except (TypeError, ValueError):
+                    pass
             sm = self.states.setdefault(sid, IntradayStateMachine())
-
-            # First confirm price breakout using two distinct MIS data identities.
             triggered, reason = sm.evaluate(
                 snap, ctx["breakout_level"], 4.0, BREAKOUT_BUFFER_PCT
             )
             if reason == "DUPLICATE_SNAPSHOT":
+                # Latest quote is still stored above, but duplicate identity
+                # cannot advance the state machine or count as confirmation.
+                if sm.state.value == "TRIGGERED" and sid in self._fugle_pending:
+                    fugle_candidates.add(sid)
                 continue
-
             if reason == "TRIGGER_INVALIDATED":
                 self._fugle_pending.pop(sid, None)
-
             self.ledger.append_event(ctx["trade_date"], sid, {
                 "event_type": "RADAR_STATE",
                 "observed_at": snap.observed_at,
@@ -629,12 +917,8 @@ class TianjiProductionRunner:
                 "reason": reason,
                 "snapshot_id": snap.snapshot_id,
                 "data_identity": snap.data_identity,
+                "current_price": snap.current_price,
             })
-            self._save_runtime_state()
-
-            # A fresh trigger starts Fugle confirmation. If the confirmation
-            # failed previously (401/network/insufficient 5m bars), keep it
-            # pending and retry without re-arming the price state machine.
             if triggered:
                 self._fugle_pending[sid] = self._iso_timestamp(snap.observed_at)
                 print(
@@ -642,190 +926,101 @@ class TianjiProductionRunner:
                     f"| breakout={ctx['breakout_level']:.2f} | snapshot={snap.snapshot_id}",
                     flush=True,
                 )
-                self._save_runtime_state()
-            elif not (sm.state.value == "TRIGGERED" and sid in self._fugle_pending):
-                continue
+                fugle_candidates.add(sid)
+                self._finalize_mis_early(sid, ctx, snap, previous_snap)
+            elif sm.state.value == "TRIGGERED" and sid in self._fugle_pending:
+                fugle_candidates.add(sid)
+                self._finalize_mis_early(sid, ctx, snap, previous_snap)
 
+        state_update_ms = (time.monotonic() - state_update_started) * 1000
+        print(
+            f"⏱️ RADAR PHASE | state_update_ms={state_update_ms:.1f} "
+            f"| latest_snapshots={len(self._latest_snapshots)} | fugle_inflight={len(self._fugle_futures)}",
+            flush=True,
+        )
+
+        # Phase B: consume completed Fugle jobs. Use the newest valid MIS
+        # snapshot, not the snapshot captured before the HTTP request began.
+        for sid, future in list(self._fugle_futures.items()):
+            if not future.done():
+                continue
+            self._fugle_futures.pop(sid, None)
+            ctx = self.contexts.get(sid)
+            if not ctx:
+                continue
             try:
-                print(f"🔵 FUGLE 5M REQUEST | {sid} | timeframe=5", flush=True)
-                micro = self.fugle_provider.evaluate_3k_micro_breakout(sid, min_volume_ratio=1.05)
+                micro = future.result()
             except FugleAPIError as exc:
                 print(f"🔴 FUGLE 5M ERROR | {sid} | HTTP={exc.status_code or 'N/A'} | {exc.message} | ACTION=RETRY", flush=True)
                 self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "FUGLE_5M_ERROR",
-                    "observed_at": snap.observed_at,
-                    "status_code": exc.status_code,
-                    "reason": exc.message,
-                    "snapshot_id": snap.snapshot_id,
+                    "event_type": "FUGLE_5M_ERROR", "observed_at": datetime.now(TAIPEI).isoformat(),
+                    "status_code": exc.status_code, "reason": exc.message,
                 })
                 self._save_runtime_state()
                 continue
             except Exception as exc:
-                # Fugle confirmation is an external dependency. Unexpected
-                # adapter/runtime errors must degrade this symbol only; the
-                # MIS Radar cycle must remain alive and the pending trigger
-                # must remain durable for the next retry.
                 print(f"🔴 FUGLE 5M UNEXPECTED ERROR | {sid} | {type(exc).__name__} | {str(exc)[:300]} | ACTION=RETRY", flush=True)
                 self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "FUGLE_5M_ERROR",
-                    "observed_at": snap.observed_at,
-                    "status_code": None,
-                    "reason": f"{type(exc).__name__}: {str(exc)[:300]}",
-                    "snapshot_id": snap.snapshot_id,
+                    "event_type": "FUGLE_5M_ERROR", "observed_at": datetime.now(TAIPEI).isoformat(),
+                    "status_code": None, "reason": f"{type(exc).__name__}: {str(exc)[:300]}",
                 })
                 self._save_runtime_state()
                 continue
-
-            if not micro:
-                print(f"🟡 FUGLE 5M REJECT | {sid} | micro confirmation not met | ACTION=RETRY", flush=True)
-                self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "FUGLE_5M_CONFIRMATION_REJECTED",
-                    "observed_at": snap.observed_at,
-                    "reason": "5M_BREAKOUT_OR_VOLUME_NOT_CONFIRMED",
-                    "snapshot_id": snap.snapshot_id,
-                })
-                self._save_runtime_state()
+            latest = self._latest_snapshots.get(sid)
+            if latest is None:
+                print(f"🟡 FUGLE RESULT STALE | {sid} | no latest MIS snapshot", flush=True)
                 continue
-
-            micro_ratio = float(micro.get("volume_ratio") or 0.0)
-            micro_structure = bool(
-                micro.get("structure_pass")
-                if "structure_pass" in micro
-                else float(micro.get("close") or 0.0) > float(micro.get("breakout_price") or 0.0)
-            )
-            micro_volume = bool(
-                micro.get("volume_pass")
-                if "volume_pass" in micro
-                else micro_ratio >= 1.05
-            )
-            micro_pass = micro_structure or micro_volume
-            micro_strong = micro_structure and micro_volume and micro_ratio >= 1.20
-            print(
-                f"🟢 FUGLE 5M SUCCESS | {sid} | bars_used={micro.get('bars_used')} "
-                f"| structure={'✔' if micro_structure else '✖'} "
-                f"| volume={'✔' if micro_volume else '✖'} "
-                f"| volume_ratio={micro_ratio:.2f}x",
-                flush=True,
-            )
-
-            projection = self.volume_predictor.project(
-                snap.cumulative_volume_lots,
-                self._as_datetime(snap.observed_at),
-                ctx["vma5_lots"],
-            )
-            projected_ratio = projection.projected_ratio
-            projected_strong = projected_ratio is not None and projected_ratio >= 1.50
-            projected_early = projected_ratio is not None and projected_ratio >= 1.30
-            volume_ratio_ok = projected_strong or projected_early
-            effective = snap.current_price >= ctx["breakout_level"] * (
-                1 + BREAKOUT_BUFFER_PCT / 100
-            )
-
-            trigger = {
-                **snap.to_dict(),
-                "k1_high": ctx["k1_high"],
-                "k2_high": ctx["k2_high"],
-                "breakout_level": ctx["breakout_level"],
-                "effective_breakout": effective,
-                "volume_prediction_pass": projected_early,
-                "fugle_5m_confirmation": micro,
-                "state": sm.state.value,
-                "confirmed_snapshots": sm.pending_count if sm.state.value == "BREAKOUT_PENDING" else 2,
-            }
-            vol = {
-                "cumulative_volume_lots": snap.cumulative_volume_lots,
-                "elapsed_minutes": projection.elapsed_minutes,
-                "projected_volume_lots": projection.projected_volume_lots,
-                "projected_ratio": projection.projected_ratio,
-                "baseline_start": projection.baseline_start,
-                "baseline_end": projection.baseline_end,
-                "vma5_lots": ctx["vma5_lots"],
-                "projection_ready": projection.ready,
-            }
-
-            # EARLY is intentionally not gated by projected volume.
-            # It exists to catch the first actionable 5m evidence: structure OR volume.
-            # STRONG requires both 5m structure + 5m volume and projected volume >=1.30x.
-            early_evidence = micro_pass
-            strong_evidence = micro_structure and micro_volume and projected_early
-            if not early_evidence:
+            # A trigger that has already invalidated must not be resurrected by
+            # a delayed Fugle response. Newest quote remains the source of price.
+            if self.states.get(sid) and self.states[sid].state.value != "TRIGGERED":
+                print(f"🟡 FUGLE RESULT DISCARDED | {sid} | state={self.states[sid].state.value}", flush=True)
                 continue
+            self._finalize_fugle_result(sid, ctx, latest, micro)
 
-            score = self.prediction_scorer.score(
-                context=ctx,
-                current_price=snap.current_price,
-                up_pct=snap.up_pct,
-                projected_ratio=projection.projected_ratio,
-                effective_breakout=effective,
-                confirmed_snapshots=2,
-            )
-            signal_level = (
-                "MOMENTUM" if (float(snap.up_pct) >= 9.5 and micro_strong and projected_strong)
-                else ("STRONG" if strong_evidence else "EARLY")
-            )
-            trigger["signal_level"] = signal_level
-            vol["signal_level"] = signal_level
-            trigger["prediction_score"] = score.total
-            trigger["prediction_score_breakdown"] = score.to_dict()
-            vol["prediction_score_volume_component"] = score.volume
-
-            gate = evaluate_intraday_notification(snap.up_pct).to_dict()
-            existing = self.ledger.find_prediction_by_snapshot(ctx["trade_date"], sid, snap.snapshot_id)
-            if existing is not None:
+        # Phase C: schedule new/retry confirmations. Never wait for them here;
+        # next MIS Radar cycle can begin on time while these requests are in flight.
+        schedule_started = time.monotonic()
+        now_mono = time.monotonic()
+        for sid in sorted(fugle_candidates):
+            if sid in self._fugle_futures or sid not in self._fugle_pending:
                 continue
-
-            # One Telegram notification per signal level per symbol/day.
-            # EARLY may later upgrade to STRONG/MOMENTUM, so different levels
-            # remain independently notify-able. Failed notifications are left
-            # in the ledger for the existing reconciliation path.
-            prior_predictions = self.ledger.iter_predictions(ctx["trade_date"])
-            already_sent_level = any(
-                e.get("symbol") == sid
-                and str(e.get("trigger_snapshot", {}).get("signal_level", "")).upper() == signal_level
-                and self.ledger.notification_status(ctx["trade_date"], sid, e.get("prediction_id")) == "SENT"
-                for e in prior_predictions
-            )
-            if already_sent_level:
+            last_attempt = self._fugle_last_attempt.get(sid, 0.0)
+            if now_mono - last_attempt < self._fugle_retry_seconds:
                 continue
+            self._fugle_last_attempt[sid] = now_mono
+            snap = self._latest_snapshots.get(sid)
+            snapshot_id = getattr(snap, "snapshot_id", "N/A")
+            print(f"🔵 FUGLE 5M QUEUED | {sid} | snapshot={snapshot_id} | workers=4", flush=True)
+            self._fugle_futures[sid] = self._fugle_executor.submit(
+                self._timed_fugle_evaluate, sid
+            )
+        schedule_ms = (time.monotonic() - schedule_started) * 1000
 
-            event = self.ledger.create_prediction(ctx, trigger, vol, gate)
-            self.events.append(event)
-
-            if gate["should_send"] and self.notifier.enabled:
-                result = self.notifier.send_intraday_prediction(event)
-                self._record_notification(
-                    event_type="INTRADAY_3K_PREDICTION_NOTIFICATION",
-                    status=result.get("status", "FAILED"),
-                    message_id=result.get("message_id"),
-                    prediction_id=event["prediction_id"],
-                    symbol=sid,
-                    up_pct=snap.up_pct,
-                )
-                self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "NOTIFICATION",
-                    "prediction_id": event["prediction_id"],
-                    "notification_status": result.get("status"),
-                    "telegram_message_id": result.get("message_id"),
-                    "sent_at": datetime.now(TAIPEI).isoformat(),
-                })
-            else:
-                status = "SUPPRESSED" if not gate["should_send"] else "DISABLED"
-                self._record_notification(
-                    event_type="INTRADAY_3K_PREDICTION_NOTIFICATION",
-                    status=status,
-                    prediction_id=event["prediction_id"],
-                    symbol=sid,
-                    suppression_reason=gate.get("suppression_reason"),
-                    up_pct=snap.up_pct,
-                )
-                self.ledger.append_event(ctx["trade_date"], sid, {
-                    "event_type": "NOTIFICATION",
-                    "prediction_id": event["prediction_id"],
-                    "notification_status": status,
-                    "suppression_reason": gate.get("suppression_reason"),
-                })
-            self._fugle_pending.pop(sid, None)
-            self._save_runtime_state()
+        # Dynamic discovery/history enrichment runs only after the current
+        # market snapshot has updated all existing states and pending Fugle
+        # work has been serviced. It can no longer delay this cycle's quote
+        # updates or a ready-to-send notification.
+        discovery_started = time.monotonic()
+        dynamic_candidates = self._dynamic_candidate_gate(raw, self.universe_cache)
+        added = self._enrich_dynamic_candidates(dynamic_candidates)
+        if added:
+            self._save_dynamic_candidates()
+        discovery_ms = (time.monotonic() - discovery_started) * 1000
+        print(
+            f"🧭 DYNAMIC DISCOVERY | candidates={len(dynamic_candidates)} "
+            f"| enriched={added} | active={len(self.dynamic_contexts)} "
+            f"| history_budget/cycle={self.dynamic_discovery_config.max_history_enrich_per_cycle} "
+            f"| elapsed_ms={discovery_ms:.1f}",
+            flush=True,
+        )
+        cycle_ms = (time.monotonic() - radar_started) * 1000
+        print(
+            f"⏱️ RADAR TIMING | state_update_ms={state_update_ms:.1f} "
+            f"| fugle_schedule_ms={schedule_ms:.1f} | cycle_ms={cycle_ms:.1f} "
+            f"| fugle_inflight={len(self._fugle_futures)}",
+            flush=True,
+        )
+        self._save_runtime_state()
 
         self.recovery.heartbeat("RADAR_COMPLETE", success=True)
         self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_COMPLETE", "snapshot_count":len(raw), "at":datetime.now(TAIPEI).isoformat()})

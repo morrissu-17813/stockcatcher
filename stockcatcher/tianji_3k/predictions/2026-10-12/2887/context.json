@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "2887",
+  "name": "台新新光金",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 43.0,
+  "k1_high": 42.5,
+  "k2_high": 42.25,
+  "breakout_level": 42.5,
+  "ma20": 42.5375,
+  "ma60": 38.705000000000005,
+  "ma20_prev": 42.5075,
+  "vma5_lots": 38183.5068,
+  "yesterday_volume_lots": 46651.176,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

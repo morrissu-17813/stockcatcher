@@ -3,6 +3,7 @@ import json
 import time
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta, timezone, time as datetime_time
 
@@ -42,6 +43,11 @@ WARRANT_VOLUME_GROWTH_MINIMUM = 500
 WARRANT_POOL_QUOTA = 50
 TELEGRAM_ALERT_COOLDOWN_MINUTES = 30
 FAST_3K_MIN_VOLUME_RATIO = 5.0
+SAME_TIME_VOLUME_LOOKBACK_DAYS = 5
+SAME_TIME_VOLUME_RATIO_THRESHOLD = 1.8
+MIS_ROLLING_WINDOW_SECONDS = 60
+MIS_MAX_WINDOW_SECONDS = 75
+MIS_MIN_SURGE_AMOUNT = 2_000_000
 WARRANT_POOL_SNAPSHOT_FILE = os.path.join(
     os.path.dirname(__file__), "warrant_hot_pool_snapshot.json"
 )
@@ -192,7 +198,15 @@ def fetch_effective_3k_breakout(symbol: str, volume_multiplier: float = KLINE_VO
             continue
 
     completed_bars.sort(key=lambda bar: bar["date"])
-    return detect_effective_3k_breakout(completed_bars, volume_multiplier)
+    signal = detect_effective_3k_breakout(completed_bars, volume_multiplier)
+    if signal is not None:
+        current_trade_date = get_taipei_now().date()
+        signal["completed_day_volume"] = sum(
+            float(bar["volume"])
+            for bar in completed_bars
+            if bar["date"].tz_convert("Asia/Taipei").date() == current_trade_date
+        )
+    return signal
 
 
 def fetch_effective_3k_breakouts(
@@ -959,11 +973,11 @@ class TechnicalSignalEngine:
         insider: Optional[Dict[str, Any]] = None,
         effective_3k: Optional[Dict[str, Any]] = None,
         min_score: float = 60.0,
-        min_volume_ratio: float = 2.2,
+        min_volume_ratio: float = SAME_TIME_VOLUME_RATIO_THRESHOLD,
     ) -> Dict[str, Any]:
         """
         累積式觸發優先級：
-        - Tier 1 (基礎): 量能 >= 2.2x + 技術分數 >= 60 + 日線多頭型態優 -> 發送
+        - Tier 1 (基礎): 5日同時段量比 >= 1.8x + 技術分數 >= 60 + 日線多頭型態優 -> 發送
         - Tier 2 (進階): Tier1 + 內部人買超存在 -> 直接發送
         - Tier 3 (終極): Tier2 + 大戶買超 >= 400張 + 連買(3天+) -> 直接發送
         """
@@ -995,7 +1009,7 @@ class TechnicalSignalEngine:
         rsi14 = float(snapshot.get("rsi14", 0.0))
         macd_hist = float(snapshot.get("macd_hist", 0.0))
 
-        # Tier 1: 基礎條件 (量能 2.2x + 技術分數 >= 60 + 日線多頭型態優)
+        # Tier 1: 基礎條件 (5日同時段量比 1.8x + 技術分數 >= 60 + 日線多頭型態優)
         volume_threshold = volume_ratio >= min_volume_ratio
         score_threshold = score >= min_score
         # 日線多頭型態優: 價格 > MA5 > MA20 OR 突破 OR RSI > 50 OR MACD > 0
@@ -1180,7 +1194,8 @@ class WarrantReverseMonitor:
     def __init__(self, quota: int = WARRANT_POOL_QUOTA, group_size: int = 20):
         self.quota = quota
         self.group_size = group_size
-        self.last_snapshot: Dict[str, Dict[str, float]] = {}
+        self.volume_history: Dict[str, List[Dict[str, float]]] = {}
+        self._state_lock = Lock()
         self.last_pool_metadata: Dict[str, Dict[str, Any]] = {}
         self.latest_quotes: Dict[str, Dict[str, Any]] = {}
         self.baseline_pool_metadata: Dict[str, Dict[str, Any]] = {}
@@ -1541,44 +1556,75 @@ class WarrantReverseMonitor:
             ask_price_1 = _safe_cast(ask_values[0] if ask_values else None, float, 0.0)
             if current_price <= 0:
                 continue
-            self.latest_quotes[sid] = {
-                "name": str(stock.get("n", "")).strip(),
-                "current_price": current_price,
-                "total_volume": total_vol,
-                "trade_time": str(stock.get("t", "")).strip(),
-                "is_warrant_surge": False,
-                "surge_amount": 0.0,
-            }
-            prev = self.last_snapshot.get(sid)
-            if prev is not None:
-                prev_vol = float(prev.get("vol", 0.0))
-                prev_price = float(prev.get("price", 0.0))
-                diff_vol = total_vol - prev_vol
-                diff_amount = diff_vol * current_price * 1000
-                if diff_vol > 0 and diff_amount >= 2_000_000 and current_price >= prev_price:
-                    self.latest_quotes[sid]["is_warrant_surge"] = True
-                    self.latest_quotes[sid]["surge_amount"] = diff_amount
-                    triggered.append(
-                        {
-                            "sid": sid,
-                            "name": stock.get("n", ""),
-                            "current_price": current_price,
-                            "diff_vol": diff_vol,
-                            "diff_amount": diff_amount,
-                            "ask_price_1": ask_price_1,
-                            "total_vol": total_vol,
-                        }
-                    )
-            self.last_snapshot[sid] = {"vol": float(total_vol), "price": float(current_price)}
+            observed_at = time.monotonic()
+            with self._state_lock:
+                self.latest_quotes[sid] = {
+                    "name": str(stock.get("n", "")).strip(),
+                    "current_price": current_price,
+                    "total_volume": total_vol,
+                    "trade_time": str(stock.get("t", "")).strip(),
+                    "is_warrant_surge": False,
+                    "surge_amount": 0.0,
+                }
+                history = self.volume_history.setdefault(sid, [])
+                history.append({
+                    "observed_at": observed_at,
+                    "vol": float(total_vol),
+                    "price": float(current_price),
+                })
+                cutoff = observed_at - MIS_ROLLING_WINDOW_SECONDS
+                # 保留「60 秒前最近一筆」；不累積無限制的歷史快照。
+                while len(history) > 1 and history[1]["observed_at"] <= cutoff:
+                    history.pop(0)
+
+                baseline = history[0]
+                window_seconds = observed_at - baseline["observed_at"]
+                # 網路延遲／暫停太久時，不以過舊快照誤判，直接重新暖機。
+                if window_seconds > MIS_MAX_WINDOW_SECONDS:
+                    history[:] = [history[-1]]
+                    continue
+
+                if window_seconds >= MIS_ROLLING_WINDOW_SECONDS:
+                    baseline_vol = float(baseline["vol"])
+                    baseline_price = float(baseline["price"])
+                    diff_vol = total_vol - baseline_vol
+                    diff_amount = diff_vol * current_price * 1000
+                    if (
+                        diff_vol > 0
+                        and diff_amount >= MIS_MIN_SURGE_AMOUNT
+                        and current_price >= baseline_price
+                    ):
+                        self.latest_quotes[sid]["is_warrant_surge"] = True
+                        self.latest_quotes[sid]["surge_amount"] = diff_amount
+                        triggered.append(
+                            {
+                                "sid": sid,
+                                "name": stock.get("n", ""),
+                                "current_price": current_price,
+                                "diff_vol": diff_vol,
+                                "diff_amount": diff_amount,
+                                "window_seconds": window_seconds,
+                                "ask_price_1": ask_price_1,
+                                "total_vol": total_vol,
+                            }
+                        )
         return triggered
 
     def scan_mis_for_warrant_hedge(self, symbols: List[str]) -> List[Dict[str, Any]]:
         """整批掃描現股，找出符合外盤大單消耗 + 急拉的標的，供權證重點參考。"""
         self.latest_quotes = {}
         results: List[Dict[str, Any]] = []
-        for group in self.build_stock_groups(symbols):
-            for hit in self._scan_group(group):
-                results.append(hit)
+        groups = self.build_stock_groups(symbols)
+        if not groups:
+            return results
+        # 每組請求各自有 timeout/retry；並行後單組暫時失敗不會阻塞其他組。
+        with ThreadPoolExecutor(max_workers=min(3, len(groups))) as executor:
+            futures = [executor.submit(self._scan_group, group) for group in groups]
+            for future in as_completed(futures):
+                try:
+                    results.extend(future.result())
+                except Exception as exc:
+                    print(f"[MIS] 群組快照失敗: {exc}", flush=True)
         results.sort(key=lambda item: item["diff_amount"], reverse=True)
         return results
 
@@ -1604,6 +1650,7 @@ class WarrantTelegramAlertRunner:
         self.sent_signals: set[str] = set()
         self.last_alert_at: Dict[str, datetime] = {}
         self.last_effective_3k: Dict[str, Dict[str, Any]] = {}
+        self.intraday_volume_history_cache: Dict[str, List[Dict[str, Any]]] = {}
 
     @staticmethod
     def _fallback_underlyings() -> List[str]:
@@ -1721,7 +1768,7 @@ class WarrantTelegramAlertRunner:
         if alert_mode == "fast_3k":
             trigger_reason = (
                 f"有效3K突破、第3K量能{float(signal['volume_ratio']):.2f}x、"
-                f"今日預估量比{volume_ratio:.2f}x、"
+                f"5日同時段量比{volume_ratio:.2f}x、"
                 f"現價站上5分K MA20（{float(signal['ma20']):.2f}）"
             )
         else:
@@ -1738,7 +1785,8 @@ class WarrantTelegramAlertRunner:
             f"🎯 *觸發原因：* {trigger_reason}",
             f"📐 *3K收盤／突破價：* `{float(signal['close']):.2f}` / `{float(signal['breakout_price']):.2f}`",
             f"📊 *第3K量能：* `{float(signal['volume']):,.0f}張`（5分K均量的 `{float(signal['volume_ratio']):.2f}x`）",
-            f"📈 *今日預估量比：* `{volume_ratio:.2f}x`",
+            f"📈 *5日同時段量比：* `{volume_ratio:.2f}x`（門檻 `{SAME_TIME_VOLUME_RATIO_THRESHOLD:.1f}x`）",
+            f"🗓️ *昨日預估量比：* `{float(snapshot.get('estimated_volume_ratio', 0.0)):.2f}x`",
             f"🎫 *認購量增：* `{int(stock.get('warrant_volume_change', 0)):+,}` "
             f"(`{float(stock.get('warrant_volume_growth_percent', 0.0)):+.1f}%`)",
             "━━━━━━━━━━━━",
@@ -1840,6 +1888,68 @@ class WarrantTelegramAlertRunner:
         })
         return signal
 
+    def _get_same_time_volume_baseline(
+        self,
+        symbol: str,
+        current_volume: float,
+        now: Optional[datetime] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """以近五個交易日同一盤中時間的累積 5 分 K 成交量中位數作為量比基準。"""
+        current = now or get_taipei_now()
+        history = self.intraday_volume_history_cache.get(symbol)
+        if history is None:
+            end_date = current.date() - timedelta(days=1)
+            start_date = end_date - timedelta(days=21)
+            try:
+                response = request_get(
+                    f"https://api.fugle.tw/marketdata/v1.0/stock/historical/candles/{symbol}",
+                    headers={"X-API-KEY": FUGLE_API_KEY},
+                    params={
+                        "timeframe": str(KLINE_TIMEFRAME_MINUTES),
+                        "from": start_date.isoformat(),
+                        "to": end_date.isoformat(),
+                        "fields": "volume",
+                        "sort": "asc",
+                    },
+                    timeout=20,
+                )
+                payload = response.json()
+                raw_bars = payload.get("data", payload.get("candles", []))
+                history = list(raw_bars) if isinstance(raw_bars, list) else []
+            except (requests.RequestException, ValueError, TypeError) as exc:
+                print(f"[5日同時段量比] {symbol} 歷史量能取得失敗: {exc}")
+                return None
+            self.intraday_volume_history_cache[symbol] = history
+
+        completed_cutoff = current - timedelta(
+            minutes=current.minute % KLINE_TIMEFRAME_MINUTES,
+            seconds=current.second,
+            microseconds=current.microsecond,
+        )
+        daily_volumes: Dict[Any, float] = {}
+        for raw_bar in history:
+            try:
+                bar_time = pd.to_datetime(raw_bar["date"], utc=True).tz_convert("Asia/Taipei")
+                if bar_time.date() >= current.date() or bar_time.time() >= completed_cutoff.time():
+                    continue
+                daily_volumes[bar_time.date()] = daily_volumes.get(bar_time.date(), 0.0) + float(raw_bar["volume"])
+            except (KeyError, TypeError, ValueError):
+                continue
+
+        recent_dates = sorted(daily_volumes, reverse=True)[:SAME_TIME_VOLUME_LOOKBACK_DAYS]
+        if len(recent_dates) < SAME_TIME_VOLUME_LOOKBACK_DAYS:
+            print(f"[5日同時段量比] {symbol} 歷史交易日不足，略過本輪通知")
+            return None
+        samples = [daily_volumes[trade_date] for trade_date in recent_dates]
+        median_volume = float(np.median(samples))
+        if median_volume <= 0:
+            return None
+        return {
+            "median_volume": median_volume,
+            "volume_ratio": float(current_volume) / median_volume,
+            "sample_volumes": samples,
+        }
+
     def run_cycle(self, custom_symbols: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """執行一輪現股逆向掃描並主動發送 Telegram，返回所有觸發訊號。優先使用真實的內部人 + 法人買超資料。"""
         self.last_effective_3k = {}
@@ -1883,9 +1993,17 @@ class WarrantTelegramAlertRunner:
             except (requests.RequestException, ValueError, TypeError) as exc:
                 print(f"[即時快照] {symbol} 取得失敗: {exc}")
                 continue
+            same_time_baseline = self._get_same_time_volume_baseline(
+                symbol,
+                float(effective_3k["completed_day_volume"]),
+            )
+            if same_time_baseline is None:
+                continue
             snapshot["effective_3k"] = effective_3k
             snapshot["is_3k_breakout"] = True
-            snapshot["volume_ratio"] = float(snapshot.get("estimated_volume_ratio", 0.0))
+            snapshot["same_time_volume_median"] = same_time_baseline["median_volume"]
+            snapshot["same_time_volume_ratio"] = same_time_baseline["volume_ratio"]
+            snapshot["volume_ratio"] = same_time_baseline["volume_ratio"]
             decision = self.engine.evaluate_alert_triggers(
                 symbol,
                 snapshot=snapshot,

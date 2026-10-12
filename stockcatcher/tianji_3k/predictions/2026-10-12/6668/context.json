@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "6668",
+  "name": "中揚光",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 55.0,
+  "k1_high": 53.0,
+  "k2_high": 52.6,
+  "breakout_level": 53.0,
+  "ma20": 47.095,
+  "ma60": 40.51166666666666,
+  "ma20_prev": 46.4375,
+  "vma5_lots": 5151.6318,
+  "yesterday_volume_lots": 4483.915,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

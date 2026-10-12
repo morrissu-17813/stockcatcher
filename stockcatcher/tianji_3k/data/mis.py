@@ -27,8 +27,11 @@ class MISProvider:
             try:
                 r=self.session.get('https://mis.twse.com.tw/stock/api/getStockInfo.jsp',params={'ex_ch':ex,'_':int(time.time()*1000)},impersonate='chrome120',timeout=HTTP_TIMEOUT); payload=r.json()
                 for item in payload.get('msgArray',[]):
-                    sid=str(item.get('c','')).strip(); y=self._num(item.get('y')); z=self._num(item.get('z')); lp=z if z>0 else y
-                    if not sid or lp<=0: continue
+                    sid=str(item.get('c','')).strip(); y=self._num(item.get('y')); z=self._num(item.get('z'))
+                    # Never substitute previous close (`y`) for last traded price (`z`).
+                    # That fabricates a live quote and can invalidate a real breakout.
+                    if not sid or y<=0 or z<=0: continue
+                    lp=z
                     # TWSE/TPEx MIS `v` is cumulative volume in LOTS.
                     # Keep explicit units so downstream code cannot silently
                     # divide the value by 1000 a second time.

@@ -1,0 +1,3 @@
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"ValueError","message":"FETCH_EMPTY","observed_at":"2026-10-12T22:37:46.599218+08:00"}
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"ValueError","message":"FETCH_EMPTY","observed_at":"2026-10-12T22:38:05.644062+08:00"}
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"ValueError","message":"FETCH_EMPTY","observed_at":"2026-10-12T22:38:26.765201+08:00"}

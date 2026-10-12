@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "1101",
+  "name": "台泥",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 27.0,
+  "k1_high": 25.9,
+  "k2_high": 25.7,
+  "breakout_level": 25.9,
+  "ma20": 25.017500000000002,
+  "ma60": 24.535833333333336,
+  "ma20_prev": 24.905,
+  "vma5_lots": 29156.562800000003,
+  "yesterday_volume_lots": 33060.614,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

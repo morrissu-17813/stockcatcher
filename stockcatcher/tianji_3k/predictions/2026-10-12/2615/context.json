@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-12",
+  "symbol": "2615",
+  "name": "萬海",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-12T00:00:00.000",
+  "previous_close": 121.0,
+  "k1_high": 113.0,
+  "k2_high": 112.5,
+  "breakout_level": 113.0,
+  "ma20": 114.125,
+  "ma60": 103.44833333333332,
+  "ma20_prev": 113.875,
+  "vma5_lots": 6341.404,
+  "yesterday_volume_lots": 7883.852,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

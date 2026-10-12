@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
+import time
 from requests import HTTPError
 
 
@@ -28,6 +29,8 @@ class FugleProvider:
     def __init__(self, api_key: str, timeout: int = 8):
         self.api_key = (api_key or "").strip()
         self.timeout = int(timeout)
+        self._bars_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+        self.cache_ttl_seconds = 20.0
 
     @property
     def enabled(self) -> bool:
@@ -36,6 +39,12 @@ class FugleProvider:
     def get_5m_bars(self, symbol: str, limit: int | None = None) -> list[dict[str, Any]]:
         if not self.enabled:
             return []
+        cache_key = str(symbol)
+        now_mono = time.monotonic()
+        cached = self._bars_cache.get(cache_key)
+        if cached and now_mono - cached[0] < self.cache_ttl_seconds:
+            print(f"🧊 FUGLE 5M CACHE HIT | {cache_key} | age_ms={(now_mono-cached[0])*1000:.1f}", flush=True)
+            return [dict(x) for x in cached[1]]
         try:
             response = requests.get(
                 self.URL.format(symbol=str(symbol)),
@@ -82,6 +91,7 @@ class FugleProvider:
             except (KeyError, TypeError, ValueError):
                 continue
         out.sort(key=lambda x: x["date"])
+        self._bars_cache[cache_key] = (time.monotonic(), [dict(x) for x in out])
         return out
 
 
