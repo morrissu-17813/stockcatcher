@@ -14,7 +14,9 @@ import requests
 from .data.config import (
     BREAKOUT_BUFFER_PCT,
     FUGLE_API_KEY,
+    FUGLE_PENDING_TTL_SECONDS,
     MIS_INTERVAL_SECONDS,
+    MIS_MAX_QUOTE_AGE_SECONDS,
     VOLUME_THRESHOLD_LOTS,
 )
 from .data.stock_universe import StockUniverseProvider
@@ -98,10 +100,15 @@ class TianjiProductionRunner:
         self.universe_cache: dict[str, dict] = {}
         self.dynamic_discovery_config = DynamicDiscoveryConfig()
         self._next_radar_deadline = 0.0
+        # Polling observability: distinguish scheduled cadence from the time
+        # spent fetching MIS and processing a complete Radar cycle.
+        self._last_radar_cycle_start_monotonic: float | None = None
+        self._last_radar_cycle_duration_seconds: float | None = None
         self._fugle_health_checked = False
         self._fugle_health_future: Future | None = None
         self._fugle_health_status = "NOT_CHECKED"
         self._fugle_pending: dict[str, str] = {}
+        self._expired_trigger_logged: set[str] = set()
         # Fugle runs off the Radar thread so a slow stock cannot block updates
         # for the rest of the market. Futures are consumed only by poll_once.
         self._fugle_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="tianji-fugle")
@@ -544,11 +551,18 @@ class TianjiProductionRunner:
             item = raw.get(sid, {})
             price = item.get("current_price")
             price_text = f"{float(price):,.2f}" if price not in (None, "") else "--"
+            quote_age = item.get("quote_age_seconds")
+            quote_time_known = item.get("quote_time_known")
+            if quote_time_known is False or (
+                quote_age is not None and float(quote_age) > MIS_MAX_QUOTE_AGE_SECONDS
+            ):
+                price_text = f"{price_text}!"
             state_obj = self.states.get(sid)
             state = getattr(getattr(state_obj, "state", None), "value", "NOT_LOADED")
             print(f"{sid:<8}{name:<16}{source:<10}{market:<8}{price_text:>12}{state:<22}", flush=True)
         print("-" * 96, flush=True)
         print(f"📌 PREMARKET={len(self.pool)} | DYNAMIC={len(self.dynamic_contexts)} | TOTAL={len(rows)}", flush=True)
+        print("ℹ️ 價格欄位帶 ! 代表 MIS 最後成交時間超過允許新鮮度或時間未知", flush=True)
         print(f"✅ RADAR ACTIVE | 下一次監控約 {MIS_INTERVAL_SECONDS} 秒", flush=True)
         print("=" * 96, flush=True)
 
@@ -562,6 +576,30 @@ class TianjiProductionRunner:
             elapsed_ms = (time.monotonic() - started) * 1000
             print(f"⏱️ FUGLE REQUEST TIMING | {symbol} | elapsed_ms={elapsed_ms:.1f}", flush=True)
 
+    def _pending_trigger_age_seconds(self, sid: str) -> float:
+        started_at = getattr(self, "_fugle_pending", {}).get(str(sid))
+        if not started_at:
+            return 0.0
+        try:
+            return max(0.0, (datetime.now(TAIPEI) - self._as_datetime(started_at)).total_seconds())
+        except (TypeError, ValueError, OverflowError):
+            # A malformed persisted timestamp must not permit an indefinitely
+            # retrying trigger to produce a late alert.
+            return float(FUGLE_PENDING_TTL_SECONDS + 1)
+
+    @staticmethod
+    def _mis_quote_freshness(snap):
+        """Validate exchange last-trade time independently of HTTP receive time."""
+        known = getattr(snap, "quote_time_known", None)
+        age = getattr(snap, "quote_age_seconds", None)
+        if known is False:
+            return False, "QUOTE_TIME_UNKNOWN", age
+        if age is not None and float(age) > MIS_MAX_QUOTE_AGE_SECONDS:
+            return False, "QUOTE_TOO_OLD", float(age)
+        # None is retained for older unit/replay snapshots that have no quote
+        # metadata; the live MIS provider always supplies quote_time_known.
+        return True, "FRESH", float(age) if age is not None else None
+
     def _finalize_mis_early(self, sid: str, ctx: dict, snap, previous_snap=None):
         """Send EARLY from MIS price + lightweight live-volume pace evidence.
 
@@ -571,6 +609,24 @@ class TianjiProductionRunner:
         a single small volume tick as meaningful acceleration.
         """
         sm = self.states.setdefault(sid, IntradayStateMachine())
+        trigger_age = self._pending_trigger_age_seconds(sid)
+        if trigger_age > FUGLE_PENDING_TTL_SECONDS:
+            if sid not in self._expired_trigger_logged:
+                print(
+                    f"🟠 EARLY MIS EXPIRED | {sid} | trigger_age_s={trigger_age:.1f} "
+                    f"| ttl_s={FUGLE_PENDING_TTL_SECONDS} | suppress late alert",
+                    flush=True,
+                )
+                self._expired_trigger_logged.add(sid)
+            return
+        quote_fresh, quote_reason, quote_age = self._mis_quote_freshness(snap)
+        if not quote_fresh:
+            print(
+                f"🟠 EARLY MIS SUPPRESSED | {sid} | reason={quote_reason} "
+                f"| quote_age_s={quote_age} | no stale-price alert",
+                flush=True,
+            )
+            return
         received_age = time.monotonic() - self._latest_snapshot_received_at.get(sid, 0.0)
         if received_age > 45.0:
             return
@@ -596,8 +652,11 @@ class TianjiProductionRunner:
             print(
                 f"🟡 EARLY MIS VOLUME WAIT | {sid} | ready={volume_evidence['ready']} "
                 f"| reason={volume_evidence['reason']} | window_s={volume_evidence['window_seconds']:.1f} "
+                f"| last_gap_s={volume_evidence.get('last_snapshot_gap_seconds')} "
+                f"| max_window_s={volume_evidence.get('max_window_seconds')} "
                 f"| delta_lots={volume_evidence['volume_delta_lots']:.1f} "
-                f"| live_ratio={volume_evidence['live_volume_ratio']}", flush=True,
+                f"| live_ratio={volume_evidence['live_volume_ratio']} "
+                f"| baseline={volume_evidence['baseline_source']}", flush=True,
             )
             return
 
@@ -690,6 +749,31 @@ class TianjiProductionRunner:
     def _finalize_fugle_result(self, sid: str, ctx: dict, snap, micro):
         """Finalize a completed 5M result against the newest MIS quote."""
         sm = self.states.setdefault(sid, IntradayStateMachine())
+        trigger_age = self._pending_trigger_age_seconds(sid)
+        if trigger_age > FUGLE_PENDING_TTL_SECONDS:
+            if sid not in self._expired_trigger_logged:
+                print(
+                    f"🟠 FUGLE RESULT EXPIRED | {sid} | trigger_age_s={trigger_age:.1f} "
+                    f"| ttl_s={FUGLE_PENDING_TTL_SECONDS} | no late notification",
+                    flush=True,
+                )
+                self._expired_trigger_logged.add(sid)
+            return
+        quote_fresh, quote_reason, quote_age = self._mis_quote_freshness(snap)
+        if not quote_fresh:
+            print(
+                f"🟠 SIGNAL SUPPRESSED STALE MIS | {sid} | reason={quote_reason} "
+                f"| quote_age_s={quote_age} | no late notification",
+                flush=True,
+            )
+            self.ledger.append_event(ctx["trade_date"], sid, {
+                "event_type": "SIGNAL_SUPPRESSED_STALE_MIS_QUOTE",
+                "observed_at": datetime.now(TAIPEI).isoformat(),
+                "quote_time": getattr(snap, "quote_time", None),
+                "quote_age_seconds": quote_age,
+                "reason": quote_reason,
+            })
+            return
         snapshot_age = time.monotonic() - self._latest_snapshot_received_at.get(sid, 0.0)
         if snapshot_age > 45.0:
             print(f"🟡 SIGNAL WAITING FOR FRESH MIS | {sid} | snapshot_age_s={snapshot_age:.1f} | no stale-price notification", flush=True)
@@ -802,12 +886,32 @@ class TianjiProductionRunner:
         self._save_runtime_state()
 
     def poll_once(self):
+        poll_started = time.monotonic()
+        previous_start = self._last_radar_cycle_start_monotonic
+        start_to_start = (poll_started - previous_start) if previous_start is not None else None
+        self._last_radar_cycle_start_monotonic = poll_started
+        if start_to_start is not None:
+            target_interval = max(1, MIS_INTERVAL_SECONDS)
+            print(
+                f"📡 RADAR INTERVAL | start_to_start_s={start_to_start:.2f} "
+                f"| target_s={target_interval} | overrun_s={max(0.0, start_to_start-target_interval):.2f} "
+                f"| previous_cycle_s={self._last_radar_cycle_duration_seconds}",
+                flush=True,
+            )
+        else:
+            print(f"📡 RADAR INTERVAL | first_cycle=1 | target_s={max(1, MIS_INTERVAL_SECONDS)}", flush=True)
         # If the premarket lifecycle has already been built and the resulting
         # pool is empty, do not rebuild it on every Radar cycle.  Rebuilding
         # here can unexpectedly invoke daily-refresh/FinMind calendar
         # bootstrap and turns an empty watchlist into a liveness failure.
         if not self.pool:
             if self._premarket_built:
+                self._last_radar_cycle_duration_seconds = time.monotonic() - poll_started
+                print(
+                    f"⏱️ RADAR TIMING | early_return=EMPTY_POOL "
+                    f"| cycle_ms={self._last_radar_cycle_duration_seconds * 1000:.1f}",
+                    flush=True,
+                )
                 return 0
             self._load_pool()
         rows = self._radar_rows()
@@ -831,14 +935,34 @@ class TianjiProductionRunner:
             self.mis_provider.stock_info_map = info
             self.mis_provider.exchange_resolver = resolver
         self.recovery.heartbeat("RADAR_FETCHING", success=True)
+        pre_fetch_ms = (time.monotonic() - poll_started) * 1000
+        fetch_wall_started = time.monotonic()
         try:
             raw = self.mis_provider.fetch_batch()
         except Exception as exc:
+            fetch_wall_ms = (time.monotonic() - fetch_wall_started) * 1000
+            print(
+                f"⏱️ MIS FETCH TIMING | provider_ms=N/A | wall_ms={fetch_wall_ms:.1f} "
+                f"| pre_fetch_ms={pre_fetch_ms:.1f} | failed=1", flush=True,
+            )
             err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
             print(f"❌ RADAR ERROR | {err['error_type']} | {err['message']}", flush=True)
             self.recovery.heartbeat("RADAR_ERROR", success=False, error=err)
             self.recovery_ledger.append(self.trade_date or self._today(), {"event_type":"RADAR_ERROR", **err, "at":datetime.now(TAIPEI).isoformat()})
             return 0
+
+        fetch_wall_ms = (time.monotonic() - fetch_wall_started) * 1000
+        fetch_stats = getattr(self.mis_provider, "last_fetch_stats", {}) or {}
+        if fetch_stats:
+            print(
+                f"⏱️ MIS FETCH TIMING | provider_ms={fetch_stats.get('elapsed_ms', 0)} "
+                f"| wall_ms={fetch_wall_ms:.1f} | pre_fetch_ms={pre_fetch_ms:.1f} "
+                f"| batches={fetch_stats.get('batches', 0)} | workers={fetch_stats.get('workers', 0)} "
+                f"| requested={fetch_stats.get('requested_symbols', 0)} "
+                f"| returned={fetch_stats.get('returned_symbols', len(raw))} "
+                f"| failed_batches={fetch_stats.get('failed_batches', 0)}",
+                flush=True,
+            )
 
         # Health checks are also asynchronous: a startup probe must never hold
         # the Radar thread while the market is moving.
@@ -865,7 +989,8 @@ class TianjiProductionRunner:
 
         self._print_radar_monitor(raw, rows)
 
-        radar_started = time.monotonic()
+        # Include MIS network fetch time in the end-to-end Radar timing.
+        radar_started = poll_started
         fugle_candidates: set[str] = set()
         state_update_started = time.monotonic()
 
@@ -880,6 +1005,21 @@ class TianjiProductionRunner:
                 snap = build_snapshot(sid, r, ctx["name"], ctx["market"], "COMMON_STOCK")
             except (TypeError, ValueError, KeyError) as exc:
                 print(f"🟡 MIS SNAPSHOT INVALID | {sid} | {type(exc).__name__}: {exc}", flush=True)
+                continue
+            quote_fresh, quote_reason, quote_age = self._mis_quote_freshness(snap)
+            if not quote_fresh:
+                # Log only quotes that are already pending or could otherwise
+                # qualify as a breakout; avoid flooding logs for stale symbols.
+                potential_breakout = (
+                    snap.current_price >= float(ctx["breakout_level"]) * (1 + BREAKOUT_BUFFER_PCT / 100)
+                    and snap.up_pct >= 4.0
+                )
+                if potential_breakout or sid in self._fugle_pending:
+                    print(
+                        f"🟠 MIS SNAPSHOT STALE SKIP | {sid} | reason={quote_reason} "
+                        f"| quote_age_s={quote_age} | source_time={getattr(snap, 'quote_time', None)}",
+                        flush=True,
+                    )
                 continue
             if snap.current_price <= 0 or snap.previous_close <= 0 or not snap.is_traded:
                 # Invalid/no-trade quote must not overwrite last valid price or
@@ -910,6 +1050,7 @@ class TianjiProductionRunner:
                 continue
             if reason == "TRIGGER_INVALIDATED":
                 self._fugle_pending.pop(sid, None)
+                self._expired_trigger_logged.discard(sid)
             self.ledger.append_event(ctx["trade_date"], sid, {
                 "event_type": "RADAR_STATE",
                 "observed_at": snap.observed_at,
@@ -920,7 +1061,10 @@ class TianjiProductionRunner:
                 "current_price": snap.current_price,
             })
             if triggered:
-                self._fugle_pending[sid] = self._iso_timestamp(snap.observed_at)
+                self._expired_trigger_logged.discard(sid)
+                # TTL starts when this process confirms the trigger, not from
+                # a provider/source timestamp that may be stale or replayed.
+                self._fugle_pending[sid] = datetime.now(TAIPEI).isoformat()
                 print(
                     f"🔔 BREAKOUT TRIGGER | {sid} {ctx['name']} | price={snap.current_price:.2f} "
                     f"| breakout={ctx['breakout_level']:.2f} | snapshot={snap.snapshot_id}",
@@ -984,6 +1128,16 @@ class TianjiProductionRunner:
         for sid in sorted(fugle_candidates):
             if sid in self._fugle_futures or sid not in self._fugle_pending:
                 continue
+            trigger_age = self._pending_trigger_age_seconds(sid)
+            if trigger_age > FUGLE_PENDING_TTL_SECONDS:
+                if sid not in self._expired_trigger_logged:
+                    print(
+                        f"🟠 FUGLE RETRY EXPIRED | {sid} | trigger_age_s={trigger_age:.1f} "
+                        f"| ttl_s={FUGLE_PENDING_TTL_SECONDS} | stop repeated API requests",
+                        flush=True,
+                    )
+                    self._expired_trigger_logged.add(sid)
+                continue
             last_attempt = self._fugle_last_attempt.get(sid, 0.0)
             if now_mono - last_attempt < self._fugle_retry_seconds:
                 continue
@@ -1014,8 +1168,10 @@ class TianjiProductionRunner:
             flush=True,
         )
         cycle_ms = (time.monotonic() - radar_started) * 1000
+        self._last_radar_cycle_duration_seconds = cycle_ms / 1000.0
         print(
-            f"⏱️ RADAR TIMING | state_update_ms={state_update_ms:.1f} "
+            f"⏱️ RADAR TIMING | pre_fetch_ms={pre_fetch_ms:.1f} "
+            f"| mis_fetch_wall_ms={fetch_wall_ms:.1f} | state_update_ms={state_update_ms:.1f} "
             f"| fugle_schedule_ms={schedule_ms:.1f} | cycle_ms={cycle_ms:.1f} "
             f"| fugle_inflight={len(self._fugle_futures)}",
             flush=True,
@@ -1381,10 +1537,22 @@ class TianjiProductionRunner:
                             self._next_radar_deadline, cycle_started
                         ) + MIS_INTERVAL_SECONDS
                     except Exception as exc:
+                        self._last_radar_cycle_duration_seconds = time.monotonic() - cycle_started
                         err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
-                        print(f"❌ MANUAL RADAR ERROR | {err['error_type']} | {err['message']}", flush=True)
+                        print(
+                            f"❌ MANUAL RADAR ERROR | {err['error_type']} | {err['message']} "
+                            f"| cycle_s={self._last_radar_cycle_duration_seconds:.2f}", flush=True,
+                        )
                         self.recovery.heartbeat("MANUAL_RADAR_ERROR", success=False, error=err)
-                    delay = max(0.5, self._next_radar_deadline - time.monotonic())
+                    schedule_now = time.monotonic()
+                    delay = max(0.5, self._next_radar_deadline - schedule_now)
+                    cycle_elapsed = schedule_now - cycle_started
+                    deadline_lag = max(0.0, schedule_now - self._next_radar_deadline)
+                    print(
+                        f"⏲️ RADAR SCHEDULE | mode=MANUAL | cycle_s={cycle_elapsed:.2f} "
+                        f"| target_s={MIS_INTERVAL_SECONDS} | sleep_s={min(delay, MIS_INTERVAL_SECONDS):.2f} "
+                        f"| deadline_lag_s={deadline_lag:.2f}", flush=True,
+                    )
                     time.sleep(min(delay, MIS_INTERVAL_SECONDS))
                     continue
 
@@ -1429,15 +1597,27 @@ class TianjiProductionRunner:
                             self._next_radar_deadline, cycle_started
                         ) + MIS_INTERVAL_SECONDS
                     except Exception as exc:
+                        self._last_radar_cycle_duration_seconds = time.monotonic() - cycle_started
                         err = {"error_type": type(exc).__name__, "message": str(exc)[:300]}
-                        print(f"❌ RADAR FATAL ERROR | {err['error_type']} | {err['message']}", flush=True)
+                        print(
+                            f"❌ RADAR FATAL ERROR | {err['error_type']} | {err['message']} "
+                            f"| cycle_s={self._last_radar_cycle_duration_seconds:.2f}", flush=True,
+                        )
                         self.recovery.heartbeat("RADAR_FATAL_ERROR", success=False, error=err)
                         self.recovery_ledger.append(trade_date, {"event_type": "RADAR_FATAL_ERROR", **err, "at": datetime.now(TAIPEI).isoformat()})
                     now_ts = time.monotonic()
                     if now_ts - self._last_notification_retry_at >= 60:
                         self.reconcile_pending_notifications()
                         self._last_notification_retry_at = now_ts
-                    delay = max(0.5, self._next_radar_deadline - time.monotonic())
+                    schedule_now = time.monotonic()
+                    delay = max(0.5, self._next_radar_deadline - schedule_now)
+                    cycle_elapsed = schedule_now - cycle_started
+                    deadline_lag = max(0.0, schedule_now - self._next_radar_deadline)
+                    print(
+                        f"⏲️ RADAR SCHEDULE | mode=PRODUCTION | cycle_s={cycle_elapsed:.2f} "
+                        f"| target_s={MIS_INTERVAL_SECONDS} | sleep_s={min(delay, MIS_INTERVAL_SECONDS):.2f} "
+                        f"| deadline_lag_s={deadline_lag:.2f}", flush=True,
+                    )
                     time.sleep(min(delay, MIS_INTERVAL_SECONDS))
                     continue
                 if phase == "GROUND_TRUTH":

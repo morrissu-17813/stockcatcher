@@ -39,3 +39,27 @@ def test_estimator_resets_after_cumulative_volume_rollback():
     result = estimator.observe("2603", base + timedelta(seconds=60), 900, 5400)
     assert result["ready"] is False
     assert result["reason"] == "INSUFFICIENT_WINDOW"
+
+
+def test_estimator_retains_150_second_radar_gap_and_normalizes_by_actual_time():
+    estimator = MISLiveVolumeEstimator()
+    base = datetime(2026, 10, 12, 10, 0, tzinfo=TAIPEI)
+    first = estimator.observe("2609", base, 1000, 5400)
+    second = estimator.observe("2609", base + timedelta(seconds=150), 1100, 5400)
+    assert first["ready"] is False
+    assert second["ready"] is True
+    assert second["pass"] is True
+    assert second["window_seconds"] == 150.0
+    assert second["expected_volume_lots"] == 50.0
+    assert second["live_volume_ratio"] == 2.0
+    assert second["max_window_seconds"] == 240.0
+
+
+def test_estimator_resets_after_gap_exceeds_240_seconds():
+    estimator = MISLiveVolumeEstimator()
+    base = datetime(2026, 10, 12, 10, 0, tzinfo=TAIPEI)
+    estimator.observe("2610", base, 1000, 5400)
+    result = estimator.observe("2610", base + timedelta(seconds=241), 1200, 5400)
+    assert result["ready"] is False
+    assert result["reason"] == "INSUFFICIENT_WINDOW"
+    assert result["max_window_seconds"] == 240.0

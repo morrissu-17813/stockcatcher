@@ -16,7 +16,7 @@ class MISLiveVolumeEstimator:
     """
 
     def __init__(self, window_size: int = 8, min_window_seconds: float = 45.0,
-                 max_window_seconds: float = 90.0, min_ratio: float = 1.5,
+                 max_window_seconds: float = 240.0, min_ratio: float = 1.5,
                  min_delta_lots: float = 2.0):
         self.window_size = max(3, int(window_size))
         self.min_window_seconds = float(min_window_seconds)
@@ -44,8 +44,9 @@ class MISLiveVolumeEstimator:
         if history:
             previous = history[-1]
             elapsed_from_previous = (now - previous[0]).total_seconds()
-            # Counter rollback, clock reversal, or a long gap makes the local
-            # delta unreliable. Restart the short in-memory observation window.
+            # Counter rollback, clock reversal, or a gap beyond the expanded
+            # tolerance makes the local delta unreliable. A 90-180s radar gap
+            # is retained and normalized by its actual elapsed time below.
             if elapsed_from_previous <= 0 or elapsed_from_previous > self.max_window_seconds or volume < previous[1]:
                 history.clear()
 
@@ -63,6 +64,8 @@ class MISLiveVolumeEstimator:
             "baseline_5m_lots": baseline_daily / 54.0 if baseline_daily > 0 else None,
             "baseline_source": "VMA5_DAILY_DIV_54",
             "required_ratio": self.min_ratio,
+            "max_window_seconds": self.max_window_seconds,
+            "last_snapshot_gap_seconds": None,
         }
         if baseline_daily <= 0:
             result["reason"] = "NO_VALID_BASELINE_OR_HISTORY"
@@ -70,9 +73,13 @@ class MISLiveVolumeEstimator:
         if len(history) < 2:
             result["reason"] = "INSUFFICIENT_WINDOW"
             return result
+        result["last_snapshot_gap_seconds"] = round(
+            (history[-1][0] - history[-2][0]).total_seconds(), 2
+        )
 
         # Choose the newest reference snapshot old enough to produce a stable
-        # rate estimate, avoiding excessive lag when a 45-90s pair is available.
+        # rate estimate. The 45-240s range tolerates slow Radar cycles while
+        # normalizing expected volume by the actual elapsed time.
         reference = None
         elapsed = 0.0
         for candidate in reversed(list(history)[:-1]):

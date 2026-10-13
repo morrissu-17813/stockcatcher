@@ -94,3 +94,32 @@ def test_mis_early_does_not_trigger_without_new_live_volume():
         runner._latest_snapshot_received_at["1234"] = time.monotonic()
         runner._finalize_mis_early("1234", context(), snap)
     assert runner.ledger.predictions == []
+
+
+def test_mis_quote_freshness_rejects_old_exchange_quote():
+    from types import SimpleNamespace
+
+    fresh, reason, age = TianjiProductionRunner._mis_quote_freshness(
+        SimpleNamespace(quote_time_known=True, quote_age_seconds=121.0)
+    )
+    assert fresh is False
+    assert reason == "QUOTE_TOO_OLD"
+    assert age == 121.0
+
+
+def test_mis_quote_freshness_rejects_unknown_live_quote_timestamp():
+    from types import SimpleNamespace
+
+    fresh, reason, age = TianjiProductionRunner._mis_quote_freshness(
+        SimpleNamespace(quote_time_known=False, quote_age_seconds=None)
+    )
+    assert fresh is False
+    assert reason == "QUOTE_TIME_UNKNOWN"
+    assert age is None
+
+
+def test_pending_trigger_age_uses_confirmation_time_not_old_snapshot_time():
+    runner = object.__new__(TianjiProductionRunner)
+    started = datetime.now(TAIPEI) - timedelta(seconds=600)
+    runner._fugle_pending = {"1234": started.isoformat()}
+    assert runner._pending_trigger_age_seconds("1234") >= 600

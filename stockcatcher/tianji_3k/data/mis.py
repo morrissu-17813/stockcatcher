@@ -1,47 +1,207 @@
 from __future__ import annotations
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
+import os
+import threading
 import time
+
 try:
     from curl_cffi import requests as curl_requests
 except ImportError:
     import requests as curl_requests
+
 from .config import MIS_BATCH_SIZE, HTTP_TIMEOUT
-TAIPEI=timezone(timedelta(hours=8))
+
+TAIPEI = timezone(timedelta(hours=8))
+
+
 class MISProvider:
+    """Fetch market-wide MIS snapshots with bounded concurrent batches.
+
+    Each worker owns a persistent HTTP session so cookies are not shared across
+    threads. Batch failures are isolated: one failed batch does not discard
+    successful batches or stop the Radar.
+    """
+
     def __init__(self, stock_info_map=None, exchange_resolver=None):
-        self.stock_info_map=stock_info_map or {}; self.exchange_resolver=exchange_resolver or (lambda s:'tse'); self.session=curl_requests.Session(); self.initialized=False
+        self.stock_info_map = stock_info_map or {}
+        self.exchange_resolver = exchange_resolver or (lambda s: "tse")
+        self.session = curl_requests.Session()
+        self.initialized = False
+        self._thread_local = threading.local()
+        self._executor = None
+        self._max_workers = max(1, int(os.getenv("TIANJI_MIS_FETCH_WORKERS", "4")))
+        self.last_fetch_stats = {}
+
     def _ensure(self):
-        if self.initialized:return
-        try:self.session.get('https://mis.twse.com.tw/stock/index.jsp',impersonate='chrome120',timeout=6)
-        except Exception:pass
-        self.initialized=True
+        if self.initialized:
+            return
+        try:
+            self.session.get(
+                "https://mis.twse.com.tw/stock/index.jsp",
+                impersonate="chrome120",
+                timeout=6,
+            )
+        except Exception:
+            pass
+        self.initialized = True
+
+    def _worker_session(self):
+        session = getattr(self._thread_local, "session", None)
+        if session is None:
+            session = curl_requests.Session()
+            try:
+                session.get(
+                    "https://mis.twse.com.tw/stock/index.jsp",
+                    impersonate="chrome120",
+                    timeout=6,
+                )
+            except Exception:
+                pass
+            self._thread_local.session = session
+        return session
+
     @staticmethod
     def _num(v):
         try:
-            s=str(v).replace(',','').strip(); return 0.0 if s in {'','-','--','null','None'} else float(s)
-        except (TypeError,ValueError): return 0.0
+            s = str(v).replace(",", "").strip()
+            return 0.0 if s in {"", "-", "--", "null", "None"} else float(s)
+        except (TypeError, ValueError):
+            return 0.0
+
+    @staticmethod
+    def _quote_timestamp(item, now=None):
+        """Return the MIS last-trade timestamp, if its date/time is usable."""
+        clock = str(item.get("t", "") or "").strip()
+        date_text = str(item.get("d", "") or "").strip()
+        if not clock or clock in {"-", "--", "null", "None"}:
+            return None
+        now = now or datetime.now(TAIPEI)
+        try:
+            if len(date_text) == 8 and date_text.isdigit():
+                quote_dt = datetime.strptime(
+                    f"{date_text} {clock}", "%Y%m%d %H:%M:%S"
+                ).replace(tzinfo=TAIPEI)
+            else:
+                quote_dt = datetime.strptime(
+                    f"{now:%Y%m%d} {clock}", "%Y%m%d %H:%M:%S"
+                ).replace(tzinfo=TAIPEI)
+            # Reject impossible/future timestamps rather than turning them into
+            # a negative age that would appear fresher than the current quote.
+            age = (now - quote_dt).total_seconds()
+            if age < -5 or age > 24 * 60 * 60:
+                return None
+            return quote_dt
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+    def _fetch_chunk(self, batch, worker_session=False):
+        session = self._worker_session() if worker_session else self.session
+        ex = "|".join(
+            f"{self.exchange_resolver(s)}_{s}.tw" for s in batch
+        )
+        out = {}
+        failed = False
+        try:
+            response = session.get(
+                "https://mis.twse.com.tw/stock/api/getStockInfo.jsp",
+                params={"ex_ch": ex, "_": int(time.time() * 1000)},
+                impersonate="chrome120",
+                timeout=HTTP_TIMEOUT,
+            )
+            payload = response.json()
+            received_at = datetime.now(TAIPEI)
+            for item in payload.get("msgArray", []):
+                sid = str(item.get("c", "")).strip()
+                y = self._num(item.get("y"))
+                z = self._num(item.get("z"))
+                # Never substitute previous close (`y`) for last traded price (`z`).
+                if not sid or y <= 0 or z <= 0:
+                    continue
+                quote_dt = self._quote_timestamp(item, received_at)
+                quote_age = (
+                    max(0.0, (received_at - quote_dt).total_seconds())
+                    if quote_dt is not None else None
+                )
+                # MIS `v` is cumulative volume in LOTS.
+                v_lots = float(self._num(str(item.get("v", "0")).replace(",", "")))
+                up = (z / y - 1) * 100 if y > 0 else 0.0
+                identity = "|".join([
+                    sid, str(item.get("t", "")), str(item.get("tv", "")),
+                    str(item.get("z", "")), str(item.get("v", "")),
+                    str(item.get("d", "")),
+                ])
+                out[sid] = {
+                    "symbol": sid,
+                    "current_price": z,
+                    "previous_close": y,
+                    "today_open": self._num(item.get("o", y)),
+                    "cumulative_volume": v_lots,
+                    "cumulative_volume_lots": v_lots,
+                    "cumulative_volume_shares": v_lots * 1000.0,
+                    "up_pct": round(up, 4),
+                    "is_traded": str(item.get("z", "-")) not in {"-", "0"},
+                    "data_identity": identity,
+                    # observed_at is receive time for local volume-delta timing.
+                    "observed_at": received_at,
+                    # quote_time/age are the exchange's last-trade time and are
+                    # used separately to prevent late alerts from stale prices.
+                    "quote_time": quote_dt.isoformat() if quote_dt else None,
+                    "quote_age_seconds": round(quote_age, 2) if quote_age is not None else None,
+                    "quote_time_known": quote_dt is not None,
+                }
+        except Exception:
+            failed = True
+        return out, failed
+
     def fetch_batch(self):
-        self._ensure(); symbols=list(self.stock_info_map); out={}
-        for i in range(0,len(symbols),MIS_BATCH_SIZE):
-            batch=symbols[i:i+MIS_BATCH_SIZE]; ex='|'.join(f'{self.exchange_resolver(s)}_{s}.tw' for s in batch)
-            try:
-                r=self.session.get('https://mis.twse.com.tw/stock/api/getStockInfo.jsp',params={'ex_ch':ex,'_':int(time.time()*1000)},impersonate='chrome120',timeout=HTTP_TIMEOUT); payload=r.json()
-                for item in payload.get('msgArray',[]):
-                    sid=str(item.get('c','')).strip(); y=self._num(item.get('y')); z=self._num(item.get('z'))
-                    # Never substitute previous close (`y`) for last traded price (`z`).
-                    # That fabricates a live quote and can invalidate a real breakout.
-                    if not sid or y<=0 or z<=0: continue
-                    lp=z
-                    # TWSE/TPEx MIS `v` is cumulative volume in LOTS.
-                    # Keep explicit units so downstream code cannot silently
-                    # divide the value by 1000 a second time.
-                    v_lots=float(self._num(str(item.get('v','0')).replace(',','')))
-                    up=(lp/y-1)*100 if y>0 else 0.0
-                    identity='|'.join([sid,str(item.get('t','')),str(item.get('tv','')),str(item.get('z','')),str(item.get('v','')),str(item.get('d',''))])
-                    out[sid]={'symbol':sid,'current_price':lp,'previous_close':y,'today_open':self._num(item.get('o',y)),
-                              'cumulative_volume':v_lots, 'cumulative_volume_lots':v_lots,
-                              'cumulative_volume_shares':v_lots*1000.0,
-                              'up_pct':round(up,4),'is_traded':str(item.get('z','-')) not in {'-','0'},
-                              'data_identity':identity,'observed_at':datetime.now(TAIPEI)}
-            except Exception: continue
+        started = time.monotonic()
+        symbols = list(self.stock_info_map)
+        batch_size = max(1, int(MIS_BATCH_SIZE))
+        batches = [symbols[i:i + batch_size] for i in range(0, len(symbols), batch_size)]
+        out = {}
+        failed_batches = 0
+
+        if not batches:
+            self.last_fetch_stats = {
+                "elapsed_ms": (time.monotonic() - started) * 1000,
+                "batches": 0, "workers": 0, "requested_symbols": 0,
+                "returned_symbols": 0, "failed_batches": 0,
+            }
+            return out
+
+        if len(batches) == 1:
+            self._ensure()
+            chunk_out, failed = self._fetch_chunk(batches[0], worker_session=False)
+            out.update(chunk_out)
+            failed_batches += int(failed)
+            workers_used = 1
+        else:
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(
+                    max_workers=self._max_workers,
+                    thread_name_prefix="tianji-mis",
+                )
+            futures = [
+                self._executor.submit(self._fetch_chunk, batch, True)
+                for batch in batches
+            ]
+            for future in as_completed(futures):
+                try:
+                    chunk_out, failed = future.result()
+                    out.update(chunk_out)
+                    failed_batches += int(failed)
+                except Exception:
+                    failed_batches += 1
+            workers_used = min(self._max_workers, len(batches))
+
+        self.last_fetch_stats = {
+            "elapsed_ms": round((time.monotonic() - started) * 1000, 1),
+            "batches": len(batches),
+            "workers": workers_used,
+            "requested_symbols": len(symbols),
+            "returned_symbols": len(out),
+            "failed_batches": failed_batches,
+        }
         return out

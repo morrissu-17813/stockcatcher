@@ -29,3 +29,32 @@ def test_mis_keeps_valid_last_traded_price():
     assert result["current_price"] == 56.20
     assert result["up_pct"] > 9.9
     assert result["is_traded"] is True
+
+
+def test_mis_quote_timestamp_parses_exchange_time_and_detects_old_quote():
+    from datetime import datetime, timezone, timedelta
+
+    now = datetime(2026, 10, 13, 13, 13, 39, tzinfo=timezone(timedelta(hours=8)))
+    quote = MISProvider._quote_timestamp(
+        {"d": "20261013", "t": "13:11:55"}, now=now
+    )
+    assert quote is not None
+    assert (now - quote).total_seconds() == 104
+
+
+def test_mis_parallel_batches_merge_results_without_dropping_successes(monkeypatch):
+    import tianji_3k.data.mis as mis_module
+
+    monkeypatch.setattr(mis_module, "MIS_BATCH_SIZE", 1)
+    provider = MISProvider({"1101": {}, "1102": {}, "1103": {}}, lambda _: "tse")
+
+    def fake_fetch_chunk(batch, worker_session=False):
+        sid = batch[0]
+        return {sid: {"symbol": sid}}, False
+
+    provider._fetch_chunk = fake_fetch_chunk
+    result = provider.fetch_batch()
+    assert set(result) == {"1101", "1102", "1103"}
+    assert provider.last_fetch_stats["batches"] == 3
+    assert provider.last_fetch_stats["returned_symbols"] == 3
+    assert provider.last_fetch_stats["failed_batches"] == 0

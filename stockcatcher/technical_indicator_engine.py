@@ -36,13 +36,13 @@ FUBON_RANK_HEADERS = {
 }
 KLINE_TIMEFRAME_MINUTES = 5
 KLINE_VOLUME_MULTIPLIER = 1.2
-OPENING_KLINE_VOLUME_MULTIPLIER = 1.8
+OPENING_KLINE_VOLUME_MULTIPLIER = 1.5
 KLINE_MIN_VOLUME_HISTORY = 5
 WARRANT_VOLUME_GROWTH_PERCENT = 20.0
 WARRANT_VOLUME_GROWTH_MINIMUM = 500
 WARRANT_POOL_QUOTA = 50
 TELEGRAM_ALERT_COOLDOWN_MINUTES = 30
-FAST_3K_MIN_VOLUME_RATIO = 5.0
+EFFECTIVE_3K_MIN_VOLUME_RATIO = 1.5
 SAME_TIME_VOLUME_LOOKBACK_DAYS = 5
 SAME_TIME_VOLUME_RATIO_THRESHOLD = 1.8
 MIS_ROLLING_WINDOW_SECONDS = 60
@@ -134,7 +134,7 @@ def get_monitor_stop_at(started_at: Optional[datetime] = None) -> datetime:
 
 
 def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
-    """判斷最後三根已收盤 5 分 K 的價格突破與第 3K 強量能。"""
+    """判斷最後三根已收盤 5 分 K 的價格突破與第 3K 相對前五根均量。"""
     if len(bars) < 23:
         return None
 
@@ -144,14 +144,15 @@ def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: 
         return None
 
     breakout_price = max(float(first_bar["high"]), float(second_bar["high"]))
-    previous_average_volume = sum(float(bar["volume"]) for bar in previous_bars) / len(previous_bars)
+    previous_volume_bars = bars[:-3][-5:]
+    previous_average_volume = sum(float(bar["volume"]) for bar in previous_volume_bars) / len(previous_volume_bars)
     required_volume = previous_average_volume * max(
         volume_multiplier,
-        FAST_3K_MIN_VOLUME_RATIO,
+        EFFECTIVE_3K_MIN_VOLUME_RATIO,
     )
     third_close = float(third_bar["close"])
     third_volume = float(third_bar["volume"])
-    if third_close <= breakout_price or third_volume <= required_volume:
+    if third_close <= breakout_price or third_volume < required_volume:
         return None
 
     return {

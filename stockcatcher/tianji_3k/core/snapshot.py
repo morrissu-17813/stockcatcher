@@ -4,7 +4,7 @@ import hashlib, json
 @dataclass(frozen=True)
 class MarketSnapshot:
     symbol:str; observed_at:str; current_price:float; previous_close:float; today_open:float; cumulative_volume_shares:int; up_pct:float
-    is_traded:bool=True; source:str='MIS'; data_identity:str=''; name:str=''; market:str=''; security_type:str='common_stock'
+    is_traded:bool=True; source:str='MIS'; data_identity:str=''; name:str=''; market:str=''; security_type:str='common_stock'; quote_time:str|None=None; quote_age_seconds:float|None=None; quote_time_known:bool|None=None
     @property
     def cumulative_volume_lots(self): return self.cumulative_volume_shares/1000.0
     @property
@@ -24,4 +24,4 @@ def build_snapshot(symbol,raw,name='',market='',security_type='common_stock'):
         volume_shares=float(raw.get('cumulative_volume_lots') or 0)*1000.0
     else:
         volume_shares=float(raw.get('cumulative_volume') or 0)
-    return MarketSnapshot(str(symbol),observed,float(raw.get('current_price',0)),float(raw.get('previous_close',0)),float(raw.get('today_open',0)),int(volume_shares),float(raw.get('up_pct',0)),bool(raw.get('is_traded',True)),str(raw.get('source') or 'MIS'),str(raw.get('data_identity') or ''),name or str(raw.get('name') or ''),market or str(raw.get('market') or ''),str(raw.get('security_type') or security_type))
+    return MarketSnapshot(str(symbol),observed,float(raw.get('current_price',0)),float(raw.get('previous_close',0)),float(raw.get('today_open',0)),int(volume_shares),float(raw.get('up_pct',0)),bool(raw.get('is_traded',True)),str(raw.get('source') or 'MIS'),str(raw.get('data_identity') or ''),name or str(raw.get('name') or ''),market or str(raw.get('market') or ''),str(raw.get('security_type') or security_type),raw.get('quote_time'),float(raw['quote_age_seconds']) if raw.get('quote_age_seconds') is not None else None,raw.get('quote_time_known'))
