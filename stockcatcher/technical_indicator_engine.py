@@ -27,6 +27,9 @@ TAIPEI_TIMEZONE = timezone(timedelta(hours=8))
 MARKET_OPEN = datetime_time(9, 0)
 MARKET_CLOSE = datetime_time(13, 30)
 MONITOR_STOP_TIME = datetime_time(13, 35)
+MONITOR_SCAN_INTERVAL_SECONDS = 10
+OFF_MARKET_REFRESH_INTERVAL_SECONDS = 60
+MONITOR_STATUS_LOG_INTERVAL_SECONDS = 60
 TRADING_MINUTES_PER_DAY = 270
 FUBON_RANK_URL = "https://warrants.fbs.com.tw/want/data/getWRankResult.aspx"
 FUBON_RANK_HEADERS = {
@@ -214,6 +217,7 @@ def fetch_effective_3k_breakouts(
     symbols: List[str],
     volume_multiplier: float = KLINE_VOLUME_MULTIPLIER,
     max_workers: int = 5,
+    failures: Optional[List[str]] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """並行取得命中標的的已收盤5分K，避免逐檔等待 Fugle 網路回應。"""
     results: Dict[str, Dict[str, Any]] = {}
@@ -229,7 +233,9 @@ def fetch_effective_3k_breakouts(
             symbol = futures[future]
             try:
                 signal = future.result()
-            except (requests.RequestException, ValueError, TypeError):
+            except Exception as exc:
+                if failures is not None:
+                    failures.append(f"{symbol}:{type(exc).__name__}")
                 continue
             if signal:
                 results[symbol] = signal
@@ -1953,10 +1959,18 @@ class WarrantTelegramAlertRunner:
 
     def run_cycle(self, custom_symbols: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """執行一輪現股逆向掃描並主動發送 Telegram，返回所有觸發訊號。優先使用真實的內部人 + 法人買超資料。"""
+        cycle_started = time.perf_counter()
         self.last_effective_3k = {}
         pool = self.build_hot_underlying_pool(custom_symbols)
+        mis_started = time.perf_counter()
         hits = self.monitor.scan_mis_for_warrant_hedge(pool)
+        mis_elapsed = time.perf_counter() - mis_started
         if not hits:
+            print(
+                f"[掃描診斷] MIS命中=0/{len(pool)}; MIS={mis_elapsed:.2f}s; "
+                f"總耗時={time.perf_counter() - cycle_started:.2f}s",
+                flush=True,
+            )
             return []
 
         symbols = [str(hit.get("sid", "")).strip() for hit in hits[:20]]
@@ -1965,10 +1979,28 @@ class WarrantTelegramAlertRunner:
             if is_opening_noise_period()
             else KLINE_VOLUME_MULTIPLIER
         )
-        effective_3k_by_symbol = fetch_effective_3k_breakouts(symbols, volume_multiplier)
+        fugle_failures: List[str] = []
+        fugle_started = time.perf_counter()
+        effective_3k_by_symbol = fetch_effective_3k_breakouts(
+            symbols,
+            volume_multiplier,
+            failures=fugle_failures,
+        )
+        fugle_elapsed = time.perf_counter() - fugle_started
         self.last_effective_3k = effective_3k_by_symbol
 
         alerts: List[Dict[str, Any]] = []
+        rejected = {
+            "no_3k": 0,
+            "ma20": 0,
+            "duplicate": 0,
+            "cooldown": 0,
+            "snapshot": 0,
+            "baseline": 0,
+            "volume": 0,
+            "score": 0,
+            "telegram": 0,
+        }
         for hit in hits[:20]:
             symbol = str(hit.get("sid", "")).strip()
             if not symbol:
@@ -1976,29 +2008,35 @@ class WarrantTelegramAlertRunner:
 
             effective_3k = effective_3k_by_symbol.get(symbol)
             if not effective_3k:
+                rejected["no_3k"] += 1
                 continue
             if float(hit.get("current_price", 0.0)) <= float(effective_3k["ma20"]):
+                rejected["ma20"] += 1
                 continue
             signal_key = f"{symbol}:{effective_3k['bar_time']}"
             if signal_key in self.sent_signals:
+                rejected["duplicate"] += 1
                 continue
             last_alert_at = self.last_alert_at.get(symbol)
             if (
                 last_alert_at is not None
                 and get_taipei_now() - last_alert_at < timedelta(minutes=TELEGRAM_ALERT_COOLDOWN_MINUTES)
             ):
+                rejected["cooldown"] += 1
                 continue
 
             try:
                 snapshot = self._safe_snapshot(symbol, hit)
             except (requests.RequestException, ValueError, TypeError) as exc:
                 print(f"[即時快照] {symbol} 取得失敗: {exc}")
+                rejected["snapshot"] += 1
                 continue
             same_time_baseline = self._get_same_time_volume_baseline(
                 symbol,
                 float(effective_3k["completed_day_volume"]),
             )
             if same_time_baseline is None:
+                rejected["baseline"] += 1
                 continue
             snapshot["effective_3k"] = effective_3k
             snapshot["is_3k_breakout"] = True
@@ -2011,6 +2049,10 @@ class WarrantTelegramAlertRunner:
                 effective_3k=effective_3k,
             )
             if not decision["should_send"]:
+                if float(snapshot.get("volume_ratio", 0.0)) < SAME_TIME_VOLUME_RATIO_THRESHOLD:
+                    rejected["volume"] += 1
+                if float(snapshot.get("score", 0.0)) < 60.0:
+                    rejected["score"] += 1
                 continue
 
             warrant_info = self.warrant_pool_metadata.get(symbol, {})
@@ -2031,10 +2073,17 @@ class WarrantTelegramAlertRunner:
                 snapshot=snapshot,
                 alert_mode="fast_3k",
             )
-            payload = send_telegram_message(message, chat_id=self.chat_id, token=TELEGRAM_BOT_TOKEN)
+            try:
+                payload = send_telegram_message(message, chat_id=self.chat_id, token=TELEGRAM_BOT_TOKEN)
+            except (requests.RequestException, ValueError) as exc:
+                print(f"[Telegram] {symbol} 發送失敗: {exc}", flush=True)
+                rejected["telegram"] += 1
+                continue
             if payload.get("body", {}).get("ok"):
                 self.sent_signals.add(signal_key)
                 self.last_alert_at[symbol] = get_taipei_now()
+            else:
+                rejected["telegram"] += 1
             alerts.append({
                 "symbol": symbol,
                 "hit": hit,
@@ -2047,6 +2096,16 @@ class WarrantTelegramAlertRunner:
                 "decision": decision,
                 "telegram": payload,
             })
+        print(
+            f"[掃描診斷] MIS命中={len(hits)}/{len(pool)}({mis_elapsed:.2f}s); "
+            f"Fugle有效3K={len(effective_3k_by_symbol)}/{len(symbols)} "
+            f"API失敗={len(fugle_failures)}({fugle_elapsed:.2f}s); "
+            f"略過={rejected}; 通知={len(alerts)}; "
+            f"總耗時={time.perf_counter() - cycle_started:.2f}s",
+            flush=True,
+        )
+        if fugle_failures:
+            print(f"[Fugle錯誤標的] {', '.join(fugle_failures)}", flush=True)
         return alerts
 
 
@@ -2114,12 +2173,15 @@ if __name__ == "__main__":
 
     cycle_count = 0
     last_pool_refresh = time.time()
+    last_off_market_refresh = time.monotonic()
+    last_status_log = time.monotonic()
     monitor_stop_at = get_monitor_stop_at()
     last_wait_log = 0.0
     print(f"[監控狀態] 已啟動，預計停止時間: {monitor_stop_at:%Y-%m-%d %H:%M:%S}")
     
     try:
         while True:
+            cycle_started_monotonic = time.monotonic()
             cycle_count += 1
             now = get_taipei_now()
 
@@ -2133,7 +2195,9 @@ if __name__ == "__main__":
                     f" (掃描時段: 09:00-13:30，停止: {monitor_stop_at:%H:%M:%S})",
                     flush=True,
                 )
-                runner.refresh_monitoring_status(pool)
+                if time.monotonic() - last_off_market_refresh >= OFF_MARKET_REFRESH_INTERVAL_SECONDS:
+                    runner.refresh_monitoring_status(pool)
+                    last_off_market_refresh = time.monotonic()
                 time.sleep(10)
                 continue
 
@@ -2142,9 +2206,14 @@ if __name__ == "__main__":
             # 每 5 分鐘刷新一次現股池（防止市場變化導致池子過舊）
             if time.time() - last_pool_refresh > 300:
                 print("  📊 刷新熱門現股池...")
+                pool_refresh_started = time.perf_counter()
                 pool = runner.build_hot_underlying_pool()
                 last_pool_refresh = time.time()
-                print(f"  ✅ 現股池更新: {len(pool)} 檔 {pool[:5]}...")
+                print(
+                    f"  ✅ 現股池更新: {len(pool)} 檔 {pool[:5]}... "
+                    f"耗時={time.perf_counter() - pool_refresh_started:.2f}s",
+                    flush=True,
+                )
             
             if pool is None:
                 pool = runner.build_hot_underlying_pool()
@@ -2164,11 +2233,18 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"  ⚠️  掃描異常: {e}")
             finally:
-                runner.log_monitoring_status(pool)
+                if time.monotonic() - last_status_log >= MONITOR_STATUS_LOG_INTERVAL_SECONDS:
+                    runner.log_monitoring_status(pool)
+                    last_status_log = time.monotonic()
             
-            # 等待 10 秒後進行下一輪掃描
-            print("  ⏳ 等待 10 秒...")
-            time.sleep(10)
+            # 固定掃描起始間隔，避免每輪處理時間再額外累加 10 秒。
+            remaining_sleep = max(
+                0.0,
+                MONITOR_SCAN_INTERVAL_SECONDS - (time.monotonic() - cycle_started_monotonic),
+            )
+            print(f"  ⏳ 等待 {remaining_sleep:.1f} 秒...")
+            if remaining_sleep > 0:
+                time.sleep(remaining_sleep)
     
     except KeyboardInterrupt:
         print("\n\n📍 使用者停止監控")
