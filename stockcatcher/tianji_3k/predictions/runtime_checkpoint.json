@@ -1,14 +1,14 @@
 {
   "schema_version": "recovery-v1",
-  "trade_date": "2026-10-13",
-  "phase": "STOPPED",
-  "last_poll_at": "2026-10-13T23:29:17.940703+08:00",
-  "last_success_at": "2026-10-13T23:29:17.940703+08:00",
-  "poll_sequence": 697,
+  "trade_date": "2026-10-14",
+  "phase": "RADAR_COMPLETE",
+  "last_poll_at": "2026-10-14T20:59:48.235909+08:00",
+  "last_success_at": "2026-10-14T20:59:48.235909+08:00",
+  "poll_sequence": 714,
   "last_error": null,
-  "pid": 17492,
+  "pid": 41180,
   "host": "LAPTOP-E8O974SQ",
   "started_at": "2026-09-23T23:28:11.075468+08:00",
-  "updated_at": "2026-10-13T23:29:31.215860+08:00",
-  "clean_shutdown": true
+  "updated_at": "2026-10-14T20:59:48.235930+08:00",
+  "clean_shutdown": false
 }

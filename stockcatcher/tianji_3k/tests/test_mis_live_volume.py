@@ -63,3 +63,25 @@ def test_estimator_resets_after_gap_exceeds_240_seconds():
     assert result["ready"] is False
     assert result["reason"] == "INSUFFICIENT_WINDOW"
     assert result["max_window_seconds"] == 240.0
+
+
+def test_identical_observation_is_idempotent_and_does_not_clear_warmed_window():
+    estimator = MISLiveVolumeEstimator()
+    base = datetime(2026, 10, 14, 10, 0, tzinfo=TAIPEI)
+    estimator.observe("2881", base, 1000, 5400)
+    estimator.observe("2881", base + timedelta(seconds=30), 1030, 5400)
+    before = estimator.observe("2881", base + timedelta(seconds=60), 1080, 5400)
+    duplicate = estimator.observe("2881", base + timedelta(seconds=60), 1080, 5400)
+    assert before["ready"] and before["pass"]
+    assert duplicate["ready"] and duplicate["pass"]
+    assert duplicate["window_seconds"] == 60.0
+    assert duplicate["volume_delta_lots"] == 80.0
+
+
+def test_same_timestamp_with_changed_volume_resets_ambiguous_window():
+    estimator = MISLiveVolumeEstimator()
+    base = datetime(2026, 10, 14, 10, 0, tzinfo=TAIPEI)
+    estimator.observe("2882", base, 1000, 5400)
+    result = estimator.observe("2882", base, 1001, 5400)
+    assert result["ready"] is False
+    assert result["reason"] == "INSUFFICIENT_WINDOW"

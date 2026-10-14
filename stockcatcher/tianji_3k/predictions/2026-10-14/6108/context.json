@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "6108",
+  "name": "競國",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 28.85,
+  "k1_high": 27.75,
+  "k2_high": 26.0,
+  "breakout_level": 27.75,
+  "ma20": 24.7775,
+  "ma60": 22.081666666666667,
+  "ma20_prev": 24.442500000000003,
+  "vma5_lots": 2560.4847999999997,
+  "yesterday_volume_lots": 3789.898,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

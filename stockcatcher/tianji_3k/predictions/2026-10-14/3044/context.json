@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "3044",
+  "name": "健鼎",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 603.0,
+  "k1_high": 577.0,
+  "k2_high": 588.0,
+  "breakout_level": 588.0,
+  "ma20": 541.975,
+  "ma60": 477.5416666666667,
+  "ma20_prev": 537.225,
+  "vma5_lots": 2928.0155999999997,
+  "yesterday_volume_lots": 3580.094,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

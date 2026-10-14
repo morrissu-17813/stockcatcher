@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "3576",
+  "name": "聯合再生",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 18.65,
+  "k1_high": 18.25,
+  "k2_high": 18.35,
+  "breakout_level": 18.35,
+  "ma20": 17.8875,
+  "ma60": 17.506666666666668,
+  "ma20_prev": 17.775,
+  "vma5_lots": 7906.177399999999,
+  "yesterday_volume_lots": 6330.65,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

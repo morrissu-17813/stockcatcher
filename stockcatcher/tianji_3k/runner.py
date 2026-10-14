@@ -97,6 +97,9 @@ class TianjiProductionRunner:
         self.fugle_provider = FugleProvider(FUGLE_API_KEY)
         self.dynamic_contexts: dict[str, dict] = {}
         self.dynamic_attempts: dict[str, int] = {}
+        # Transient history API failures are retried with bounded backoff rather
+        # than consuming all three attempts in consecutive Radar cycles.
+        self.dynamic_retry_after: dict[str, str] = {}
         self.universe_cache: dict[str, dict] = {}
         self.dynamic_discovery_config = DynamicDiscoveryConfig()
         self._next_radar_deadline = 0.0
@@ -155,6 +158,7 @@ class TianjiProductionRunner:
             "trade_date": self.trade_date,
             "premarket_notified": self._premarket_notified,
             "dynamic_attempts": self.dynamic_attempts,
+            "dynamic_retry_after": self.dynamic_retry_after,
             "states": {sid: sm.to_dict() for sid, sm in self.states.items()},
             "fugle_pending": self._fugle_pending,
             "fugle_health_status": self._fugle_health_status,
@@ -173,6 +177,7 @@ class TianjiProductionRunner:
             data = json.loads(self.runtime_state_path.read_text(encoding="utf-8"))
             self._premarket_notified = bool(data.get("premarket_notified", False))
             self.dynamic_attempts = {str(k): int(v) for k, v in (data.get("dynamic_attempts", {}) or {}).items()}
+            self.dynamic_retry_after = {str(k): str(v) for k, v in (data.get("dynamic_retry_after", {}) or {}).items()}
             self._fugle_pending = {str(k): str(v) for k, v in (data.get("fugle_pending", {}) or {}).items()}
             self._fugle_health_status = str(data.get("fugle_health_status", "NOT_CHECKED"))
             for sid, state in data.get("states", {}).items():
@@ -455,13 +460,30 @@ class TianjiProductionRunner:
 
     def _dynamic_candidate_gate(self, raw: dict, universe: dict[str, dict]) -> list[dict]:
         """Market-wide MIS discovery only; historical APIs are not touched."""
-        return discovery_candidates(
+        candidates = discovery_candidates(
             raw,
             universe,
             existing=set(self.contexts) | set(self.dynamic_contexts),
             attempts=self.dynamic_attempts,
             config=self.dynamic_discovery_config,
         )
+        now = datetime.now(TAIPEI)
+        ready = []
+        cooldown = 0
+        for candidate in candidates:
+            sid = str(candidate.get("symbol", ""))
+            retry_at = self.dynamic_retry_after.get(sid)
+            if retry_at:
+                try:
+                    if self._as_datetime(retry_at) > now:
+                        cooldown += 1
+                        continue
+                except (TypeError, ValueError, OverflowError):
+                    # Bad persisted cooldown must not permanently block a stock.
+                    self.dynamic_retry_after.pop(sid, None)
+            ready.append(candidate)
+        self._last_dynamic_cooldown_skipped = cooldown
+        return ready
 
     def _enrich_dynamic_candidates(self, candidates: list[dict]) -> int:
         """Spend FinMind only on candidates that already passed the MIS gate."""
@@ -481,6 +503,7 @@ class TianjiProductionRunner:
             self.dynamic_attempts[sid] = attempt
             try:
                 frame = self.data_refresh.provider.get_daily(sid, start, self.latest_completed_date)
+                self.dynamic_retry_after.pop(sid, None)
                 result = evaluate_dynamic_history(
                     sid, frame, name=c.get("name", ""), market=c.get("market", ""), trade_date=self.trade_date or self._today()
                 )
@@ -500,11 +523,23 @@ class TianjiProductionRunner:
                 added += 1
                 print(f"🟢 DYNAMIC CANDIDATE | {sid} {c.get('name','')} | +{c.get('up_pct',0):.2f}% | Breakout={ctx['breakout_level']:.2f} | VMA5={ctx['vma5_lots']:.0f}張", flush=True)
             except Exception as exc:
-                print(f"⚠️ DYNAMIC HISTORY | {sid} | {type(exc).__name__}: {str(exc)[:180]}", flush=True)
+                # Attempts remain capped at the existing max_history_attempts,
+                # but transient errors are spaced out so a bad/empty response
+                # cannot consume all retries in adjacent 20-second Radar cycles.
+                backoff_seconds = min(60 * (2 ** max(0, attempt - 1)), 300)
+                retry_at = datetime.now(TAIPEI) + timedelta(seconds=backoff_seconds)
+                self.dynamic_retry_after[sid] = retry_at.isoformat()
+                print(
+                    f"⚠️ DYNAMIC HISTORY | {sid} | {type(exc).__name__}: {str(exc)[:180]} "
+                    f"| attempt={attempt}/{self.dynamic_discovery_config.max_history_attempts} "
+                    f"| retry_after_s={backoff_seconds}", flush=True,
+                )
                 self.ledger.append_event(self.trade_date or self._today(), sid, {
                     "event_type": "DYNAMIC_CANDIDATE_HISTORY_ERROR",
                     "error_type": type(exc).__name__,
                     "message": str(exc)[:300],
+                    "attempt": attempt,
+                    "retry_after": retry_at.isoformat(),
                     "observed_at": datetime.now(TAIPEI).isoformat(),
                 })
         return added
@@ -719,12 +754,21 @@ class TianjiProductionRunner:
             f"| price={snap.current_price:.2f} | breakout={ctx['breakout_level']:.2f} "
             f"| volume_delta_lots={volume_evidence['volume_delta_lots']:.1f} "
             f"| live_volume_ratio={volume_evidence['live_volume_ratio']:.2f}x "
-            f"| window_s={volume_evidence['window_seconds']:.1f} | projected_ratio={projected_ratio}",
+            f"| window_s={volume_evidence['window_seconds']:.1f} | projected_ratio={projected_ratio} "
+            f"| trigger_age_s={trigger_age:.1f} | snapshot_received_age_s={received_age:.2f}",
             flush=True,
         )
         if gate["should_send"] and self.notifier.enabled:
+            telegram_started = time.monotonic()
+            telegram_started_at = datetime.now(TAIPEI).isoformat()
             result = self.notifier.send_intraday_prediction(event)
+            telegram_elapsed_ms = (time.monotonic() - telegram_started) * 1000
             status = result.get("status", "FAILED")
+            print(
+                f"📨 TELEGRAM SEND TIMING | {sid} | evidence=MIS_LIVE | status={status} "
+                f"| elapsed_ms={telegram_elapsed_ms:.1f} | started_at={telegram_started_at}",
+                flush=True,
+            )
             self._record_notification(
                 event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
                 message_id=result.get("message_id"), prediction_id=event["prediction_id"],
@@ -866,10 +910,24 @@ class TianjiProductionRunner:
             return
         event = self.ledger.create_prediction(ctx, trigger, vol, gate)
         self.events.append(event)
-        print(f"🟡 INTRADAY_3K_PREDICTION | {sid} | level={signal_level} | price={snap.current_price:.2f} | breakout={ctx['breakout_level']:.2f} | projected_ratio={projected_ratio}", flush=True)
+        print(
+            f"🟡 INTRADAY_3K_PREDICTION | {sid} | level={signal_level} "
+            f"| evidence=FUGLE_5M | price={snap.current_price:.2f} "
+            f"| breakout={ctx['breakout_level']:.2f} | projected_ratio={projected_ratio} "
+            f"| trigger_age_s={trigger_age:.1f} | snapshot_received_age_s={snapshot_age:.2f}",
+            flush=True,
+        )
         if gate["should_send"] and self.notifier.enabled:
+            telegram_started = time.monotonic()
+            telegram_started_at = datetime.now(TAIPEI).isoformat()
             result = self.notifier.send_intraday_prediction(event)
+            telegram_elapsed_ms = (time.monotonic() - telegram_started) * 1000
             status = result.get("status", "FAILED")
+            print(
+                f"📨 TELEGRAM SEND TIMING | {sid} | evidence={evidence_source} | status={status} "
+                f"| elapsed_ms={telegram_elapsed_ms:.1f} | started_at={telegram_started_at}",
+                flush=True,
+            )
             self._record_notification(event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
                 message_id=result.get("message_id"), prediction_id=event["prediction_id"], symbol=sid, up_pct=snap.up_pct)
             self.ledger.append_event(ctx["trade_date"], sid, {"event_type":"NOTIFICATION", "prediction_id":event["prediction_id"],
@@ -954,13 +1012,26 @@ class TianjiProductionRunner:
         fetch_wall_ms = (time.monotonic() - fetch_wall_started) * 1000
         fetch_stats = getattr(self.mis_provider, "last_fetch_stats", {}) or {}
         if fetch_stats:
+            batch_detail = ",".join(
+                "{}:{}/{}/{}/{}".format(
+                    item.get("batch"), item.get("requested"), item.get("raw_items"),
+                    item.get("parsed"), int(bool(item.get("failed"))),
+                )
+                for item in fetch_stats.get("batch_stats", [])
+            )
             print(
                 f"⏱️ MIS FETCH TIMING | provider_ms={fetch_stats.get('elapsed_ms', 0)} "
                 f"| wall_ms={fetch_wall_ms:.1f} | pre_fetch_ms={pre_fetch_ms:.1f} "
                 f"| batches={fetch_stats.get('batches', 0)} | workers={fetch_stats.get('workers', 0)} "
                 f"| requested={fetch_stats.get('requested_symbols', 0)} "
                 f"| returned={fetch_stats.get('returned_symbols', len(raw))} "
-                f"| failed_batches={fetch_stats.get('failed_batches', 0)}",
+                f"| raw_items={fetch_stats.get('raw_items', 'N/A')} "
+                f"| missing_z={fetch_stats.get('missing_last_price', 'N/A')} "
+                f"| invalid_y={fetch_stats.get('invalid_previous_close', 'N/A')} "
+                f"| missing_symbol={fetch_stats.get('missing_symbol', 'N/A')} "
+                f"| quote_time_unknown={fetch_stats.get('quote_time_unknown', 'N/A')} "
+                f"| failed_batches={fetch_stats.get('failed_batches', 0)} "
+                f"| batch_detail={batch_detail}",
                 flush=True,
             )
 
@@ -997,17 +1068,26 @@ class TianjiProductionRunner:
         # Phase A: update every stock from this MIS snapshot before doing any
         # Fugle work. This is the key non-blocking guarantee for WATCHING,
         # BREAKOUT_PENDING, TRIGGERED and cooldown states.
+        quote_coverage = {
+            "monitored": len(self.contexts), "raw_present": 0, "accepted": 0,
+            "stale": 0, "invalid": 0, "missing_raw": 0, "unknown_time": 0,
+        }
         for sid, ctx in list(self.contexts.items()):
             r = raw.get(sid)
             if not r:
+                quote_coverage["missing_raw"] += 1
                 continue
+            quote_coverage["raw_present"] += 1
             try:
                 snap = build_snapshot(sid, r, ctx["name"], ctx["market"], "COMMON_STOCK")
             except (TypeError, ValueError, KeyError) as exc:
+                quote_coverage["invalid"] += 1
                 print(f"🟡 MIS SNAPSHOT INVALID | {sid} | {type(exc).__name__}: {exc}", flush=True)
                 continue
             quote_fresh, quote_reason, quote_age = self._mis_quote_freshness(snap)
             if not quote_fresh:
+                quote_coverage["stale"] += 1
+                quote_coverage["unknown_time"] += int(quote_reason == "QUOTE_TIME_UNKNOWN")
                 # Log only quotes that are already pending or could otherwise
                 # qualify as a breakout; avoid flooding logs for stale symbols.
                 potential_breakout = (
@@ -1022,10 +1102,12 @@ class TianjiProductionRunner:
                     )
                 continue
             if snap.current_price <= 0 or snap.previous_close <= 0 or not snap.is_traded:
+                quote_coverage["invalid"] += 1
                 # Invalid/no-trade quote must not overwrite last valid price or
                 # transition the state machine to INVALIDATED.
                 print(f"🟡 MIS SNAPSHOT SKIP | {sid} | invalid/no-trade price", flush=True)
                 continue
+            quote_coverage["accepted"] += 1
             previous_snap = self._latest_snapshots.get(sid)
             self._latest_snapshots[sid] = snap
             self._latest_snapshot_received_at[sid] = time.monotonic()
@@ -1077,6 +1159,13 @@ class TianjiProductionRunner:
                 self._finalize_mis_early(sid, ctx, snap, previous_snap)
 
         state_update_ms = (time.monotonic() - state_update_started) * 1000
+        print(
+            f"📊 MIS QUOTE COVERAGE | monitored={quote_coverage['monitored']} "
+            f"| raw_present={quote_coverage['raw_present']} | accepted={quote_coverage['accepted']} "
+            f"| stale={quote_coverage['stale']} | unknown_time={quote_coverage['unknown_time']} "
+            f"| invalid={quote_coverage['invalid']} | missing_raw={quote_coverage['missing_raw']}",
+            flush=True,
+        )
         print(
             f"⏱️ RADAR PHASE | state_update_ms={state_update_ms:.1f} "
             f"| latest_snapshots={len(self._latest_snapshots)} | fugle_inflight={len(self._fugle_futures)}",
@@ -1164,6 +1253,7 @@ class TianjiProductionRunner:
             f"🧭 DYNAMIC DISCOVERY | candidates={len(dynamic_candidates)} "
             f"| enriched={added} | active={len(self.dynamic_contexts)} "
             f"| history_budget/cycle={self.dynamic_discovery_config.max_history_enrich_per_cycle} "
+            f"| cooldown_skipped={getattr(self, '_last_dynamic_cooldown_skipped', 0)} "
             f"| elapsed_ms={discovery_ms:.1f}",
             flush=True,
         )

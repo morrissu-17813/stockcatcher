@@ -58,3 +58,23 @@ def test_mis_parallel_batches_merge_results_without_dropping_successes(monkeypat
     assert provider.last_fetch_stats["batches"] == 3
     assert provider.last_fetch_stats["returned_symbols"] == 3
     assert provider.last_fetch_stats["failed_batches"] == 0
+
+
+def test_mis_provider_reports_raw_items_and_parse_rejections():
+    provider = MISProvider({"1101": {}, "1102": {}, "1103": {}}, lambda _: "tse")
+    provider.initialized = True
+    provider.session = FakeSession({"msgArray": [
+        {"c": "1101", "y": "20", "z": "21", "o": "20", "v": "100", "t": "10:00:00", "d": "20261014"},
+        {"c": "1102", "y": "20", "z": "-", "o": "20", "v": "100", "t": "10:00:00", "d": "20261014"},
+        {"c": "1103", "y": "-", "z": "21", "o": "20", "v": "100", "t": "10:00:00", "d": "20261014"},
+    ]})
+    result = provider.fetch_batch()
+    assert set(result) == {"1101"}
+    stats = provider.last_fetch_stats
+    assert stats["raw_items"] == 3
+    assert stats["returned_symbols"] == 1
+    assert stats["missing_last_price"] == 1
+    assert stats["invalid_previous_close"] == 1
+    assert stats["failed_batches"] == 0
+    assert stats["batch_stats"][0]["raw_items"] == 3
+    assert stats["batch_stats"][0]["parsed"] == 1

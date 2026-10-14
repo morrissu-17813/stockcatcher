@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "1303",
+  "name": "南亞",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 349.0,
+  "k1_high": 319.0,
+  "k2_high": 314.5,
+  "breakout_level": 319.0,
+  "ma20": 264.025,
+  "ma60": 219.875,
+  "ma20_prev": 258.3,
+  "vma5_lots": 100486.95820000001,
+  "yesterday_volume_lots": 121510.456,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

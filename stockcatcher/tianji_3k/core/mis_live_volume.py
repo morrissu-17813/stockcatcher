@@ -41,13 +41,24 @@ class MISLiveVolumeEstimator:
         baseline_daily = float(vma5_lots or 0.0)
         history = self._history[sid]
 
+        duplicate_observation = False
         if history:
             previous = history[-1]
             elapsed_from_previous = (now - previous[0]).total_seconds()
+            # The runner warms the estimator before state evaluation, then the
+            # same snapshot may be assessed again when a breakout is detected.
+            # An identical timestamp+counter is idempotent, not a clock error.
+            # A same-time counter change remains ambiguous and resets history.
+            duplicate_observation = elapsed_from_previous == 0 and volume == previous[1]
             # Counter rollback, clock reversal, or a gap beyond the expanded
-            # tolerance makes the local delta unreliable. A 90-180s radar gap
-            # is retained and normalized by its actual elapsed time below.
-            if elapsed_from_previous <= 0 or elapsed_from_previous > self.max_window_seconds or volume < previous[1]:
+            # tolerance makes the local delta unreliable. Long-but-allowed
+            # gaps are normalized by their actual elapsed seconds below.
+            if (
+                (elapsed_from_previous < 0)
+                or (elapsed_from_previous == 0 and not duplicate_observation)
+                or elapsed_from_previous > self.max_window_seconds
+                or volume < previous[1]
+            ):
                 history.clear()
 
         if not history or now > history[-1][0]:

@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "4977",
+  "name": "眾達-KY",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 191.0,
+  "k1_high": 181.5,
+  "k2_high": 184.5,
+  "breakout_level": 184.5,
+  "ma20": 173.0,
+  "ma60": 157.71666666666667,
+  "ma20_prev": 172.2,
+  "vma5_lots": 3989.2596,
+  "yesterday_volume_lots": 6118.484,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

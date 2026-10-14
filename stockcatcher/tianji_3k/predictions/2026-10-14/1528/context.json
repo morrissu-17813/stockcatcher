@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "1528",
+  "name": "恩德",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 24.9,
+  "k1_high": 23.35,
+  "k2_high": 23.35,
+  "breakout_level": 23.35,
+  "ma20": 24.685,
+  "ma60": 20.875,
+  "ma20_prev": 24.5,
+  "vma5_lots": 2145.9132,
+  "yesterday_volume_lots": 2030.544,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

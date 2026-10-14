@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "1326",
+  "name": "台化",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 85.5,
+  "k1_high": 78.7,
+  "k2_high": 78.5,
+  "breakout_level": 78.7,
+  "ma20": 70.865,
+  "ma60": 65.835,
+  "ma20_prev": 70.1,
+  "vma5_lots": 53036.51040000001,
+  "yesterday_volume_lots": 53431.825,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

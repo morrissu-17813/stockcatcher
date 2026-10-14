@@ -123,3 +123,28 @@ def test_pending_trigger_age_uses_confirmation_time_not_old_snapshot_time():
     started = datetime.now(TAIPEI) - timedelta(seconds=600)
     runner._fugle_pending = {"1234": started.isoformat()}
     assert runner._pending_trigger_age_seconds("1234") >= 600
+
+
+def test_mis_early_survives_runner_warmup_then_same_snapshot_recheck():
+    runner = make_runner()
+    from tianji_3k.core.mis_live_volume import MISLiveVolumeEstimator
+    runner.mis_live_volume = MISLiveVolumeEstimator()
+    base = datetime.now(TAIPEI)
+    samples = [
+        (1500, "warm-1", 0),
+        (1550, "warm-2", 30),
+        (1600, "trigger-snapshot", 60),
+    ]
+    trigger_snap = None
+    for volume, identity, seconds in samples:
+        trigger_snap = make_snap(volume, identity, base + timedelta(seconds=seconds))
+        runner.mis_live_volume.observe(
+            "1234", trigger_snap.observed_at, trigger_snap.cumulative_volume_lots, context()["vma5_lots"]
+        )
+    # poll_once warms this exact snapshot before evaluating the breakout. The
+    # early-finalization path then sees the same timestamp/counter a second time.
+    runner._latest_snapshot_received_at["1234"] = time.monotonic()
+    runner._finalize_mis_early("1234", context(), trigger_snap)
+
+    assert len(runner.ledger.predictions) == 1
+    assert runner.ledger.predictions[0]["trigger_snapshot"]["early_evidence_source"] == "MIS_LIVE"

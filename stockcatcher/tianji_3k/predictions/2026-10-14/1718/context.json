@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "1718",
+  "name": "中纖",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 12.9,
+  "k1_high": 12.55,
+  "k2_high": 12.4,
+  "breakout_level": 12.55,
+  "ma20": 11.0725,
+  "ma60": 10.754,
+  "ma20_prev": 10.9475,
+  "vma5_lots": 51374.135200000004,
+  "yesterday_volume_lots": 50580.996,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

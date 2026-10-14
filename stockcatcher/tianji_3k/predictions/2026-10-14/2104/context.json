@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-14",
+  "symbol": "2104",
+  "name": "國際中橡",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-14T00:00:00.000",
+  "previous_close": 12.25,
+  "k1_high": 11.75,
+  "k2_high": 11.9,
+  "breakout_level": 11.9,
+  "ma20": 11.057500000000001,
+  "ma60": 10.5125,
+  "ma20_prev": 10.97,
+  "vma5_lots": 4769.4082,
+  "yesterday_volume_lots": 5508.248,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}
