@@ -85,3 +85,13 @@ def test_same_timestamp_with_changed_volume_resets_ambiguous_window():
     result = estimator.observe("2882", base, 1001, 5400)
     assert result["ready"] is False
     assert result["reason"] == "INSUFFICIENT_WINDOW"
+
+
+def test_estimator_exposes_reset_reason_and_sample_count_for_diagnostics():
+    estimator = MISLiveVolumeEstimator()
+    base = datetime(2026, 10, 15, 10, 0, tzinfo=TAIPEI)
+    estimator.observe("2883", base, 1000, 5400)
+    result = estimator.observe("2883", base + timedelta(seconds=241), 1100, 5400)
+    assert result["ready"] is False
+    assert result["history_reset_reason"] == "OBSERVATION_GAP_EXCEEDED"
+    assert result["sample_count"] == 1

@@ -40,6 +40,7 @@ class MISLiveVolumeEstimator:
         volume = float(cumulative_volume_lots)
         baseline_daily = float(vma5_lots or 0.0)
         history = self._history[sid]
+        reset_reason = None
 
         duplicate_observation = False
         if history:
@@ -53,12 +54,15 @@ class MISLiveVolumeEstimator:
             # Counter rollback, clock reversal, or a gap beyond the expanded
             # tolerance makes the local delta unreliable. Long-but-allowed
             # gaps are normalized by their actual elapsed seconds below.
-            if (
-                (elapsed_from_previous < 0)
-                or (elapsed_from_previous == 0 and not duplicate_observation)
-                or elapsed_from_previous > self.max_window_seconds
-                or volume < previous[1]
-            ):
+            if elapsed_from_previous < 0:
+                reset_reason = "CLOCK_REVERSED"
+            elif elapsed_from_previous == 0 and not duplicate_observation:
+                reset_reason = "SAME_TIMESTAMP_VOLUME_CHANGED"
+            elif elapsed_from_previous > self.max_window_seconds:
+                reset_reason = "OBSERVATION_GAP_EXCEEDED"
+            elif volume < previous[1]:
+                reset_reason = "CUMULATIVE_VOLUME_ROLLBACK"
+            if reset_reason:
                 history.clear()
 
         if not history or now > history[-1][0]:
@@ -77,6 +81,8 @@ class MISLiveVolumeEstimator:
             "required_ratio": self.min_ratio,
             "max_window_seconds": self.max_window_seconds,
             "last_snapshot_gap_seconds": None,
+            "sample_count": len(history),
+            "history_reset_reason": reset_reason,
         }
         if baseline_daily <= 0:
             result["reason"] = "NO_VALID_BASELINE_OR_HISTORY"
@@ -87,6 +93,7 @@ class MISLiveVolumeEstimator:
         result["last_snapshot_gap_seconds"] = round(
             (history[-1][0] - history[-2][0]).total_seconds(), 2
         )
+        result["sample_count"] = len(history)
 
         # Choose the newest reference snapshot old enough to produce a stable
         # rate estimate. The 45-240s range tolerates slow Radar cycles while

@@ -107,6 +107,10 @@ class MISProvider:
             "requested": len(batch), "raw_items": 0, "parsed": 0,
             "missing_symbol": 0, "invalid_previous_close": 0,
             "missing_last_price": 0, "quote_time_unknown": 0,
+            # Keep raw response membership separate from whether a usable last
+            # price was present. A `z` of '-' is not a missing response item.
+            "raw_symbols": [], "missing_price_symbols": [],
+            "invalid_previous_close_symbols": [],
             "failed": False, "error_type": None,
         }
         try:
@@ -125,15 +129,18 @@ class MISProvider:
                 if not sid:
                     stats["missing_symbol"] += 1
                     continue
+                stats["raw_symbols"].append(sid)
                 y = self._num(item.get("y"))
                 z = self._num(item.get("z"))
                 # Keep parse-rejection reasons visible; never substitute the
                 # previous close (`y`) for the last traded price (`z`).
                 if y <= 0:
                     stats["invalid_previous_close"] += 1
+                    stats["invalid_previous_close_symbols"].append(sid)
                     continue
                 if z <= 0:
                     stats["missing_last_price"] += 1
+                    stats["missing_price_symbols"].append(sid)
                     continue
                 quote_dt = self._quote_timestamp(item, received_at)
                 if quote_dt is None:
@@ -184,6 +191,9 @@ class MISProvider:
         out = {}
         failed_batches = 0
         batch_stats = []
+        raw_symbols = set()
+        missing_price_symbols = set()
+        invalid_previous_close_symbols = set()
 
         def merge_result(result, batch, batch_index):
             nonlocal failed_batches
@@ -200,6 +210,9 @@ class MISProvider:
                     "quote_time_unknown": None, "error_type": None,
                 }
             out.update(chunk_out)
+            raw_symbols.update(str(x) for x in (stats.get("raw_symbols") or []))
+            missing_price_symbols.update(str(x) for x in (stats.get("missing_price_symbols") or []))
+            invalid_previous_close_symbols.update(str(x) for x in (stats.get("invalid_previous_close_symbols") or []))
             failed_batches += int(bool(failed))
             stats["failed"] = bool(failed)
             stats["batch"] = batch_index
@@ -257,6 +270,9 @@ class MISProvider:
             "invalid_previous_close": known("invalid_previous_close") if all(x.get("invalid_previous_close") is not None for x in batch_stats) else None,
             "missing_last_price": known("missing_last_price") if all(x.get("missing_last_price") is not None for x in batch_stats) else None,
             "quote_time_unknown": known("quote_time_unknown") if all(x.get("quote_time_unknown") is not None for x in batch_stats) else None,
+            "raw_symbols": sorted(raw_symbols),
+            "missing_price_symbols": sorted(missing_price_symbols),
+            "invalid_previous_close_symbols": sorted(invalid_previous_close_symbols),
             "batch_stats": sorted(batch_stats, key=lambda x: x.get("batch", 0)),
         }
         return out

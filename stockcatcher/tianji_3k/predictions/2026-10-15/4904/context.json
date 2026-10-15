@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-15",
+  "symbol": "4904",
+  "name": "遠傳",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-15T00:00:00.000",
+  "previous_close": 113.0,
+  "k1_high": 108.5,
+  "k2_high": 108.0,
+  "breakout_level": 108.5,
+  "ma20": 106.125,
+  "ma60": 103.85833333333333,
+  "ma20_prev": 105.775,
+  "vma5_lots": 5421.325,
+  "yesterday_volume_lots": 4814.834,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

@@ -688,6 +688,8 @@ class TianjiProductionRunner:
                 f"🟡 EARLY MIS VOLUME WAIT | {sid} | ready={volume_evidence['ready']} "
                 f"| reason={volume_evidence['reason']} | window_s={volume_evidence['window_seconds']:.1f} "
                 f"| last_gap_s={volume_evidence.get('last_snapshot_gap_seconds')} "
+                f"| samples={volume_evidence.get('sample_count')} "
+                f"| reset_reason={volume_evidence.get('history_reset_reason')} "
                 f"| max_window_s={volume_evidence.get('max_window_seconds')} "
                 f"| delta_lots={volume_evidence['volume_delta_lots']:.1f} "
                 f"| live_ratio={volume_evidence['live_volume_ratio']} "
@@ -1068,16 +1070,27 @@ class TianjiProductionRunner:
         # Phase A: update every stock from this MIS snapshot before doing any
         # Fugle work. This is the key non-blocking guarantee for WATCHING,
         # BREAKOUT_PENDING, TRIGGERED and cooldown states.
+        raw_symbol_values = fetch_stats.get("raw_symbols")
+        fetch_raw_symbols = set(str(x) for x in (raw_symbol_values if raw_symbol_values is not None else raw.keys()))
+        fetch_missing_price_symbols = set(str(x) for x in (fetch_stats.get("missing_price_symbols") or []))
+        fetch_invalid_y_symbols = set(str(x) for x in (fetch_stats.get("invalid_previous_close_symbols") or []))
         quote_coverage = {
             "monitored": len(self.contexts), "raw_present": 0, "accepted": 0,
-            "stale": 0, "invalid": 0, "missing_raw": 0, "unknown_time": 0,
+            "stale": 0, "invalid": 0, "missing_price": 0,
+            "missing_raw": 0, "unknown_time": 0,
         }
         for sid, ctx in list(self.contexts.items()):
             r = raw.get(sid)
+            if sid in fetch_raw_symbols:
+                quote_coverage["raw_present"] += 1
             if not r:
-                quote_coverage["missing_raw"] += 1
+                if sid in fetch_missing_price_symbols:
+                    quote_coverage["missing_price"] += 1
+                elif sid in fetch_invalid_y_symbols:
+                    quote_coverage["invalid"] += 1
+                else:
+                    quote_coverage["missing_raw"] += 1
                 continue
-            quote_coverage["raw_present"] += 1
             try:
                 snap = build_snapshot(sid, r, ctx["name"], ctx["market"], "COMMON_STOCK")
             except (TypeError, ValueError, KeyError) as exc:
@@ -1163,7 +1176,8 @@ class TianjiProductionRunner:
             f"📊 MIS QUOTE COVERAGE | monitored={quote_coverage['monitored']} "
             f"| raw_present={quote_coverage['raw_present']} | accepted={quote_coverage['accepted']} "
             f"| stale={quote_coverage['stale']} | unknown_time={quote_coverage['unknown_time']} "
-            f"| invalid={quote_coverage['invalid']} | missing_raw={quote_coverage['missing_raw']}",
+            f"| invalid={quote_coverage['invalid']} | missing_price={quote_coverage['missing_price']} "
+            f"| missing_raw={quote_coverage['missing_raw']}",
             flush=True,
         )
         print(
@@ -1407,6 +1421,14 @@ class TianjiProductionRunner:
 
     def _fetch_ground_truth_for_symbol(self, sid: str, td: str, ctx: dict) -> dict | None:
         if not FUGLE_API_KEY:
+            self._ground_truth_failure_reasons = getattr(self, "_ground_truth_failure_reasons", {})
+            self._ground_truth_failure_reasons[str(sid)] = "MISSING_FUGLE_API_KEY"
+            if not self.ledger.has_event(td, str(sid), "GROUND_TRUTH_UNAVAILABLE"):
+                self.ledger.append_event(td, sid, {
+                    "event_type": "GROUND_TRUTH_UNAVAILABLE",
+                    "reason": "MISSING_FUGLE_API_KEY",
+                    "at": datetime.now(TAIPEI).isoformat(),
+                })
             return None
         try:
             params = {"fields": "open,high,low,close,volume", "timeframe": "D"}
@@ -1421,6 +1443,15 @@ class TianjiProductionRunner:
             rows = [x for x in data if x.get("date") and str(x["date"])[:10] <= td]
             rows = sorted(rows, key=lambda x: str(x["date"]))
             if len(rows) < 6:
+                reason = f"INSUFFICIENT_DAILY_CANDLES:{len(rows)}"
+                self._ground_truth_failure_reasons = getattr(self, "_ground_truth_failure_reasons", {})
+                self._ground_truth_failure_reasons[str(sid)] = reason
+                if not self.ledger.has_event(td, str(sid), "GROUND_TRUTH_UNAVAILABLE"):
+                    self.ledger.append_event(td, sid, {
+                        "event_type": "GROUND_TRUTH_UNAVAILABLE",
+                        "reason": reason,
+                        "at": datetime.now(TAIPEI).isoformat(),
+                    })
                 return None
             k0, k1, k2 = rows[-1], rows[-2], rows[-3]
             gain = float(k0["close"]) / float(k1["close"]) - 1
@@ -1453,22 +1484,127 @@ class TianjiProductionRunner:
                 "validated_at": datetime.now(TAIPEI).isoformat(),
             }
         except Exception as exc:
+            reason = f"API_ERROR:{type(exc).__name__}"
+            self._ground_truth_failure_reasons = getattr(self, "_ground_truth_failure_reasons", {})
+            self._ground_truth_failure_reasons[str(sid)] = reason
             self.ledger.append_event(td, sid, {
                 "event_type": "GROUND_TRUTH_ERROR",
                 "error_type": type(exc).__name__,
                 "message": str(exc)[:300],
+                "at": datetime.now(TAIPEI).isoformat(),
             })
             return None
 
-    def ground_truth(self, trade_date: str | None = None):
-        td = trade_date or self.trade_date or self._today()
-        results = []
-        for sid, ctx in self.contexts.items():
-            gt = self._fetch_ground_truth_for_symbol(sid, td, ctx)
-            if gt is None:
+    def _read_persisted_ground_truth(self, trade_date: str, symbol: str):
+        """Return a durable same-day Ground Truth row, if already available."""
+        path = self.ledger._dir(trade_date, symbol) / "ground_truth.json"
+        if not path.exists():
+            return None
+        try:
+            row = json.loads(path.read_text(encoding="utf-8"))
+            if str(row.get("trade_date")) == str(trade_date) and str(row.get("symbol")) == str(symbol):
+                return row
+        except (OSError, ValueError, TypeError):
+            return None
+        return None
+
+    def _missing_prediction_ground_truth_symbols(self, trade_date: str):
+        """Return unresolved prediction symbols; None means there are no predictions."""
+        predictions = [e for e in self.ledger.iter_predictions(trade_date)
+                       if e.get("event_type") == "INTRADAY_3K_PREDICTION"]
+        if not predictions:
+            return None
+        required = {str(e.get("symbol")) for e in predictions}
+        missing = set()
+        for sid in required:
+            persisted = self._read_persisted_ground_truth(trade_date, sid)
+            if not persisted or persisted.get("ground_truth_3k") is None:
+                missing.add(sid)
+        return missing
+
+    def _prediction_ground_truth_complete(self, trade_date: str, rows=None) -> bool:
+        """Completion is based on all predictions needing validation, not any one row."""
+        missing = self._missing_prediction_ground_truth_symbols(trade_date)
+        if missing is None:
+            return bool(rows)
+        return not missing
+
+    def _finalize_unavailable_prediction_validations(self, trade_date: str):
+        """At the 13:35 cutoff, durably mark predictions still lacking Ground Truth."""
+        predictions = [e for e in self.ledger.iter_predictions(trade_date)
+                       if e.get("event_type") == "INTRADAY_3K_PREDICTION"]
+        missing = 0
+        for event in predictions:
+            sid = str(event.get("symbol"))
+            gt = self._read_persisted_ground_truth(trade_date, sid)
+            if gt and gt.get("ground_truth_3k") is not None:
                 continue
-            self.ledger.write_ground_truth(td, sid, gt)
+            event_path = self.ledger._dir(trade_date, sid) / "events.jsonl"
+            existing = self.ledger.read_jsonl(event_path)
+            matching = [x for x in existing if x.get("event_type") == "PREDICTION_VALIDATION"
+                        and x.get("prediction_id") == event.get("prediction_id")]
+            if any(x.get("ground_truth_available") is False for x in matching):
+                continue
+            if any(x.get("ground_truth_available") is True for x in matching):
+                continue
+            row = {
+                "event_type": "PREDICTION_VALIDATION",
+                "prediction_id": event.get("prediction_id"),
+                "trade_date": trade_date,
+                "symbol": sid,
+                "prediction_created_at": event.get("created_at"),
+                "prediction_notification_status": event.get("notification_status"),
+                "ground_truth_available": False,
+                "ground_truth_3k": None,
+                "validation_status": "GROUND_TRUTH_UNAVAILABLE_AT_CUTOFF",
+                "validated_at": datetime.now(TAIPEI).isoformat(),
+            }
+            self.ledger.append_event(trade_date, sid, row)
+            self.ledger._append(self.ledger.validation_root / "master_prediction_validation_log.jsonl", row)
+            missing += 1
+        self.ledger.append_daily_event(trade_date, {
+            "event_type": "GROUND_TRUTH_CUTOFF_VALIDATION_SUMMARY",
+            "prediction_count": len(predictions),
+            "unavailable_count": missing,
+            "at": datetime.now(TAIPEI).isoformat(),
+        })
+        print(f"🧾 GROUND_TRUTH CUTOFF VALIDATION | predictions={len(predictions)} | unavailable={missing}", flush=True)
+
+    def ground_truth(self, trade_date: str | None = None, symbols: set[str] | None = None):
+        td = trade_date or self.trade_date or self._today()
+        started = time.monotonic()
+        selected_contexts = [(sid, ctx) for sid, ctx in self.contexts.items()
+                             if symbols is None or str(sid) in symbols]
+        print(f"🧾 GROUND_TRUTH START | trade_date={td} | contexts={len(self.contexts)} "
+              f"| selected={len(selected_contexts)} | retry_scope={'ALL' if symbols is None else 'PREDICTIONS'}", flush=True)
+        results = []
+        attempted = 0
+        cached = 0
+        missing_reasons = {}
+        self._ground_truth_failure_reasons = getattr(self, "_ground_truth_failure_reasons", {})
+        for sid, ctx in selected_contexts:
+            gt = self._read_persisted_ground_truth(td, str(sid))
+            if gt is not None:
+                cached += 1
+            else:
+                attempted += 1
+                gt = self._fetch_ground_truth_for_symbol(sid, td, ctx)
+                if gt is None:
+                    missing_reasons[str(sid)] = self._ground_truth_failure_reasons.get(str(sid), "NO_VALID_RESULT")
+                    continue
+                self.ledger.write_ground_truth(td, sid, gt)
             results.append(gt)
+
+        # Keep previously completed same-day rows in the result set even when
+        # this retry only targets unresolved prediction symbols.
+        result_symbols = {str(x.get("symbol")) for x in results}
+        for sid in self.contexts:
+            if str(sid) in result_symbols:
+                continue
+            cached_gt = self._read_persisted_ground_truth(td, str(sid))
+            if cached_gt is not None:
+                results.append(cached_gt)
+                result_symbols.add(str(sid))
 
         self.ground_truth = results
         gt_map = {str(x["symbol"]): x for x in results}
@@ -1479,21 +1615,19 @@ class TianjiProductionRunner:
             if event.get("event_type") != "INTRADAY_3K_PREDICTION":
                 continue
             sid = str(event["symbol"])
-            gt = gt_map.get(sid)
-            row = (self.prediction_chain.validate_prediction(event, gt)
-                   if gt is not None else {
-                       "event_type": "PREDICTION_VALIDATION",
-                       "prediction_id": event["prediction_id"],
-                       "trade_date": td,
-                       "symbol": sid,
-                       "prediction_created_at": event.get("created_at"),
-                       "prediction_notification_status": event.get("notification_status"),
-                       "ground_truth_available": False,
-                       "ground_truth_3k": None,
-                       "validated_at": None,
-                   })
+            gt = gt_map.get(sid) or self._read_persisted_ground_truth(td, sid)
+            if gt is None:
+                # Do not freeze a missing-data result during the retry window.
+                # The cutoff handler will record unavailable validation only
+                # after all Ground Truth retries have ended.
+                continue
+            row = self.prediction_chain.validate_prediction(event, gt)
             validation_rows.append(row)
-            if not self.ledger.has_event(td, sid, "PREDICTION_VALIDATION", "prediction_id", row["prediction_id"]):
+            event_path = self.ledger._dir(td, sid) / "events.jsonl"
+            existing = self.ledger.read_jsonl(event_path)
+            matching = [x for x in existing if x.get("event_type") == "PREDICTION_VALIDATION"
+                        and x.get("prediction_id") == row["prediction_id"]]
+            if not any(x.get("ground_truth_available") is True for x in matching):
                 self.ledger.append_event(td, sid, {
                     "event_type": "PREDICTION_VALIDATION",
                     **row,
@@ -1507,19 +1641,13 @@ class TianjiProductionRunner:
         report = build_daily_report(td, self.pool, report_events, results, validation_rows)
         write_daily_report(self.tianji / "validation", td, report)
 
-        # Quant validation is append-only/descriptive: update the historical
-        # calibration artifact after Ground Truth is durable. It never changes
-        # the prediction event or treats Score as a probability.
         try:
             calibration_engine = PredictionCalibrationEngine()
-            # Daily artifact for today's audit.
             daily_calibration = calibration_engine.build_from_ledger(self.pred_root, td)
             calibration_engine.write_report(
                 self.tianji / "validation" / f"score_calibration_{td}.json",
                 daily_calibration,
             )
-            # Cumulative artifact is the source used for real calibration
-            # analysis; it intentionally spans all reconciled historical days.
             calibration = calibration_engine.build_from_ledger(self.pred_root, None)
             calibration_engine.write_report(
                 self.tianji / "validation" / "score_calibration.json", calibration
@@ -1541,8 +1669,7 @@ class TianjiProductionRunner:
                 "at": datetime.now(TAIPEI).isoformat(),
             })
 
-        # Ground Truth Telegram is only sent for symbols that actually generated a prediction.
-        predicted_symbols = {str(e["symbol"]) for e in self.events if e.get("event_type") == "INTRADAY_3K_PREDICTION"}
+        predicted_symbols = {str(e["symbol"]) for e in predictions if e.get("event_type") == "INTRADAY_3K_PREDICTION"}
         for gt in results:
             if str(gt["symbol"]) not in predicted_symbols or not self.notifier.enabled:
                 continue
@@ -1559,6 +1686,18 @@ class TianjiProductionRunner:
             }
             self.ledger.append_event(td, str(gt["symbol"]), gt_event)
             self._record_notification(**gt_event)
+
+        missing_prediction_symbols = sorted(predicted_symbols - set(gt_map))
+        elapsed = time.monotonic() - started
+        print(
+            f"🧾 GROUND_TRUTH RESULT | trade_date={td} | contexts={len(self.contexts)} "
+            f"| attempted={attempted} | cached={cached} | success={len(results)} "
+            f"| predictions={len(predictions)} | validated={len(validation_rows)} "
+            f"| missing_prediction_symbols={','.join(missing_prediction_symbols) or '-'} "
+            f"| missing_reasons={';'.join(f'{sid}:{missing_reasons.get(sid, self._ground_truth_failure_reasons.get(sid, 'PERSISTED_NOT_FOUND'))}' for sid in missing_prediction_symbols) or '-'} "
+            f"| complete={self._prediction_ground_truth_complete(td, results)} | elapsed_s={elapsed:.2f}",
+            flush=True,
+        )
         return results
 
     def run_forever(self, manual_monitor: bool = False):
@@ -1602,6 +1741,7 @@ class TianjiProductionRunner:
                 })
 
             gt_done = False
+            gt_first_pass_done = False
             while True:
                 now = datetime.now(TAIPEI)
                 phase = self.session.phase(now)
@@ -1717,10 +1857,13 @@ class TianjiProductionRunner:
                     # become available from the data provider. Retry every 20s.
                     if not gt_done:
                         try:
-                            rows = self.ground_truth()
-                            gt_done = bool(rows)
+                            retry_symbols = None if not gt_first_pass_done else self._missing_prediction_ground_truth_symbols(trade_date)
+                            rows = self.ground_truth(symbols=retry_symbols)
+                            gt_first_pass_done = True
+                            gt_done = self._prediction_ground_truth_complete(trade_date, rows)
                         except Exception as exc:
                             self.recovery.heartbeat("GROUND_TRUTH_ERROR", success=False, error={"error_type": type(exc).__name__, "message": str(exc)[:300]})
+                            print(f"❌ GROUND_TRUTH ERROR | {type(exc).__name__} | {str(exc)[:300]}", flush=True)
                         if not gt_done:
                             time.sleep(MIS_INTERVAL_SECONDS)
                             continue
@@ -1729,10 +1872,15 @@ class TianjiProductionRunner:
                 if phase == "STOP":
                     if not gt_done:
                         try:
-                            rows = self.ground_truth()
-                            gt_done = bool(rows)
+                            retry_symbols = self._missing_prediction_ground_truth_symbols(trade_date) if gt_first_pass_done else None
+                            rows = self.ground_truth(symbols=retry_symbols)
+                            gt_first_pass_done = True
+                            gt_done = self._prediction_ground_truth_complete(trade_date, rows)
                         except Exception as exc:
                             self.recovery_ledger.append(trade_date, {"event_type":"GROUND_TRUTH_CUTOFF_ERROR", "error_type":type(exc).__name__, "message":str(exc)[:300], "at":datetime.now(TAIPEI).isoformat()})
+                            print(f"❌ GROUND_TRUTH CUTOFF ERROR | {type(exc).__name__} | {str(exc)[:300]}", flush=True)
+                    if not gt_done:
+                        self._finalize_unavailable_prediction_validations(trade_date)
                     if not gt_done and not self._gt_cutoff_recorded:
                         self.ledger.append_daily_event(trade_date, {
                             "event_type": "GROUND_TRUTH_CUTOFF_UNAVAILABLE",

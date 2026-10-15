@@ -74,6 +74,9 @@ def test_mis_provider_reports_raw_items_and_parse_rejections():
     assert stats["raw_items"] == 3
     assert stats["returned_symbols"] == 1
     assert stats["missing_last_price"] == 1
+    assert stats["raw_symbols"] == ["1101", "1102", "1103"]
+    assert stats["missing_price_symbols"] == ["1102"]
+    assert stats["invalid_previous_close_symbols"] == ["1103"]
     assert stats["invalid_previous_close"] == 1
     assert stats["failed_batches"] == 0
     assert stats["batch_stats"][0]["raw_items"] == 3
