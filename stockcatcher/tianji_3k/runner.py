@@ -1687,34 +1687,33 @@ class TianjiProductionRunner:
             self.ledger.append_event(td, str(gt["symbol"]), gt_event)
             self._record_notification(**gt_event)
 
+        
         missing_prediction_symbols = sorted(predicted_symbols - set(gt_map))
         elapsed = time.monotonic() - started
+        missing_reason_text = ';'.join(
+            "{}:{}".format(
+                sid,
+                missing_reasons.get(
+                    sid,
+                    self._ground_truth_failure_reasons.get(
+                        sid, "PERSISTED_NOT_FOUND"
+                    ),
+                ),
+            )
+            for sid in missing_prediction_symbols
+        ) or '-'
+
         print(
             f"🧾 GROUND_TRUTH RESULT | trade_date={td} | contexts={len(self.contexts)} "
             f"| attempted={attempted} | cached={cached} | success={len(results)} "
             f"| predictions={len(predictions)} | validated={len(validation_rows)} "
             f"| missing_prediction_symbols={','.join(missing_prediction_symbols) or '-'} "
-            f"| missing_reasons={
-(
-    ';'.join(
-        '{}:{}'.format(
-            sid,
-            missing_reasons.get(
-                sid,
-                self._ground_truth_failure_reasons.get(
-                    sid, "PERSISTED_NOT_FOUND"
-                ),
-            ),
-        )
-        for sid in missing_prediction_symbols
-    )
-    or '-'
-)
-} "
+            f"| missing_reasons={missing_reason_text} "
             f"| complete={self._prediction_ground_truth_complete(td, results)} | elapsed_s={elapsed:.2f}",
             flush=True,
         )
         return results
+
 
     def run_forever(self, manual_monitor: bool = False):
         """Run one complete trading-day production lifecycle.
