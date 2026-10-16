@@ -1694,7 +1694,23 @@ class TianjiProductionRunner:
             f"| attempted={attempted} | cached={cached} | success={len(results)} "
             f"| predictions={len(predictions)} | validated={len(validation_rows)} "
             f"| missing_prediction_symbols={','.join(missing_prediction_symbols) or '-'} "
-            f"| missing_reasons={';'.join(f'{sid}:{missing_reasons.get(sid, self._ground_truth_failure_reasons.get(sid, 'PERSISTED_NOT_FOUND'))}' for sid in missing_prediction_symbols) or '-'} "
+            f"| missing_reasons={
+(
+    ';'.join(
+        '{}:{}'.format(
+            sid,
+            missing_reasons.get(
+                sid,
+                self._ground_truth_failure_reasons.get(
+                    sid, "PERSISTED_NOT_FOUND"
+                ),
+            ),
+        )
+        for sid in missing_prediction_symbols
+    )
+    or '-'
+)
+} "
             f"| complete={self._prediction_ground_truth_complete(td, results)} | elapsed_s={elapsed:.2f}",
             flush=True,
         )
