@@ -39,15 +39,15 @@ FUBON_RANK_HEADERS = {
 }
 KLINE_TIMEFRAME_MINUTES = 5
 KLINE_VOLUME_MULTIPLIER = 1.2
-OPENING_KLINE_VOLUME_MULTIPLIER = 1.5
+OPENING_KLINE_VOLUME_MULTIPLIER = 1.2
 KLINE_MIN_VOLUME_HISTORY = 5
 WARRANT_VOLUME_GROWTH_PERCENT = 20.0
 WARRANT_VOLUME_GROWTH_MINIMUM = 500
 WARRANT_POOL_QUOTA = 50
 TELEGRAM_ALERT_COOLDOWN_MINUTES = 30
-EFFECTIVE_3K_MIN_VOLUME_RATIO = 1.5
+EFFECTIVE_3K_MIN_VOLUME_RATIO = 1.2
 SAME_TIME_VOLUME_LOOKBACK_DAYS = 5
-SAME_TIME_VOLUME_RATIO_THRESHOLD = 1.8
+SAME_TIME_VOLUME_RATIO_THRESHOLD = 1.5
 MIS_ROLLING_WINDOW_SECONDS = 60
 MIS_MAX_WINDOW_SECONDS = 75
 MIS_MIN_SURGE_AMOUNT = 2_000_000
@@ -137,17 +137,16 @@ def get_monitor_stop_at(started_at: Optional[datetime] = None) -> datetime:
 
 
 def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
-    """判斷最後三根已收盤 5 分 K 的價格突破與第 3K 相對前五根均量。"""
-    if len(bars) < 23:
+    """判斷 K3 突破 K1/K2，並以 K3 前五根量能與前二十根均線確認。"""
+    if len(bars) < 21:
         return None
 
     first_bar, second_bar, third_bar = bars[-3:]
-    previous_bars = bars[:-3][-20:]
-    if len(previous_bars) < 20:
-        return None
+    bars_before_k3 = bars[:-1]
+    previous_bars = bars_before_k3[-20:]
 
     breakout_price = max(float(first_bar["high"]), float(second_bar["high"]))
-    previous_volume_bars = bars[:-3][-5:]
+    previous_volume_bars = bars_before_k3[-5:]
     previous_average_volume = sum(float(bar["volume"]) for bar in previous_volume_bars) / len(previous_volume_bars)
     required_volume = previous_average_volume * max(
         volume_multiplier,
@@ -984,7 +983,7 @@ class TechnicalSignalEngine:
     ) -> Dict[str, Any]:
         """
         累積式觸發優先級：
-        - Tier 1 (基礎): 5日同時段量比 >= 1.8x + 技術分數 >= 60 + 日線多頭型態優 -> 發送
+        - Tier 1 (基礎): 技術分數達標 + 日線多頭型態優 -> 發送；同時段量比作為通知旗標
         - Tier 2 (進階): Tier1 + 內部人買超存在 -> 直接發送
         - Tier 3 (終極): Tier2 + 大戶買超 >= 400張 + 連買(3天+) -> 直接發送
         """
@@ -1008,6 +1007,7 @@ class TechnicalSignalEngine:
         close_price = float(snapshot.get("close", 0.0))
         score = float(snapshot.get("score", 0.0))
         volume_ratio = float(snapshot.get("volume_ratio", 0.0))
+        same_time_volume_available = bool(snapshot.get("same_time_volume_available", True))
         trend = snapshot.get("trend", "")
         is_3k_breakout = bool(snapshot.get("is_3k_breakout", False))
         is_5k_breakout = bool(snapshot.get("is_5k_breakout", False))
@@ -1016,8 +1016,10 @@ class TechnicalSignalEngine:
         rsi14 = float(snapshot.get("rsi14", 0.0))
         macd_hist = float(snapshot.get("macd_hist", 0.0))
 
-        # Tier 1: 基礎條件 (5日同時段量比 1.8x + 技術分數 >= 60 + 日線多頭型態優)
-        volume_threshold = volume_ratio >= min_volume_ratio
+        # Same-time volume is an informational flag, not a notification gate.
+        same_time_volume_flag = (
+            same_time_volume_available and volume_ratio >= min_volume_ratio
+        )
         score_threshold = score >= min_score
         # 日線多頭型態優: 價格 > MA5 > MA20 OR 突破 OR RSI > 50 OR MACD > 0
         daily_bullish = (
@@ -1025,7 +1027,7 @@ class TechnicalSignalEngine:
             is_3k_breakout or is_5k_breakout or
             (rsi14 > 50 and macd_hist > 0)
         )
-        tier1_base = volume_threshold and score_threshold and daily_bullish
+        tier1_base = score_threshold and daily_bullish
         three_k_confirmed = effective_3k is not None
         if three_k_confirmed:
             tier1_base = tier1_base and bool(effective_3k)
@@ -1047,15 +1049,15 @@ class TechnicalSignalEngine:
         if tier3_ultimate:
             should_send = True
             tier_level = 3
-            trigger_reason = f"有效3K + 量能{volume_ratio:.2f}x + 內部人連買 + 大戶{big_holder_shares:.0f}張"
+            trigger_reason = f"有效3K + 內部人連買 + 大戶{big_holder_shares:.0f}張"
         elif tier2_advanced:
             should_send = True
             tier_level = 2
-            trigger_reason = f"有效3K + 量能{volume_ratio:.2f}x + 內部人買超"
+            trigger_reason = "有效3K + 內部人買超"
         elif tier1_base:
             should_send = True
             tier_level = 1
-            trigger_reason = f"有效3K + 量能{volume_ratio:.2f}x"
+            trigger_reason = "有效3K + 技術條件達標"
         else:
             should_send = False
             tier_level = 0
@@ -1081,6 +1083,8 @@ class TechnicalSignalEngine:
             "tier3_ultimate": bool(tier3_ultimate),
             "effective_3k": effective_3k,
             "three_k_confirmed": three_k_confirmed,
+            "same_time_volume_available": same_time_volume_available,
+            "same_time_volume_flag": bool(same_time_volume_flag),
             "is_consecutive_buy": bool(is_consecutive_buy),
             "volume_ratio": volume_ratio,
             "score": score,
@@ -1089,7 +1093,13 @@ class TechnicalSignalEngine:
             "insider": insider,
             "snapshot": snapshot,
             "reason": [
-                f"Tier1基礎: 量能{volume_ratio:.2f}x + 技術{score:.1f}" if tier1_base else "未達量能或技術門檻",
+                f"Tier1基礎: 技術{score:.1f} + 日線型態" if tier1_base else "未達技術或日線型態條件",
+                (
+                    f"同時段量能旗標: {'達標' if same_time_volume_flag else '未達標'} "
+                    f"({volume_ratio:.2f}x / {min_volume_ratio:.2f}x)"
+                    if same_time_volume_available
+                    else "同時段量能旗標: 無歷史基準"
+                ),
                 f"Tier2進階: 內部人買超{insider.get('net_buy', 0):.0f}" if tier1_insider else "無內部人買超",
                 f"Tier3終極: 大戶{big_holder_shares:.0f}張 + 連買{insider.get('buy_streak', 0)}天" if is_consecutive_buy else f"無連買記錄",
             ],
@@ -1119,11 +1129,20 @@ class TechnicalSignalEngine:
 
         tier_markers = {
             0: "",
-            1: "🟡 Tier 1 基礎觸發 (量能+技術)",
+            1: "🟡 Tier 1 基礎觸發 (技術條件)",
             2: "🟠 Tier 2 進階觸發 (加內部人買超)",
             3: "🔴 Tier 3 終極觸發 (加大戶+連買)",
         }
         tier_marker = tier_markers.get(tier_level, "")
+        volume_flag = decision["same_time_volume_flag"]
+        volume_available = decision["same_time_volume_available"]
+        if volume_available:
+            volume_flag_line = (
+                f"📈 同時段量能旗標: {'✅ 達標' if volume_flag else '⚪ 未達標'} "
+                f"({float(snap.get('volume_ratio', 0.0)):.2f}x / {SAME_TIME_VOLUME_RATIO_THRESHOLD:.1f}x)\n"
+            )
+        else:
+            volume_flag_line = "📈 同時段量能旗標: 無歷史基準\n"
         
         # nstock 超連結
         nstock_url = f"https://www.nstock.tw/stock_info?stock_id={symbol}"
@@ -1142,6 +1161,7 @@ class TechnicalSignalEngine:
             f"📈 *標的：* [{stock_label}]({nstock_url})\n"
             f"💰 現價: {float(snap.get('close', 0.0)):.2f}\n"
             f"🎯 觸發原因: {trigger_reason}\n"
+            f"{volume_flag_line}"
             f"─────────\n"
             f"📊 技術面:\n"
             f"  趨勢: {snap.get('trend', 'N/A')}\n"
@@ -1771,11 +1791,15 @@ class WarrantTelegramAlertRunner:
         volume_ratio = float(snapshot.get("volume_ratio", signal.get("volume_ratio", 0.0)))
         score = float(snapshot.get("score", 0.0))
         trend = str(snapshot.get("trend", "N/A"))
+        same_time_volume_available = bool(snapshot.get("same_time_volume_available", True))
+        same_time_volume_flag = (
+            same_time_volume_available
+            and volume_ratio >= SAME_TIME_VOLUME_RATIO_THRESHOLD
+        )
         surge_reason = "現股量能急增" if is_warrant_surge else "未偵測到現股量能急增"
         if alert_mode == "fast_3k":
             trigger_reason = (
                 f"有效3K突破、第3K量能{float(signal['volume_ratio']):.2f}x、"
-                f"5日同時段量比{volume_ratio:.2f}x、"
                 f"現價站上5分K MA20（{float(signal['ma20']):.2f}）"
             )
         else:
@@ -1792,7 +1816,13 @@ class WarrantTelegramAlertRunner:
             f"🎯 *觸發原因：* {trigger_reason}",
             f"📐 *3K收盤／突破價：* `{float(signal['close']):.2f}` / `{float(signal['breakout_price']):.2f}`",
             f"📊 *第3K量能：* `{float(signal['volume']):,.0f}張`（5分K均量的 `{float(signal['volume_ratio']):.2f}x`）",
-            f"📈 *5日同時段量比：* `{volume_ratio:.2f}x`（門檻 `{SAME_TIME_VOLUME_RATIO_THRESHOLD:.1f}x`）",
+            (
+                f"📈 *5日同時段量比：* `{volume_ratio:.2f}x`\n"
+                f"🏷️ *同時段量能旗標：* {'✅ 達標' if same_time_volume_flag else '⚪ 未達標'} "
+                f"（門檻 `{SAME_TIME_VOLUME_RATIO_THRESHOLD:.1f}x`）"
+                if same_time_volume_available
+                else "📈 *5日同時段量比：* `N/A`\n🏷️ *同時段量能旗標：* 無歷史基準"
+            ),
             f"🗓️ *昨日預估量比：* `{float(snapshot.get('estimated_volume_ratio', 0.0)):.2f}x`",
             f"🎫 *認購量增：* `{int(stock.get('warrant_volume_change', 0)):+,}` "
             f"(`{float(stock.get('warrant_volume_growth_percent', 0.0)):+.1f}%`)",
@@ -1996,11 +2026,10 @@ class WarrantTelegramAlertRunner:
             "duplicate": 0,
             "cooldown": 0,
             "snapshot": 0,
-            "baseline": 0,
-            "volume": 0,
             "score": 0,
             "telegram": 0,
         }
+        volume_flags = {"passed": 0, "below_threshold": 0, "unavailable": 0}
         for hit in hits[:20]:
             symbol = str(hit.get("sid", "")).strip()
             if not symbol:
@@ -2035,22 +2064,30 @@ class WarrantTelegramAlertRunner:
                 symbol,
                 float(effective_3k["completed_day_volume"]),
             )
-            if same_time_baseline is None:
-                rejected["baseline"] += 1
-                continue
             snapshot["effective_3k"] = effective_3k
             snapshot["is_3k_breakout"] = True
-            snapshot["same_time_volume_median"] = same_time_baseline["median_volume"]
-            snapshot["same_time_volume_ratio"] = same_time_baseline["volume_ratio"]
-            snapshot["volume_ratio"] = same_time_baseline["volume_ratio"]
+            snapshot["same_time_volume_available"] = same_time_baseline is not None
+            snapshot["same_time_volume_median"] = (
+                same_time_baseline["median_volume"] if same_time_baseline else None
+            )
+            snapshot["same_time_volume_ratio"] = (
+                same_time_baseline["volume_ratio"] if same_time_baseline else None
+            )
+            snapshot["volume_ratio"] = (
+                same_time_baseline["volume_ratio"] if same_time_baseline else 0.0
+            )
             decision = self.engine.evaluate_alert_triggers(
                 symbol,
                 snapshot=snapshot,
                 effective_3k=effective_3k,
             )
+            if not decision["same_time_volume_available"]:
+                volume_flags["unavailable"] += 1
+            else:
+                volume_flags[
+                    "passed" if decision["same_time_volume_flag"] else "below_threshold"
+                ] += 1
             if not decision["should_send"]:
-                if float(snapshot.get("volume_ratio", 0.0)) < SAME_TIME_VOLUME_RATIO_THRESHOLD:
-                    rejected["volume"] += 1
                 if float(snapshot.get("score", 0.0)) < 60.0:
                     rejected["score"] += 1
                 continue
@@ -2100,7 +2137,7 @@ class WarrantTelegramAlertRunner:
             f"[掃描診斷] MIS命中={len(hits)}/{len(pool)}({mis_elapsed:.2f}s); "
             f"Fugle有效3K={len(effective_3k_by_symbol)}/{len(symbols)} "
             f"API失敗={len(fugle_failures)}({fugle_elapsed:.2f}s); "
-            f"略過={rejected}; 通知={len(alerts)}; "
+            f"略過={rejected}; 同時段量能旗標={volume_flags}; 通知={len(alerts)}; "
             f"總耗時={time.perf_counter() - cycle_started:.2f}s",
             flush=True,
         )
