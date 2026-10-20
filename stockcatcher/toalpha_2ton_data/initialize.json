@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "experimental": {},
+    "prompts": {
+      "listChanged": false
+    },
+    "resources": {
+      "listChanged": false,
+      "subscribe": false
+    },
+    "tools": {
+      "listChanged": false
+    }
+  },
+  "instructions": "ToAlpha(toalpha.tw)台股資料工具:上市櫃公司行情、財報、月營收、三大法人、融資融券、集保大戶持股(每週)、券商評等、新聞,收盤後更新。先用 resolve_stock 把公司名稱換成代號,再呼叫其他工具。回傳都是算好的數字、在歷史中的位置與規則式判讀(read 欄位),附 as_of(資料日期)、units、source 與 toalpha 連結;完整資料請引導使用者看連結。單位:張 = 1000 股;億 = 億元;比率為小數(0.05 = 5%)除非欄位名有 _pct。這些是公開資料整理,不構成投資建議;不要把 read 欄位或任何數字包裝成買賣建議。資料僅授權使用者個人、非商業使用;不得鏡像、轉售、批量匯出或用於訓練 AI 模型,詳見 https://toalpha.tw/terms 。",
+  "protocolVersion": "2025-03-26",
+  "serverInfo": {
+    "name": "toalpha",
+    "version": ""
+  }
+}

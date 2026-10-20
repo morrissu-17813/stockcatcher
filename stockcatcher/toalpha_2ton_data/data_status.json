@@ -1,0 +1,434 @@
+{
+  "checked_at": "2026-10-18",
+  "sources": [
+    {
+      "source": "broker_flow",
+      "name": "券商分點進出",
+      "last_period": "2026-10-17",
+      "last_ok_at": "2026-10-17 22:57",
+      "errors_24h": 0
+    },
+    {
+      "source": "dividend_policy",
+      "name": "股利分派",
+      "last_period": "9962:75",
+      "last_ok_at": "2026-10-12 21:32",
+      "errors_24h": 0
+    },
+    {
+      "source": "etf_holdings",
+      "name": "主動式ETF持股",
+      "last_period": "00999A:2026-10-16",
+      "last_ok_at": "2026-10-17 20:23",
+      "errors_24h": 0
+    },
+    {
+      "source": "etf_nav",
+      "name": "ETF淨值",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "ex_dividend",
+      "name": "除權息紀錄",
+      "last_period": "twse:202610",
+      "last_ok_at": "2026-10-17 21:18",
+      "errors_24h": 0
+    },
+    {
+      "source": "intl_news",
+      "name": "國際新聞",
+      "last_period": "run",
+      "last_ok_at": "2026-10-18 21:14",
+      "errors_24h": 0
+    },
+    {
+      "source": "market_index",
+      "name": "大盤指數",
+      "last_period": "twse:202610",
+      "last_ok_at": "2026-10-17 21:30",
+      "errors_24h": 0
+    },
+    {
+      "source": "market_index_ohlc",
+      "name": "大盤指數(開高低)",
+      "last_period": "twse:202610",
+      "last_ok_at": "2026-10-17 21:30",
+      "errors_24h": 0
+    },
+    {
+      "source": "material_hist",
+      "name": "重大訊息(歷史)",
+      "last_period": "9962-2026",
+      "last_ok_at": "2026-10-18 00:57",
+      "errors_24h": 0
+    },
+    {
+      "source": "material_rt",
+      "name": "重大訊息(即時)",
+      "last_period": "2026-10-18 21:20",
+      "last_ok_at": "2026-10-18 21:20",
+      "errors_24h": 0
+    },
+    {
+      "source": "openapi_dividends",
+      "name": "股利(OpenAPI)",
+      "last_period": "2026-10-17",
+      "last_ok_at": "2026-10-17 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "openapi_exrights",
+      "name": "除權息預告",
+      "last_period": "2026-10-17",
+      "last_ok_at": "2026-10-17 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "openapi_foreign",
+      "name": "外資持股",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "openapi_insider",
+      "name": "董監持股",
+      "last_period": "202609",
+      "last_ok_at": "2026-10-17 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "openapi_margin",
+      "name": "融資融券",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "revenue_expect",
+      "name": "月營收公布追蹤",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 20:25",
+      "errors_24h": 0
+    },
+    {
+      "source": "sitca_class",
+      "name": "投信持股(類型)",
+      "last_period": "202609:AL22",
+      "last_ok_at": "2026-10-15 12:30",
+      "errors_24h": 0
+    },
+    {
+      "source": "sitca_company",
+      "name": "投信持股(公司)",
+      "last_period": "202609:A0050",
+      "last_ok_at": "2026-10-15 12:31",
+      "errors_24h": 0
+    },
+    {
+      "source": "sitca_perf",
+      "name": "基金績效",
+      "last_period": "202609:7300",
+      "last_ok_at": "2026-10-07 19:50",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_fut_mtx",
+      "name": "小台指行情",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:42",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_fut_tmf",
+      "name": "微台指行情",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:42",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_fut_tx",
+      "name": "台指期行情",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:42",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_inst_fut",
+      "name": "期貨三大法人",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 21:41",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_inst_opt",
+      "name": "選擇權三大法人",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 21:41",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_pc",
+      "name": "Put/Call 比",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:42",
+      "errors_24h": 0
+    },
+    {
+      "source": "taifex_vix",
+      "name": "台指 VIX",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-17 21:42",
+      "errors_24h": 0
+    },
+    {
+      "source": "tdcc_dist",
+      "name": "集保股權分散(最新一期)",
+      "last_period": "od",
+      "last_ok_at": "2026-10-18 21:20",
+      "errors_24h": 0
+    },
+    {
+      "source": "tdcc_gap",
+      "name": "集保股權分散(補缺)",
+      "last_period": "wk:2026-10-08",
+      "last_ok_at": "2026-10-18 21:20",
+      "errors_24h": 0
+    },
+    {
+      "source": "tdcc_hist",
+      "name": "集保股權分散(歷史回補)",
+      "last_period": "wk:2026-10-02",
+      "last_ok_at": "2026-10-04 16:29",
+      "errors_24h": 0
+    },
+    {
+      "source": "tpex_emerging",
+      "name": "興櫃",
+      "last_period": "9957:2026-10",
+      "last_ok_at": "2026-10-12 18:20",
+      "errors_24h": 0
+    },
+    {
+      "source": "tpex_insti",
+      "name": "上櫃三大法人",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 15:05",
+      "errors_24h": 0
+    },
+    {
+      "source": "tpex_insti_summary",
+      "name": "上櫃法人合計",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 15:05",
+      "errors_24h": 0
+    },
+    {
+      "source": "tpex_margin_total",
+      "name": "上櫃融資總額",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 21:30",
+      "errors_24h": 0
+    },
+    {
+      "source": "tpex_prices",
+      "name": "上櫃行情",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 14:05",
+      "errors_24h": 0
+    },
+    {
+      "source": "tpex_valuation",
+      "name": "上櫃本益比殖利率",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 17:40",
+      "errors_24h": 0
+    },
+    {
+      "source": "tw_consensus",
+      "name": "分析師共識(台股)",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 20:16",
+      "errors_24h": 0
+    },
+    {
+      "source": "twse_insti",
+      "name": "上市三大法人",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 16:20",
+      "errors_24h": 0
+    },
+    {
+      "source": "twse_insti_summary",
+      "name": "上市法人合計",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 15:05",
+      "errors_24h": 0
+    },
+    {
+      "source": "twse_margin_total",
+      "name": "上市融資總額",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 21:30",
+      "errors_24h": 0
+    },
+    {
+      "source": "twse_prices",
+      "name": "上市行情",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 13:50",
+      "errors_24h": 0
+    },
+    {
+      "source": "twse_qfiis",
+      "name": "外資持股回補",
+      "last_period": "2026-09-08",
+      "last_ok_at": "2026-10-10 12:42",
+      "errors_24h": 0
+    },
+    {
+      "source": "twse_valuation",
+      "name": "上市本益比殖利率",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-16 17:20",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_13f",
+      "name": "13F 機構持股",
+      "last_period": "2026-06-01",
+      "last_ok_at": "2026-09-17 21:09",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_consensus",
+      "name": "分析師共識(美股)",
+      "last_period": "2026-10-17",
+      "last_ok_at": "2026-10-17 21:58",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_earnings",
+      "name": "美股財報日曆",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 08:27",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_exhibit",
+      "name": "SEC 申報附件",
+      "last_period": "2026-10-17",
+      "last_ok_at": "2026-10-17 08:43",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_facts",
+      "name": "SEC 財報數據",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 08:49",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_filing",
+      "name": "SEC 申報",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 08:44",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_financials",
+      "name": "美股財報",
+      "last_period": "all",
+      "last_ok_at": "2026-10-18 08:49",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_grades",
+      "name": "美股券商評等",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 14:55",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_insider",
+      "name": "美股內部人交易",
+      "last_period": "2026-10-16",
+      "last_ok_at": "2026-10-18 08:01",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_ncen",
+      "name": "基金申報(N-CEN)",
+      "last_period": "2026q2",
+      "last_ok_at": "2026-10-05 04:38",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_news",
+      "name": "美股新聞",
+      "last_period": "2026-10-18T13:21",
+      "last_ok_at": "2026-10-18 21:21",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_notes",
+      "name": "財報附註",
+      "last_period": "2026_08",
+      "last_ok_at": "2026-10-05 04:38",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_nport",
+      "name": "基金持股(N-PORT)",
+      "last_period": "2026q2",
+      "last_ok_at": "2026-10-05 04:41",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_price",
+      "name": "美股行情",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 08:22",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_segment",
+      "name": "美股部門營收",
+      "last_period": "m2026_08",
+      "last_ok_at": "2026-10-05 04:38",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_short_interest",
+      "name": "美股放空",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 08:27",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_snapshot",
+      "name": "美股快照",
+      "last_period": "2026-10-18",
+      "last_ok_at": "2026-10-18 08:54",
+      "errors_24h": 0
+    },
+    {
+      "source": "us_transcript_link",
+      "name": "法說會逐字稿連結",
+      "last_period": "2026-09-22",
+      "last_ok_at": "2026-09-22 13:43",
+      "errors_24h": 0
+    }
+  ],
+  "others": {
+    "news_latest": "2026-10-18 21:08",
+    "broker_rating_latest": "2026-10-18",
+    "consensus_asof": "2026-09-09",
+    "monthly_revenue_latest": "202609",
+    "conference_latest": "2026-12-17",
+    "shareholder_distribution_latest": "2026-10-16"
+  },
+  "note": "period 是資料所屬期間(日期或年月);台股收盤後行情 14:00、法人 16:20 左右、本益比 17:30 左右進來"
+}

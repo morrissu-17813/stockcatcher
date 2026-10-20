@@ -1,0 +1,30 @@
+AI Quant Lab V21 — OFFLINE REPLAY FIRST
+
+Purpose
+- V21 adds read-only replay of a Tianji 3K production log, a strict paper-order decision simulator, and an auditable report bundle.
+- It does NOT submit broker orders, write to Supabase, edit production Tianji 3K/TIDE files, or need your private .env to run an offline replay.
+
+Safe installation
+1. Back up your existing ai_quant_lab folder.
+2. Extract this package to a separate test folder first, or merge only after checking differences. Do not overwrite your existing .env.
+3. Do not apply a database migration for the offline replay; it does not use Supabase.
+4. Use Python 3.10+ from the ai_quant_lab folder.
+
+Replay your supplied log (Windows PowerShell)
+  python run_offline_replay.py --log "C:\path\to\logs_tianji_3k模擬資料.zip" --out "reports\offline_replay_latest"
+
+Run tests
+  python -m pytest -q
+  python -m compileall -q .
+
+Outputs
+- replay_report.md / replay_report.json: source-derived pipeline counts, data-quality and close-verification result.
+- paper_trades.csv: hypothetical paper orders and marks; any unverified close mark is clearly labeled as a proxy.
+- entry_decisions.csv: every prediction and the reason it was either blocked or allowed.
+- audit_events.jsonl: normalized event stream with source line numbers.
+
+Important limitations
+- Treat simulated fill and slippage/fee figures as assumptions, not real executions or proven strategy return.
+- The bundled 2026-10-16 report says Ground Truth validation failed and all 21 predictions were unavailable at cutoff. Therefore realized accuracy cannot be calculated from this log.
+- The earlier Supabase event_seq/startup restore issue remains an independent blocker to autonomous runtime. This offline replay does not fix or bypass it.
+- Live broker orders remain disabled. Keep this package in paper/offline mode until separate outage, restart, full fresh-price path and paper soak tests pass.

@@ -1,0 +1,7 @@
+COMMAND: python -m pytest -q
+EXIT CODE: 0
+
+121 passed in 0.23s
+
+COMMAND: python -m compileall -q .
+EXIT CODE: 0

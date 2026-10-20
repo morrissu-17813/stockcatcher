@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>天機 AI Quant Lab - 2.5D 沉浸式狗狗自動交易戰情室</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: radial-gradient(circle at 50% 25%, #172554 0%, #090d16 70%);
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    .font-mono-num { font-family: 'JetBrains Mono', monospace; }
+
+    .glass-panel {
+      background: rgba(11, 18, 33, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .glass-panel-gold {
+      background: linear-gradient(145deg, rgba(35, 27, 18, 0.92), rgba(15, 23, 42, 0.94));
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+    }
+    .whiteboard-panel {
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #1e293b;
+      border: 6px solid #92400e;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.2), 0 8px 20px rgba(0,0,0,0.6);
+    }
+
+    /* ==================== 2.5D 辦公室立體舞台樣式 ==================== */
+    .stage-25d {
+      position: relative;
+      height: 430px;
+      background: linear-gradient(180deg, #0b132b 0%, #1c2541 38%, #2b2d42 38.5%, #1e2235 100%);
+      overflow: hidden;
+      perspective: 1100px;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.85);
+    }
+
+    /* 2.5D 透視木紋與科技網格地板 */
+    .iso-floor {
+      position: absolute;
+      left: -10%;
+      right: -10%;
+      bottom: -35px;
+      height: 72%;
+      transform: rotateX(48deg);
+      transform-origin: bottom center;
+      background-color: #241e1a;
+      background-image:
+        linear-gradient(rgba(56, 189, 248, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.1) 1px, transparent 1px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 40px, rgba(0,0,0,0.18) 40px, rgba(0,0,0,0.18) 80px);
+      background-size: 48px 48px, 48px 48px, 80px 80px;
+      border-top: 3px solid rgba(245, 158, 11, 0.5);
+      box-shadow: 0 -15px 35px rgba(56, 189, 248, 0.15);
+    }
+
+    /* 角色在 2.5D 空間中的平滑尋路移動 */
+    .agent-actor {
+      position: absolute;
+      transform: translate(-50%, -85%);
+      transition: left 1.15s cubic-bezier(0.32, 0.94, 0.5, 1),
+                  top 1.15s cubic-bezier(0.32, 0.94, 0.5, 1);
+      will-change: left, top;
+    }
+
+    /* 走路時的左右搖擺踏步動畫 */
+    @keyframes walkWaddle {
+      0%, 100% { transform: translateY(0px) rotate(-6deg); }
+      50% { transform: translateY(-9px) rotate(6deg); }
+    }
+    /* 原地工作/說話時的活力彈跳 */
+    @keyframes talkBounce {
+      0%, 100% { transform: translateY(0px) scale(1.04); }
+      50% { transform: translateY(-6px) scale(1.07); }
+    }
+    /* 待機呼吸動畫 */
+    @keyframes breatheIdle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .anim-walking { animation: walkWaddle 0.32s ease-in-out infinite; }
+    .anim-talking { animation: talkBounce 0.75s ease-in-out infinite; }
+    .anim-idle { animation: breatheIdle 2.8s ease-in-out infinite; }
+
+    /* 全息會議圓桌呼吸光效 */
+    @keyframes holoPulse {
+      0%, 100% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.45), inset 0 0 20px rgba(56, 189, 248, 0.35); }
+      50% { box-shadow: 0 0 42px rgba(16, 185, 129, 0.65), inset 0 0 30px rgba(16, 185, 129, 0.45); }
+    }
+    .holo-table { animation: holoPulse 3s infinite ease-in-out; }
+
+    /* 訊號連線流動 */
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -32; }
+    }
+    .signal-beam {
+      stroke-dasharray: 8, 6;
+      animation: dashFlow 0.6s linear infinite;
+    }
+
+    /* 對話框彈出 */
+    @keyframes bubblePop {
+      0% { opacity: 0; transform: translate(-50%, 8px) scale(0.8); }
+      100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    }
+    .bubble-pop {
+      animation: bubblePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 4px; }
+  </style>
+</head>
+<body class="p-2 xl:p-3 select-none">
+
+<div id="app" class="max-w-[1820px] mx-auto flex flex-col gap-2">
+
+  <!-- ==================== 頂部 HEADER 與 總經指數 + 模擬資產 ==================== -->
+  <header class="grid grid-cols-12 gap-2 items-stretch">
+    <!-- 品牌 Logo 區 -->
+    <div class="col-span-12 lg:col-span-3 glass-panel-gold rounded-xl px-3.5 py-2 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-2xl shadow-inner">
+          🐾
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-wide text-amber-300 leading-tight">天機 AI Quant Lab</h1>
+          <p class="text-[11px] text-amber-100/80">2.5D 自主研究 × 模擬交易 × 六大 AI Agent</p>
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-1">
+        <button
+          @click="toggleAutoLoop"
+          :class="isAutoPlaying ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-300' : 'bg-amber-600 hover:bg-amber-500 border-amber-300'"
+          class="px-2.5 py-1 rounded-lg text-xs font-bold border shadow transition"
+        >
+          {{ isAutoPlaying ? '⏸ 自動演繹中' : '▶ 啟動自動演繹' }}
+        </button>
+        <span class="text-[10px] text-sky-300 font-mono-num">Stage {{ currentStepIndex + 1 }} / {{ scenarios.length }}</span>
+      </div>
+    </div>
+
+    <!-- 四大指數小圖卡 -->
+    <div class="col-span-12 lg:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div v-for="idx in marketIndices" :key="idx.name" class="glass-panel rounded-xl px-3 py-1.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-xs text-slate-300 font-semibold">
+          <span>{{ idx.name }}</span>
+          <span class="w-1.5 h-1.5 rounded-full" :class="idx.isUp ? 'bg-emerald-400' : 'bg-rose-400'"></span>
+        </div>
+        <div class="flex items-end justify-between mt-0.5">
+          <div>
+            <div class="text-base font-extrabold font-mono-num leading-none" :class="idx.isUp ? 'text-emerald-400' : 'text-sky-300'">
+              {{ idx.value }}
+            </div>
+            <div class="text-[10px] font-mono-num mt-0.5" :class="idx.isUp ? 'text-emerald-400' : 'text-rose-400'">
+              {{ idx.change }}
+            </div>
+          </div>
+          <svg class="w-14 h-7 overflow-visible" viewBox="0 0 60 30">
+            <polyline fill="none" :stroke="idx.isUp ? '#10b981' : '#f43f5e'" stroke-width="2" :points="idx.sparkline" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右上：模擬資產總覽 -->
+    <div class="col-span-12 lg:col-span-3 glass-panel-gold rounded-xl px-4 py-1.5 flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-amber-200/90 font-semibold">模擬資產總值</span>
+        <span class="text-[10px] font-mono-num text-emerald-400 font-bold">今日損益 +{{ formattedDailyPnL }} (+4.02%)</span>
+      </div>
+      <div class="text-xl font-black font-mono-num text-white tracking-tight">
+        NT$ {{ formattedPortfolioValue }}
+      </div>
+      <div class="grid grid-cols-3 text-center pt-0.5 border-t border-amber-500/20 text-[10px]">
+        <div><span class="text-slate-400">持倉檔數 </span><b class="font-mono-num text-white">3</b></div>
+        <div class="border-x border-slate-700/70"><span class="text-slate-400">今日交易 </span><b class="font-mono-num text-white">{{ tradeCount }}</b></div>
+        <div><span class="text-slate-400">勝率 </span><b class="font-mono-num text-amber-300">80.0%</b></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 中上段：任務/API + 自選股 + 主K線圖 + 監控池 + 策略白板 (緊湊戰情列) ==================== -->
+  <section class="grid grid-cols-12 gap-2 items-stretch">
+    <!-- 左欄：今日重點任務 & API 連線 -->
+    <div class="col-span-12 lg:col-span-2 flex flex-col gap-2">
+      <div class="glass-panel rounded-xl p-2.5 flex-1">
+        <div class="text-xs font-bold text-emerald-300 border-b border-slate-700/80 pb-1 mb-1.5">▶ 今日重點任務 (點擊切換劇本)</div>
+        <ul class="space-y-1 text-[11px]">
+          <li
+            v-for="(task, i) in dailyTasks" :key="task.name"
+            @click="selectStep(i)"
+            class="flex items-center gap-1.5 px-1.5 py-1 rounded cursor-pointer transition"
+            :class="currentStepIndex === i ? 'bg-sky-500/25 border border-sky-400/50 text-white font-bold' : 'hover:bg-slate-800/60 text-slate-300'"
+          >
+            <span class="w-3.5 h-3.5 rounded flex items-center justify-center text-[10px] bg-emerald-500/20 border border-emerald-400 text-emerald-300">✓</span>
+            <span class="truncate">{{ task.name }}</span>
+          </li>
+        </ul>
+      </div>
+      <div class="glass-panel rounded-xl p-2.5">
+        <div class="text-xs font-bold text-sky-300 border-b border-slate-700/80 pb-1 mb-1">▶ API 連線狀態</div>
+        <div class="grid grid-cols-2 gap-1 text-[10px]">
+          <div v-for="api in apiStatusList" :key="api.name" class="flex items-center gap-1 bg-slate-900/70 px-1.5 py-1 rounded border border-slate-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="font-mono-num text-slate-200 font-semibold">{{ api.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 左二：5檔自選股快覽 -->
+    <div class="col-span-12 sm:col-span-4 lg:col-span-2 glass-panel rounded-xl p-2 flex flex-col justify-between gap-1">
+      <div
+        v-for="stock in quickWatchlist" :key="stock.code"
+        @click="selectStock(stock)"
+        class="px-2 py-1.5 rounded-lg border transition cursor-pointer flex items-center justify-between"
+        :class="selectedStock.code === stock.code ? 'bg-sky-950/80 border-sky-400' : 'bg-slate-900/50 border-slate-800/80 hover:border-slate-700'"
+      >
+        <div>
+          <div class="text-[11px] font-bold text-white">{{ stock.code }} {{ stock.name }}</div>
+          <div class="text-[11px] font-mono-num">
+            <span class="font-bold text-slate-100">{{ stock.price }}</span>
+            <span class="text-emerald-400 ml-1 text-[10px]">{{ stock.changePct }}</span>
+          </div>
+        </div>
+        <svg class="w-12 h-6" viewBox="0 0 50 24">
+          <polyline fill="none" stroke="#10b981" stroke-width="1.8" :points="stock.spark" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- 中央：主 K 線與技術指標圖 -->
+    <div class="col-span-12 sm:col-span-8 lg:col-span-4 glass-panel rounded-xl p-2.5 flex flex-col justify-between">
+      <div class="flex items-baseline justify-between border-b border-slate-800 pb-1">
+        <div class="flex items-baseline gap-2">
+          <span class="text-base font-black text-white">{{ selectedStock.code }} {{ selectedStock.name }}</span>
+          <span class="text-lg font-black font-mono-num text-emerald-400">{{ selectedStock.price }}</span>
+          <span class="text-[11px] font-mono-num font-bold text-emerald-400">{{ selectedStock.change }} ({{ selectedStock.changePct }})</span>
+        </div>
+        <div class="flex gap-2 text-[10px] font-mono-num text-slate-400">
+          <span class="text-sky-300">MA5 {{ selectedStock.ma5 }}</span>
+          <span class="text-amber-300">MA20 {{ selectedStock.ma20 }}</span>
+          <span class="text-slate-300">量 {{ selectedStock.volume }}張</span>
+        </div>
+      </div>
+
+      <div class="my-1 bg-slate-950/70 rounded-lg border border-slate-800/90 p-1.5 relative">
+        <svg class="w-full h-32 overflow-visible" viewBox="0 0 420 155">
+          <line v-for="y in [25, 60, 95, 125]" :key="y" x1="0" :y1="y" x2="385" :y2="y" stroke="rgba(148,163,184,0.12)" stroke-dasharray="3,3" />
+          <text x="390" y="29" fill="#94a3b8" font-size="9" font-family="monospace">{{ selectedStock.highLabel }}</text>
+          <text x="390" y="64" fill="#94a3b8" font-size="9" font-family="monospace">{{ selectedStock.midHighLabel }}</text>
+          <text x="390" y="99" fill="#94a3b8" font-size="9" font-family="monospace">{{ selectedStock.midLowLabel }}</text>
+          <polyline fill="none" stroke="#c084fc" stroke-width="1.4" :points="selectedStock.ma60Path" />
+          <polyline fill="none" stroke="#fbbf24" stroke-width="1.4" :points="selectedStock.ma20Path" />
+          <polyline fill="none" stroke="#38bdf8" stroke-width="1.8" :points="selectedStock.ma5Path" />
+          <g v-for="(bar, idx) in selectedStock.candles" :key="idx">
+            <line :x1="12 + idx * 13" :y1="bar.high" :x2="12 + idx * 13" :y2="bar.low" :stroke="bar.up ? '#10b981' : '#f43f5e'" stroke-width="1.2" />
+            <rect :x="8.5 + idx * 13" :y="Math.min(bar.open, bar.close)" width="7" :height="Math.max(3, Math.abs(bar.close - bar.open))" :fill="bar.up ? '#10b981' : '#f43f5e'" rx="1" />
+            <rect :x="8.5 + idx * 13" :y="152 - bar.vol * 0.7" width="7" :height="bar.vol * 0.7" :fill="bar.up ? 'rgba(16,185,129,0.5)' : 'rgba(244,63,94,0.5)'" />
+          </g>
+          <g transform="translate(335, 58)" class="cursor-pointer" @click="triggerBuySignalAnimation">
+            <rect x="-20" y="-12" width="40" height="18" rx="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
+            <text x="0" y="0" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">BUY</text>
+          </g>
+        </svg>
+        <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-[10px] font-mono-num text-slate-400">
+          <div>MACD <b class="text-emerald-400">+2.45</b></div>
+          <div>KD(9,3,3) <b class="text-amber-300">K81 / D74</b></div>
+          <div>RSI(14) <b class="text-sky-300">68.3 強勢</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右二：即時監控池 -->
+    <div class="col-span-12 md:col-span-7 lg:col-span-2 glass-panel rounded-xl p-2.5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-xs font-bold text-sky-300 border-b border-slate-700/80 pb-1 mb-1">
+        <span>▶ 即時監控池 (27檔)</span>
+        <span class="text-[10px] text-emerald-400 font-mono-num">點擊派單分析</span>
+      </div>
+      <table class="w-full text-[11px]">
+        <thead>
+          <tr class="text-slate-400 border-b border-slate-800 text-left">
+            <th class="pb-0.5">代碼/名稱</th>
+            <th class="pb-0.5 text-right">現價</th>
+            <th class="pb-0.5 text-right">漲幅</th>
+            <th class="pb-0.5 text-right">量能</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 font-mono-num">
+          <tr
+            v-for="item in monitorPool.slice(0, 6)" :key="item.code"
+            @click="inspectPoolStock(item)"
+            class="hover:bg-sky-500/20 cursor-pointer transition"
+          >
+            <td class="py-0.5 font-sans"><span class="font-mono-num text-slate-300">{{ item.code }}</span> <b class="text-white">{{ item.name }}</b></td>
+            <td class="py-0.5 text-right text-slate-100">{{ item.price }}</td>
+            <td class="py-0.5 text-right text-emerald-400">{{ item.changePct }}</td>
+            <td class="py-0.5 text-right text-amber-300 font-bold">{{ item.volRatio }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 最右：戰情室策略地圖木框白板 -->
+    <div class="col-span-12 md:col-span-5 lg:col-span-2 whiteboard-panel rounded-xl p-2.5 flex flex-col justify-between">
+      <div class="text-center border-b-2 border-slate-300 pb-1">
+        <h2 class="text-xs font-black text-slate-800">📋 戰情室・策略地圖</h2>
+      </div>
+      <div class="grid grid-cols-2 gap-1 text-[10px] my-1">
+        <div class="space-y-0.5 font-bold text-slate-700">
+          <div v-for="(s, idx) in ['1. 3K法突破', '2. 量能放大', '3. 產業共振', '4. 風險控管', '5. 模擬交易', '6. 結果驗證']" :key="s"
+            class="px-1 py-0.5 rounded" :class="currentStepIndex === idx ? 'bg-amber-300 text-slate-950' : ''">
+            {{ s }}
+          </div>
+        </div>
+        <div class="space-y-0.5 font-bold text-slate-700">
+          <div class="bg-rose-500 text-white text-[9px] px-1 py-0.5 rounded text-center">今日焦點</div>
+          <div>➔ AI 伺服器</div>
+          <div>➔ 光通訊 CPO</div>
+          <div>➔ 先進封裝</div>
+          <div>➔ 設備材料</div>
+        </div>
+      </div>
+      <div class="bg-amber-200 border border-amber-400 rounded py-0.5 text-center text-[10px] font-black text-amber-950">
+        紀律・策略・執行・驗證
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 🌟 核心升級：2.5D 立體移動互動辦公室舞台 ==================== -->
+  <section class="glass-panel rounded-2xl p-2.5 border-2 border-amber-500/40 relative">
+    <!-- 舞台頂部導覽與手動調度控制列 -->
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 px-2">
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-slate-950 shadow">
+          🕹️ 2.5D 天機交易室・即時空間互動舞台
+        </span>
+        <span class="text-xs text-sky-300 font-semibold">
+          {{ currentScenario.stageTitle }}
+        </span>
+      </div>
+
+      <!-- 玩家手動調度小人快捷鈕 -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs">
+        <span class="text-slate-400 text-[11px]">手動空間調度：</span>
+        <button @click="commandAllToMeeting" class="px-2.5 py-1 rounded-lg bg-indigo-600/80 hover:bg-indigo-500 border border-indigo-400 font-bold transition">
+          🐾 全員圓桌集合開會
+        </button>
+        <button @click="commandBackToDesks" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 font-bold transition">
+          💻 各自回座位看盤
+        </button>
+        <button @click="commandRandomRoam" class="px-2.5 py-1 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-400 font-bold transition">
+          ☕ 自由串門子交流
+        </button>
+        <button @click="nextScenarioStep" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 border border-amber-300 font-bold transition">
+          ⏭ 下一步劇本
+        </button>
+      </div>
+    </div>
+
+    <!-- 2.5D 立體辦公室畫布 (點擊地板可讓選中的狗狗走過去) -->
+    <div class="stage-25d rounded-xl border border-slate-700/80" @click="handleFloorClick">
+
+      <!-- 1. 後方背景牆：台北 101 城市夜景窗戶 + 多螢幕電視牆 + 匾額 -->
+      <div class="absolute top-0 left-0 right-0 h-[38%] flex items-center justify-between px-6 pointer-events-none">
+        <!-- 左側夜景窗 -->
+        <div class="w-1/4 h-28 rounded-lg bg-gradient-to-b from-slate-950 via-indigo-950/80 to-amber-900/30 border-2 border-slate-700 p-2 relative overflow-hidden">
+          <div class="text-[9px] font-mono-num text-sky-300/70">TAIPEI NIGHT VIEW</div>
+          <!-- 城市大樓剪影 -->
+          <div class="absolute bottom-0 left-3 w-4 h-14 bg-slate-800"></div>
+          <div class="absolute bottom-0 left-9 w-6 h-20 bg-indigo-900/80 border-t border-amber-300/40"></div>
+          <div class="absolute bottom-0 left-20 w-3 h-24 bg-sky-900/80"></div>
+          <div class="absolute bottom-0 right-6 w-8 h-16 bg-slate-800"></div>
+        </div>
+
+        <!-- 中央大型戰情看板與木匾額 -->
+        <div class="flex flex-col items-center">
+          <div class="px-5 py-1.5 rounded-lg bg-gradient-to-r from-amber-900/90 via-amber-700/90 to-amber-900/90 border-2 border-amber-400 shadow-lg text-center">
+            <div class="text-sm font-black text-amber-100 tracking-widest">天機交易室</div>
+            <div class="text-[10px] text-amber-200/90">紀律・數據・執行</div>
+          </div>
+          <div class="mt-1.5 flex gap-2">
+            <div class="w-24 h-11 rounded bg-slate-950/90 border border-sky-500/40 p-1 text-[9px] font-mono-num text-emerald-400">
+              <div>TWSE LIVE</div>
+              <div class="font-bold text-xs">22,351 ▲</div>
+            </div>
+            <div class="w-28 h-11 rounded bg-slate-950/90 border border-emerald-500/40 p-1 text-[9px] font-mono-num text-sky-300">
+              <div>AI SIGNAL</div>
+              <div class="font-bold text-amber-300">{{ selectedStock.code }} {{ selectedStock.name }}</div>
+            </div>
+            <div class="w-24 h-11 rounded bg-slate-950/90 border border-purple-500/40 p-1 text-[9px] font-mono-num text-purple-300">
+              <div>RISK GATE</div>
+              <div class="font-bold text-emerald-400">MDD &lt; 5% OK</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右側夜景窗與伺服器機櫃 -->
+        <div class="w-1/4 h-28 rounded-lg bg-gradient-to-b from-slate-950 via-indigo-950/80 to-amber-900/30 border-2 border-slate-700 p-2 relative overflow-hidden flex justify-end">
+          <div class="w-12 h-full bg-slate-900 border border-slate-600 rounded p-1 flex flex-col justify-around">
+            <div class="h-1.5 bg-emerald-400 rounded animate-pulse"></div>
+            <div class="h-1.5 bg-sky-400 rounded"></div>
+            <div class="h-1.5 bg-amber-400 rounded animate-pulse"></div>
+            <div class="text-[8px] font-mono-num text-slate-400 text-center">GPU RACK</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 2.5D 透視地板層 -->
+      <div class="iso-floor pointer-events-none"></div>
+
+      <!-- 3. 辦公室內的固定立體家具與工作站 (依 Y 軸深度擺放) -->
+
+      <!-- 左上與右上：6 張個人專屬 2.5D 電腦辦公桌 (Desks) -->
+      <div
+        v-for="desk in officeDesks"
+        :key="'desk-' + desk.id"
+        class="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        :style="{ left: desk.x + '%', top: desk.y + '%', zIndex: Math.floor(desk.y) - 5 }"
+      >
+        <!-- 雙螢幕與木質辦公桌 SVG -->
+        <div class="relative flex flex-col items-center">
+          <div class="flex gap-1 -mb-1 relative z-10">
+            <div class="w-10 h-6 rounded-sm bg-slate-900 border border-sky-400/70 flex items-center justify-center text-[8px] font-mono-num text-emerald-400 shadow">
+              📈
+            </div>
+            <div class="w-10 h-6 rounded-sm bg-slate-900 border border-sky-400/70 flex items-center justify-center text-[8px] font-mono-num text-sky-300 shadow">
+              📊
+            </div>
+          </div>
+          <!-- 2.5D 梯形木桌面 -->
+          <div class="w-28 h-8 bg-gradient-to-b from-amber-800 to-amber-950 border-t-2 border-amber-500/70 rounded-md shadow-xl flex items-center justify-center">
+            <span class="text-[9px] font-bold text-amber-200/80 px-1.5 py-0.2 bg-black/40 rounded">{{ desk.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 左下互動區：📊 量化回測與籌碼大終端 (Quant Hub) -->
+      <div
+        class="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        style="left: 17%; top: 75%; z-index: 65;"
+      >
+        <div class="w-36 h-16 rounded-xl bg-emerald-950/80 border-2 border-emerald-400/70 shadow-2xl flex flex-col items-center justify-center p-1.5">
+          <span class="text-[10px] font-black text-emerald-300">🧬 3K 量化運算中樞</span>
+          <span class="text-[9px] font-mono-num text-emerald-200/80 mt-0.5">Factor &amp; Volume Matrix</span>
+        </div>
+      </div>
+
+      <!-- 正中央核心互動區：⚡ 2.5D 全息投影戰情圓桌 (Central War Table) -->
+      <div
+        class="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        style="left: 50%; top: 68%; z-index: 60;"
+      >
+        <div class="holo-table w-56 h-24 rounded-[50%] bg-gradient-to-b from-sky-900/65 via-indigo-950/85 to-slate-950 border-2 border-sky-400 flex flex-col items-center justify-center relative">
+          <!-- 全息投影光柱效果 -->
+          <div class="text-xs font-black text-sky-200 tracking-wider drop-shadow">⚡ 戰情多空辯論圓桌</div>
+          <div class="text-[10px] font-mono-num text-emerald-300 mt-0.5">
+            標的：{{ selectedStock.code }} {{ selectedStock.name }} ({{ selectedStock.changePct }})
+          </div>
+          <div class="text-[9px] text-amber-300/90 mt-0.5">Holographic Strategy Table</div>
+        </div>
+      </div>
+
+      <!-- 右下互動區：🛡️ 風控審核與模擬下單主控台 (Risk & Execution Hub) -->
+      <div
+        class="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        style="left: 83%; top: 75%; z-index: 65;"
+      >
+        <div class="w-40 h-16 rounded-xl bg-rose-950/80 border-2 border-rose-400/70 shadow-2xl flex flex-col items-center justify-center p-1.5">
+          <span class="text-[10px] font-black text-rose-200">🛡️ 風控審核 × 下單終端</span>
+          <span class="text-[9px] font-mono-num text-amber-300 mt-0.5">Risk Gate &amp; Order Executor</span>
+        </div>
+      </div>
+
+      <!-- 4. 動態訊號連線與「飛行文件封包」SVG 層 -->
+      <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 88;" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" />
+            <stop offset="50%" stop-color="#f59e0b" />
+            <stop offset="100%" stop-color="#10b981" />
+          </linearGradient>
+        </defs>
+        <line
+          v-for="(link, lIdx) in activeLinks"
+          :key="'link-' + lIdx"
+          :x1="link.x1" :y1="link.y1 - 8"
+          :x2="link.x2" :y2="link.y2 - 8"
+          stroke="url(#beamGrad)"
+          stroke-width="0.65"
+          class="signal-beam"
+        />
+      </svg>
+
+      <!-- 正在兩個狗狗之間飛行傳遞的「📄 策略報告 / 交易指令封包」 -->
+      <div
+        v-if="flyingPacket.visible"
+        class="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700 z-[95]"
+        :style="{ left: flyingPacket.x + '%', top: (flyingPacket.y - 10) + '%' }"
+      >
+        <div class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-lg border border-white flex items-center gap-1 animate-bounce">
+          <span>{{ flyingPacket.icon }}</span>
+          <span>{{ flyingPacket.label }}</span>
+        </div>
+      </div>
+
+      <!-- 5. 六隻可自由走動、轉向、搖擺、對話的 2.5D 狗狗 AI Agent -->
+      <div
+        v-for="(agent, idx) in agents"
+        :key="agent.id"
+        @click.stop="handleAgentClick(agent, idx)"
+        class="agent-actor cursor-pointer group"
+        :style="{
+          left: agent.x + '%',
+          top: agent.y + '%',
+          zIndex: Math.floor(agent.y) + 10
+        }"
+      >
+        <!-- 頭頂即時對話氣泡 (Speech Bubble) -->
+        <div
+          v-if="agent.currentBubble"
+          class="bubble-pop absolute -top-14 left-1/2 z-[120] min-w-[165px] max-w-[215px] bg-white text-slate-900 rounded-2xl px-2.5 py-1.5 text-[11px] font-bold shadow-2xl border-2 pointer-events-none"
+          :class="agent.bubbleBorder"
+        >
+          <div class="flex items-center justify-between text-[9px] font-black mb-0.5" :class="agent.textColor">
+            <span>{{ agent.shortRole }} 廣播</span>
+            <span>{{ agent.locationTag }}</span>
+          </div>
+          <div class="leading-snug text-slate-800">{{ agent.currentBubble }}</div>
+          <div class="w-2.5 h-2.5 bg-white rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2 border-r-2 border-b-2" :class="agent.bubbleBorder"></div>
+        </div>
+
+        <!-- 角色本體容器 (負責走路搖擺或說話彈跳) -->
+        <div
+          class="relative flex flex-col items-center"
+          :class="agent.isMoving ? 'anim-walking' : (agent.currentBubble ? 'anim-talking' : 'anim-idle')"
+        >
+          <!-- 腳下 2.5D 立體橢圓陰影與選中光圈 -->
+          <div
+            class="absolute bottom-1 w-20 h-6 rounded-[50%] transition-all"
+            :class="selectedAgentId === agent.id
+              ? 'bg-amber-400/50 ring-4 ring-amber-300 animate-pulse'
+              : (agent.currentBubble ? 'bg-sky-400/40 ring-2 ring-sky-300' : 'bg-black/65')"
+          ></div>
+
+          <!-- 走路時的腳底小灰塵特效 -->
+          <div v-if="agent.isMoving" class="absolute -bottom-1 flex gap-6 text-xs opacity-80 animate-ping">
+            <span>💨</span>
+          </div>
+
+          <!-- 左右轉向容器 (根據移動方向翻轉狗狗朝向) -->
+          <div :style="{ transform: `scaleX(${agent.facing})` }" class="transition-transform duration-300">
+            <!-- 全身版 (含小短腿與西裝) 西施犬 / 比熊犬 SVG -->
+            <svg class="w-24 h-28 overflow-visible drop-shadow-xl" viewBox="0 0 120 140">
+              <!-- 小短腿與皮鞋 (讓角色在 2.5D 地板上有站立與踏步感) -->
+              <rect x="40" y="112" width="12" height="16" rx="5" :fill="agent.suitColor" stroke="#0f172a" stroke-width="1.5" />
+              <rect x="68" y="112" width="12" height="16" rx="5" :fill="agent.suitColor" stroke="#0f172a" stroke-width="1.5" />
+              <ellipse cx="45" cy="128" rx="8" ry="4.5" fill="#1e293b" />
+              <ellipse cx="75" cy="128" rx="8" ry="4.5" fill="#1e293b" />
+
+              <!-- 搖擺的毛茸茸小尾巴 -->
+              <circle cx="92" cy="98" r="9" :fill="agent.furColor" stroke="#64748b" stroke-width="1.2" />
+
+              <!-- 身體西裝外套 -->
+              <path d="M 32 78 Q 60 70 88 78 L 94 114 L 26 114 Z" :fill="agent.suitColor" stroke="#0f172a" stroke-width="2" />
+              <!-- 襯衫與領帶 -->
+              <polygon points="50,78 70,78 60,96" fill="#ffffff" />
+              <polygon points="57,82 63,82 62,102 60,106 58,102" :fill="agent.tieColor" />
+
+              <!-- 雙手與專屬道具 -->
+              <circle cx="28" cy="95" r="7" :fill="agent.furColor" stroke="#475569" stroke-width="1.2" />
+              <circle cx="92" cy="95" r="7" :fill="agent.furColor" stroke="#475569" stroke-width="1.2" />
+
+              <!-- 垂耳 -->
+              <ellipse cx="26" cy="54" rx="13" ry="21" :fill="agent.earColor" stroke="#475569" stroke-width="1.5" transform="rotate(12 26 54)" />
+              <ellipse cx="94" cy="54" rx="13" ry="21" :fill="agent.earColor" stroke="#475569" stroke-width="1.5" transform="rotate(-12 94 54)" />
+
+              <!-- 圓滾滾毛頭 -->
+              <circle cx="60" cy="50" r="29" :fill="agent.furColor" stroke="#64748b" stroke-width="1.5" />
+              <circle cx="52" cy="21" r="7.5" :fill="agent.furColor" />
+              <circle cx="65" cy="20" r="8.5" :fill="agent.furColor" />
+
+              <!-- 西施犬眼周雙色毛塊 -->
+              <ellipse v-if="agent.breed === 'shihtzu'" cx="46" cy="48" rx="10.5" ry="8.5" :fill="agent.patchColor" opacity="0.65" />
+              <ellipse v-if="agent.breed === 'shihtzu'" cx="74" cy="48" rx="10.5" ry="8.5" :fill="agent.patchColor" opacity="0.65" />
+
+              <!-- 眼睛 -->
+              <circle cx="46" cy="48" r="5" fill="#0f172a" />
+              <circle cx="44.5" cy="46.2" r="1.8" fill="#ffffff" />
+              <circle cx="74" cy="48" r="5" fill="#0f172a" />
+              <circle cx="72.5" cy="46.2" r="1.8" fill="#ffffff" />
+
+              <!-- 眼鏡配件 -->
+              <g v-if="agent.hasGlasses" stroke="#fbbf24" stroke-width="2.2" fill="rgba(255,255,255,0.14)">
+                <circle cx="46" cy="48" r="9" />
+                <circle cx="74" cy="48" r="9" />
+                <line x1="55" y1="48" x2="65" y2="48" />
+              </g>
+
+              <!-- 交易員耳機 -->
+              <g v-if="agent.hasHeadset">
+                <path d="M 28 48 A 32 32 0 0 1 92 48" fill="none" stroke="#0284c7" stroke-width="4" />
+                <rect x="22" y="42" width="7" height="15" rx="3.5" fill="#0369a1" />
+                <rect x="91" y="42" width="7" height="15" rx="3.5" fill="#0369a1" />
+              </g>
+
+              <!-- 鼻子與嘴巴 -->
+              <ellipse cx="60" cy="58" rx="12" ry="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+              <ellipse cx="60" cy="55" rx="4.2" ry="3" fill="#0f172a" />
+              <path d="M 55 61 Q 60 65 65 61" fill="none" stroke="#334155" stroke-width="1.8" stroke-linecap="round" />
+              <path v-if="agent.currentBubble" d="M 57 62 Q 60 68 63 62 Z" fill="#fb7185" />
+
+              <!-- 手持道具：指揮棒 / 報告書 / 平板 -->
+              <g v-if="agent.id === 'cio'">
+                <line x1="90" y1="92" x2="112" y2="58" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" />
+                <circle cx="112" cy="58" r="3.5" fill="#fef08a" />
+              </g>
+              <g v-else-if="agent.id === 'research'">
+                <rect x="44" y="86" width="32" height="20" rx="2" fill="#fef3c7" stroke="#b45309" stroke-width="1.5" />
+              </g>
+              <g v-else>
+                <rect x="43" y="86" width="34" height="20" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" />
+                <circle cx="60" cy="96" r="2.5" fill="#38bdf8" />
+              </g>
+            </svg>
+          </div>
+
+          <!-- 腳下隨身立體職稱名牌 -->
+          <div
+            class="px-2.5 py-1 rounded-lg border text-center shadow-xl -mt-2 min-w-[130px] transition-transform group-hover:scale-105"
+            :class="agent.nameplateClass"
+          >
+            <div class="text-[11px] font-black text-white leading-tight flex items-center justify-center gap-1">
+              <span>{{ agent.title }}</span>
+            </div>
+            <div class="text-[9px] text-slate-200/90 font-mono-num mt-0.5">
+              📍 {{ agent.locationTag }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 舞台左下角互動提示 -->
+      <div class="absolute bottom-2 left-3 z-[110] bg-slate-950/85 border border-slate-700 rounded-lg px-2.5 py-1 text-[11px] text-slate-300 pointer-events-none">
+        💡 <b>互動秘訣：</b>先點擊任一隻狗狗（腳下亮起金圈），再點擊辦公室地板任意處或另一隻狗狗，牠就會親自走過去！
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 底部四欄：即時事件流 + 任務進度 + 持倉損益 + 市場情緒/產業熱度 ==================== -->
+  <footer class="grid grid-cols-12 gap-2 items-stretch">
+    <!-- 1. 即時事件流 -->
+    <div class="col-span-12 lg:col-span-4 glass-panel rounded-xl p-2.5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-xs font-bold text-sky-300 border-b border-slate-700/80 pb-1 mb-1.5">
+        <span>▶ 即時事件流 (Event Stream)</span>
+        <span class="text-[10px] font-mono-num text-emerald-400">2.5D Agent Sync</span>
+      </div>
+      <div class="space-y-1 max-h-28 overflow-y-auto pr-1">
+        <div v-for="(log, index) in eventLogs" :key="index" class="flex items-center gap-2 text-[11px] py-0.5 border-b border-slate-800/60">
+          <span class="font-mono-num text-[10px] text-slate-400">{{ log.time }}</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] font-bold min-w-[60px] text-center" :class="log.badgeClass">{{ log.agent }}</span>
+          <span class="text-slate-200 truncate">{{ log.message }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 六大 Agent 任務進度條 -->
+    <div class="col-span-12 sm:col-span-6 lg:col-span-3 glass-panel rounded-xl p-2.5 flex flex-col justify-between">
+      <div class="text-xs font-bold text-sky-300 border-b border-slate-700/80 pb-1 mb-1">▶ 任務進度 (Agent Pipeline)</div>
+      <div class="space-y-1">
+        <div v-for="agent in agents" :key="'prog-' + agent.id" class="flex items-center gap-1.5 text-[11px]">
+          <span class="px-1.5 py-0.2 rounded text-[9px] font-bold w-14 text-center" :class="agent.badgeClass">{{ agent.shortRole }}</span>
+          <span class="text-[10px] text-slate-300 w-20 truncate">{{ agent.locationTag }}</span>
+          <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500 bg-emerald-400" :style="{ width: agent.progress + '%' }"></div>
+          </div>
+          <span class="font-mono-num text-[10px] text-slate-300 w-7 text-right">{{ agent.progress }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 持倉損益表 -->
+    <div class="col-span-12 sm:col-span-6 lg:col-span-3 glass-panel rounded-xl p-2.5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-xs font-bold text-emerald-300 border-b border-slate-700/80 pb-1 mb-1">
+        <span>▶ 持倉損益 (Positions)</span>
+        <span class="text-[10px] text-emerald-400 font-mono-num">+NT$85,000</span>
+      </div>
+      <table class="w-full text-[11px]">
+        <thead>
+          <tr class="text-slate-400 border-b border-slate-800 text-left text-[10px]">
+            <th class="pb-0.5">代碼</th>
+            <th class="pb-0.5 text-right">股數</th>
+            <th class="pb-0.5 text-right">成本</th>
+            <th class="pb-0.5 text-right">現價</th>
+            <th class="pb-0.5 text-right">未實現損益</th>
+            <th class="pb-0.5 text-right">損益%</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 font-mono-num">
+          <tr v-for="pos in positions" :key="pos.code">
+            <td class="py-1 font-bold text-white">{{ pos.code }}</td>
+            <td class="py-1 text-right text-slate-300">{{ pos.shares }}</td>
+            <td class="py-1 text-right text-slate-300">{{ pos.cost }}</td>
+            <td class="py-1 text-right text-slate-100">{{ pos.current }}</td>
+            <td class="py-1 text-right text-emerald-400 font-bold">{{ pos.pnl }}</td>
+            <td class="py-1 text-right text-emerald-400 font-bold">{{ pos.pnlPct }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. 市場情緒儀表板 & 產業熱度 -->
+    <div class="col-span-12 lg:col-span-2 glass-panel rounded-xl p-2.5 grid grid-cols-2 gap-2 items-center">
+      <div class="flex flex-col items-center justify-center border-r border-slate-800 pr-1">
+        <div class="text-[10px] font-bold text-slate-300 mb-0.5">市場情緒</div>
+        <div class="relative w-16 h-16 flex items-center justify-center">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" stroke-width="3.8" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="3.8" :stroke-dasharray="sentimentScore + ', 100'" />
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-base font-black font-mono-num text-white leading-none">{{ sentimentScore }}</span>
+            <span class="text-[9px] text-emerald-400 font-bold">貪婪</span>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-1">
+        <div class="text-[10px] font-bold text-slate-300">產業熱度</div>
+        <div v-for="sec in sectorHeat" :key="sec.name" class="text-[9px]">
+          <div class="flex justify-between text-slate-300">
+            <span class="truncate">{{ sec.name }}</span>
+            <span class="font-mono-num font-bold">{{ sec.score }}</span>
+          </div>
+          <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full rounded-full" :class="sec.color" :style="{ width: sec.score + '%' }"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
+
+createApp({
+  setup() {
+    const isAutoPlaying = ref(true);
+    const currentStepIndex = ref(0);
+    const selectedAgentId = ref('cio');
+    const portfolioValue = ref(1248320);
+    const dailyPnL = ref(48320);
+    const tradeCount = ref(5);
+    const sentimentScore = ref(72);
+    let loopTimer = null;
+
+    // 2.5D 辦公室內的 6 張個人電腦桌固定座標 (後排與中排工作站)
+    const officeDesks = [
+      { id: 'cio',       label: 'CIO 指揮座',      x: 13, y: 48 },
+      { id: 'quant',     label: 'Quant 運算座',    x: 28, y: 45 },
+      { id: 'research',  label: 'Research 研究座', x: 43, y: 45 },
+      { id: 'risk',      label: 'Risk 風控座',     x: 58, y: 45 },
+      { id: 'execution', label: 'Execution 交易台', x: 73, y: 45 },
+      { id: 'auditor',   label: 'Auditor 稽核座',  x: 88, y: 48 }
+    ];
+
+    // 飛行文件封包狀態
+    const flyingPacket = reactive({
+      visible: false,
+      x: 50,
+      y: 50,
+      icon: '📄',
+      label: '突破訊號'
+    });
+
+    // 六大狗狗 AI Agent (含 2.5D 動態座標 x, y, 朝向 facing, 移動狀態 isMoving)
+    const agents = ref([
+      {
+        id: 'cio', shortRole: 'CIO', title: 'CIO 天機總指揮',
+        breed: 'shihtzu', furColor: '#f8fafc', earColor: '#d97706', patchColor: '#f59e0b',
+        suitColor: '#1e3a8a', tieColor: '#f59e0b', hasGlasses: false, hasHeadset: false,
+        nameplateClass: 'bg-slate-900/95 border-sky-400', badgeClass: 'bg-sky-600 text-white',
+        bubbleBorder: 'border-sky-500', textColor: 'text-sky-600',
+        x: 13, y: 52, facing: 1, isMoving: false,
+        locationTag: '指揮桌', currentBubble: '開盤完成！發現 6 檔突破股，Quant 過來拿名單！', progress: 75
+      },
+      {
+        id: 'quant', shortRole: 'Quant', title: 'Quant 量化研究員',
+        breed: 'shihtzu', furColor: '#f1f5f9', earColor: '#475569', patchColor: '#64748b',
+        suitColor: '#064e3b', tieColor: '#10b981', hasGlasses: true, hasHeadset: false,
+        nameplateClass: 'bg-emerald-950/95 border-emerald-400', badgeClass: 'bg-emerald-600 text-white',
+        bubbleBorder: 'border-emerald-500', textColor: 'text-emerald-600',
+        x: 28, y: 50, facing: -1, isMoving: false,
+        locationTag: '量化座', currentBubble: '', progress: 65
+      },
+      {
+        id: 'research', shortRole: 'Research', title: 'Research 產業研究員',
+        breed: 'shihtzu', furColor: '#fffbeb', earColor: '#f59e0b', patchColor: '#fde68a',
+        suitColor: '#78350f', tieColor: '#fbbf24', hasGlasses: false, hasHeadset: false,
+        nameplateClass: 'bg-amber-950/95 border-amber-400', badgeClass: 'bg-amber-500 text-slate-950',
+        bubbleBorder: 'border-amber-500', textColor: 'text-amber-600',
+        x: 43, y: 50, facing: 1, isMoving: false,
+        locationTag: '研究座', currentBubble: '', progress: 50
+      },
+      {
+        id: 'risk', shortRole: 'Risk', title: 'Risk 風控長',
+        breed: 'shihtzu', furColor: '#fef2f2', earColor: '#b45309', patchColor: '#d97706',
+        suitColor: '#7f1d1d', tieColor: '#f43f5e', hasGlasses: true, hasHeadset: false,
+        nameplateClass: 'bg-rose-950/95 border-rose-400', badgeClass: 'bg-rose-600 text-white',
+        bubbleBorder: 'border-rose-500', textColor: 'text-rose-600',
+        x: 58, y: 50, facing: -1, isMoving: false,
+        locationTag: '風控座', currentBubble: '', progress: 60
+      },
+      {
+        id: 'execution', shortRole: 'Execution', title: 'Execution 交易執行員',
+        breed: 'shihtzu', furColor: '#f8fafc', earColor: '#ca8a04', patchColor: '#eab308',
+        suitColor: '#0c4a6e', tieColor: '#38bdf8', hasGlasses: false, hasHeadset: true,
+        nameplateClass: 'bg-sky-950/95 border-sky-400', badgeClass: 'bg-sky-500 text-white',
+        bubbleBorder: 'border-sky-400', textColor: 'text-sky-600',
+        x: 73, y: 50, facing: -1, isMoving: false,
+        locationTag: '交易台', currentBubble: '', progress: 85
+      },
+      {
+        id: 'auditor', shortRole: 'Auditor', title: 'Auditor 驗證員',
+        breed: 'bichon', furColor: '#ffffff', earColor: '#f8fafc', patchColor: '#ffffff',
+        suitColor: '#4c1d95', tieColor: '#c084fc', hasGlasses: true, hasHeadset: false,
+        nameplateClass: 'bg-purple-950/95 border-purple-400', badgeClass: 'bg-purple-600 text-white',
+        bubbleBorder: 'border-purple-400', textColor: 'text-purple-600',
+        x: 88, y: 52, facing: -1, isMoving: false,
+        locationTag: '稽核座', currentBubble: '', progress: 40
+      }
+    ]);
+
+    // 移動單一 Agent 到新 (x, y) 並自動計算左右轉向與走路搖擺狀態
+    const moveAgentTo = (agentId, targetX, targetY, locationTag, bubbleText = '') => {
+      const ag = agents.value.find(a => a.id === agentId);
+      if (!ag) return;
+      const dx = targetX - ag.x;
+      const dy = targetY - ag.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (Math.abs(dx) > 1.5) {
+        ag.facing = dx > 0 ? 1 : -1;
+      }
+      if (dist > 2) {
+        ag.isMoving = true;
+        setTimeout(() => { ag.isMoving = false; }, 1100);
+      }
+      ag.x = targetX;
+      ag.y = targetY;
+      if (locationTag) ag.locationTag = locationTag;
+      ag.currentBubble = bubbleText;
+    };
+
+    // 發送飛行文件特效 (從 A 狗狗飛向 B 狗狗)
+    const triggerPacketTransfer = (fromId, toId, icon, label) => {
+      const fromAg = agents.value.find(a => a.id === fromId);
+      const toAg = agents.value.find(a => a.id === toId);
+      if (!fromAg || !toAg) return;
+
+      flyingPacket.icon = icon;
+      flyingPacket.label = label;
+      flyingPacket.x = fromAg.x;
+      flyingPacket.y = fromAg.y;
+      flyingPacket.visible = true;
+
+      setTimeout(() => {
+        flyingPacket.x = toAg.x;
+        flyingPacket.y = toAg.y;
+      }, 80);
+
+      setTimeout(() => {
+        flyingPacket.visible = false;
+      }, 950);
+    };
+
+    // 6 個具有空間走位互動的戰情室劇本
+    const scenarios = [
+      {
+        stageTitle: '階段 1：CIO 總指揮走出座位，召集 Quant 下達 3K 掃描任務',
+        links: [['cio', 'quant']],
+        packet: { from: 'cio', to: 'quant', icon: '📋', label: '3K 突破股池' },
+        logEntry: { agent: 'CIO', badgeClass: 'bg-sky-600 text-white', message: 'CIO 走向 Quant 辦公桌，當面指派 3231 / 2330 突破掃描任務' },
+        choreography: [
+          { id: 'cio',       x: 22, y: 62, facing: 1,  loc: '走向 Quant', bubble: '開盤完成！3K 掃描發現 6 檔突破股，交給你算量能！' },
+          { id: 'quant',     x: 33, y: 62, facing: -1, loc: '接取任務',   bubble: '收到總指揮！立刻帶去量化中樞跑回測！' },
+          { id: 'research',  x: 43, y: 50, facing: -1, loc: '研究座',     bubble: '' },
+          { id: 'risk',      x: 58, y: 50, facing: -1, loc: '風控座',     bubble: '' },
+          { id: 'execution', x: 73, y: 50, facing: -1, loc: '交易台',     bubble: '' },
+          { id: 'auditor',   x: 88, y: 52, facing: -1, loc: '稽核座',     bubble: '' }
+        ]
+      },
+      {
+        stageTitle: '階段 2：Quant 與 Research 走去左下角「量化中樞」交叉比對題材',
+        links: [['quant', 'research']],
+        packet: { from: 'quant', to: 'research', icon: '📊', label: '量能 +2.8x 數據' },
+        logEntry: { agent: 'Quant', badgeClass: 'bg-emerald-600 text-white', message: 'Quant 與 Research 在量化中樞會合：確認 3231 量能放大 2.8x 且具 AI 伺服器題材' },
+        choreography: [
+          { id: 'cio',       x: 13, y: 50, facing: 1,  loc: '指揮座監控', bubble: '' },
+          { id: 'quant',     x: 14, y: 78, facing: 1,  loc: '量化中樞',   bubble: '算出來了！量能放大 2.8x，技術面強勢突破！' },
+          { id: 'research',  x: 27, y: 78, facing: -1, loc: '量化中樞',   bubble: '我剛查完新聞，AI 伺服器與 CPO 題材正熱，基本面共振！' },
+          { id: 'risk',      x: 58, y: 52, facing: -1, loc: '風控座待命', bubble: '' },
+          { id: 'execution', x: 73, y: 50, facing: -1, loc: '交易台',     bubble: '' },
+          { id: 'auditor',   x: 88, y: 52, facing: -1, loc: '稽核座',     bubble: '' }
+        ]
+      },
+      {
+        stageTitle: '階段 3：四大核心 Agent 齊聚中央「全息戰情圓桌」進行多空與風控激辯',
+        links: [['cio', 'risk'], ['quant', 'research']],
+        packet: { from: 'research', to: 'risk', icon: '📑', label: '投資建議書' },
+        logEntry: { agent: 'Research', badgeClass: 'bg-amber-500 text-slate-950', message: '四大 Agent 圍繞中央戰情圓桌，針對目標價與停損點展開多空辯論' },
+        choreography: [
+          { id: 'cio',       x: 36, y: 66, facing: 1,  loc: '戰情圓桌西側', bubble: '大家看全息桌上的 K 線，這波突破勝率高嗎？' },
+          { id: 'quant',     x: 44, y: 80, facing: 1,  loc: '戰情圓桌南側', bubble: '回測勝率 80%，MACD 紅柱剛放大！' },
+          { id: 'research',  x: 56, y: 80, facing: -1, loc: '戰情圓桌南側', bubble: '外資連買 3 日，目標價還有上調空間！' },
+          { id: 'risk',      x: 64, y: 66, facing: -1, loc: '戰情圓桌東側', bubble: '⚠️ 慢著！短線波動略高，必須嚴格限制部位！' },
+          { id: 'execution', x: 75, y: 52, facing: -1, loc: '交易台待命',   bubble: '' },
+          { id: 'auditor',   x: 88, y: 52, facing: -1, loc: '稽核座',       bubble: '' }
+        ]
+      },
+      {
+        stageTitle: '階段 4：Risk 風控長走向右下「風控終端」，親自向 Execution 下達部位上限',
+        links: [['risk', 'execution']],
+        packet: { from: 'risk', to: 'execution', icon: '🛡️', label: '核准簽章 (上限15%)' },
+        logEntry: { agent: 'Risk', badgeClass: 'bg-rose-600 text-white', message: 'Risk 風控長走到右下角風控台蓋章放行，要求 Execution 控制部位於 15% 內' },
+        choreography: [
+          { id: 'cio',       x: 13, y: 50, facing: 1,  loc: '指揮座',     bubble: '' },
+          { id: 'quant',     x: 28, y: 50, facing: 1,  loc: '量化座',     bubble: '' },
+          { id: 'research',  x: 43, y: 50, facing: 1,  loc: '研究座',     bubble: '' },
+          { id: 'risk',      x: 74, y: 78, facing: 1,  loc: '風控審核台', bubble: '風險檢查通過！准許買進，但停損設在 MA20！' },
+          { id: 'execution', x: 88, y: 78, facing: -1, loc: '下單終端機', bubble: '收到風控長指令！已鎖定風控參數，準備敲單！' },
+          { id: 'auditor',   x: 88, y: 52, facing: -1, loc: '稽核座關注', bubble: '' }
+        ]
+      },
+      {
+        stageTitle: '階段 5：Execution 交易員衝刺下單成交！CIO 走過來拍肩鼓勵',
+        links: [['execution', 'cio']],
+        packet: { from: 'execution', to: 'auditor', icon: '⚡', label: '成交回報單' },
+        logEntry: { agent: 'Execution', badgeClass: 'bg-sky-500 text-white', message: 'Execution 火速完成 3231 模擬買進 186.5 元 1,000 股，將回報單拋給 Auditor' },
+        choreography: [
+          { id: 'cio',       x: 62, y: 62, facing: 1,  loc: '巡視交易台', bubble: '漂亮！滑價控制在 1 檔內，執行得很精準！' },
+          { id: 'quant',     x: 28, y: 50, facing: 1,  loc: '量化座',     bubble: '' },
+          { id: 'research',  x: 43, y: 50, facing: 1,  loc: '研究座',     bubble: '' },
+          { id: 'risk',      x: 58, y: 50, facing: 1,  loc: '風控座監控', bubble: '' },
+          { id: 'execution', x: 75, y: 62, facing: -1, loc: '交易台成交', bubble: '🟢 BUY 下單執行！已買進 3231 價格 186.5 元！' },
+          { id: 'auditor',   x: 88, y: 62, facing: -1, loc: '準備驗收',   bubble: '收到成交回報，我馬上核對帳務！' }
+        ]
+      },
+      {
+        stageTitle: '階段 6：Auditor 驗證員完成結案並推播 Telegram，全體歡呼慶祝！',
+        links: [['auditor', 'cio'], ['quant', 'execution']],
+        packet: { from: 'auditor', to: 'cio', icon: '🎉', label: '績效結案 +4.02%' },
+        logEntry: { agent: 'Auditor', badgeClass: 'bg-purple-600 text-white', message: 'Auditor 完成 Supabase 紀錄與 Telegram 推播，今日模擬勝率達 80.0%！' },
+        choreography: [
+          { id: 'cio',       x: 34, y: 68, facing: 1,  loc: '圓桌慶祝', bubble: '太棒了！今日模擬損益 +48,320 元，大家辛苦了！' },
+          { id: 'quant',     x: 22, y: 74, facing: 1,  loc: '圓桌慶祝', bubble: '3K 突破模型再次驗證有效！' },
+          { id: 'research',  x: 46, y: 76, facing: 1,  loc: '圓桌慶祝', bubble: '緊盯盤後法人籌碼變化！' },
+          { id: 'risk',      x: 56, y: 76, facing: -1, loc: '圓桌慶祝', bubble: '移動停利線已自動上移鎖住獲利！' },
+          { id: 'execution', x: 68, y: 74, facing: -1, loc: '圓桌慶祝', bubble: '委託零失誤達成！' },
+          { id: 'auditor',   x: 80, y: 68, facing: -1, loc: '結案廣播', bubble: '✅ 成交紀錄已驗證寫入 Supabase，Telegram 通知已發送！' }
+        ]
+      }
+    ];
+
+    const currentScenario = computed(() => scenarios[currentStepIndex.value]);
+
+    // 根據當前劇本計算兩個互動狗狗之間的即時連線座標
+    const activeLinks = computed(() => {
+      const sc = currentScenario.value;
+      if (!sc.links) return [];
+      return sc.links.map(([id1, id2]) => {
+        const a1 = agents.value.find(a => a.id === id1);
+        const a2 = agents.value.find(a => a.id === id2);
+        if (!a1 || !a2) return null;
+        return { x1: a1.x, y1: a1.y, x2: a2.x, y2: a2.y };
+      }).filter(Boolean);
+    });
+
+    // 套用劇本走位
+    const applyScenarioChoreography = (idx) => {
+      currentStepIndex.value = idx;
+      const sc = scenarios[idx];
+      sc.choreography.forEach(item => {
+        moveAgentTo(item.id, item.x, item.y, item.loc, item.bubble);
+        const ag = agents.value.find(a => a.id === item.id);
+        if (ag) {
+          ag.facing = item.facing;
+          if (item.bubble) ag.progress = Math.min(100, ag.progress + 10);
+        }
+      });
+
+      if (sc.packet) {
+        setTimeout(() => {
+          triggerPacketTransfer(sc.packet.from, sc.packet.to, sc.packet.icon, sc.packet.label);
+        }, 450);
+      }
+
+      if (sc.logEntry) appendLog(sc.logEntry);
+      portfolioValue.value += Math.floor((Math.random() - 0.3) * 1500);
+      dailyPnL.value = portfolioValue.value - 1200000;
+    };
+
+    // 手動空間調度 1：全員圓桌集合開會
+    const commandAllToMeeting = () => {
+      isAutoPlaying.value = false;
+      const circleSpots = [
+        { id: 'cio',       x: 32, y: 64, f: 1,  b: '緊急召開盤中戰情會議！' },
+        { id: 'quant',     x: 38, y: 80, f: 1,  b: '量能指標全面翻多！' },
+        { id: 'research',  x: 50, y: 84, f: 1,  b: 'AI 伺服器族群齊漲！' },
+        { id: 'risk',      x: 62, y: 80, f: -1, b: '注意追高風險，嚴設停損！' },
+        { id: 'execution', x: 68, y: 64, f: -1, b: '隨時準備分批敲單！' },
+        { id: 'auditor',   x: 50, y: 55, f: -1, b: '會議紀錄即時同步中！' }
+      ];
+      circleSpots.forEach(s => {
+        moveAgentTo(s.id, s.x, s.y, '戰情圓桌會議', s.b);
+        const ag = agents.value.find(a => a.id === s.id);
+        if (ag) ag.facing = s.f;
+      });
+      appendLog({ agent: 'CIO', badgeClass: 'bg-sky-600 text-white', message: '手動召集：六大 AI Agent 全員移動至中央全息圓桌開會！' });
+    };
+
+    // 手動空間調度 2：各自回座位看盤
+    const commandBackToDesks = () => {
+      isAutoPlaying.value = false;
+      officeDesks.forEach((d, i) => {
+        moveAgentTo(d.id, d.x, d.y + 4, d.label, i === 0 ? '全體回到工作站盯盤！' : '');
+      });
+      appendLog({ agent: 'CIO', badgeClass: 'bg-slate-700 text-white', message: '全體 Agent 返回個人多螢幕工作站待命' });
+    };
+
+    // 手動空間調度 3：自由串門子交流
+    const commandRandomRoam = () => {
+      isAutoPlaying.value = false;
+      const chats = [
+        '去茶水間泡杯咖啡～',
+        '你看 2330 這根紅 K！',
+        '幫我檢查一下風控參數',
+        '今天勝率 80% 真穩！',
+        '光通訊族群動起來了！',
+        'Supabase 備份完成！'
+      ];
+      agents.value.forEach((ag, i) => {
+        const rx = Math.floor(14 + Math.random() * 72);
+        const ry = Math.floor(54 + Math.random() * 28);
+        moveAgentTo(ag.id, rx, ry, '自由走動交流', i % 2 === 0 ? chats[i] : '');
+      });
+      appendLog({ agent: 'Market', badgeClass: 'bg-emerald-600 text-white', message: '茶歇時間：狗狗們在辦公室內自由走動串門子交流' });
+    };
+
+    // 點擊單一狗狗：若已選中另一隻狗狗，則走過去找牠討論！
+    const handleAgentClick = (clickedAgent, idx) => {
+      isAutoPlaying.value = false;
+      if (selectedAgentId.value && selectedAgentId.value !== clickedAgent.id) {
+        const mover = agents.value.find(a => a.id === selectedAgentId.value);
+        if (mover) {
+          const offsetX = mover.x < clickedAgent.x ? -9 : 9;
+          const targetX = Math.max(10, Math.min(90, clickedAgent.x + offsetX));
+          const targetY = Math.max(48, Math.min(84, clickedAgent.y + 2));
+          moveAgentTo(
+            mover.id,
+            targetX,
+            targetY,
+            `找 ${clickedAgent.shortRole} 討論`,
+            `嗨 ${clickedAgent.shortRole}！我們來核對一下 ${selectedStock.value.code} 的訊號！`
+          );
+          clickedAgent.facing = mover.x < clickedAgent.x ? -1 : 1;
+          clickedAgent.currentBubble = `沒問題 ${mover.shortRole}，數據已經準備好了！`;
+          triggerPacketTransfer(mover.id, clickedAgent.id, '💬', '當面協商');
+          appendLog({
+            agent: mover.shortRole,
+            badgeClass: mover.badgeClass,
+            message: `${mover.title} 親自走到 ${clickedAgent.title} 身旁討論 ${selectedStock.value.code} 策略`
+          });
+          selectedAgentId.value = clickedAgent.id;
+          return;
+        }
+      }
+      selectedAgentId.value = clickedAgent.id;
+      clickedAgent.currentBubble = `汪！我是 ${clickedAgent.shortRole}，點地板任何位置我就走過去！`;
+    };
+
+    // 點擊 2.5D 地板任意位置：讓目前選中的狗狗走過去
+    const handleFloorClick = (e) => {
+      if (!selectedAgentId.value) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+      const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+
+      // 限制在地板合理行走範圍 (Y: 46% ~ 86%)
+      const clampedX = Math.max(8, Math.min(92, Math.round(clickX)));
+      const clampedY = Math.max(46, Math.min(86, Math.round(clickY)));
+
+      isAutoPlaying.value = false;
+      const ag = agents.value.find(a => a.id === selectedAgentId.value);
+      if (ag) {
+        moveAgentTo(ag.id, clampedX, clampedY, '巡視辦公室', `收到！正在前往指定位置 (${clampedX}%, ${clampedY}%)！`);
+      }
+    };
+
+    // 其餘戰情室數據設定
+    const marketIndices = ref([
+      { name: '加權指數', value: '22,351.62', change: '+231.18 +1.05%', isUp: true, sparkline: '0,25 12,22 24,16 36,19 48,10 60,4' },
+      { name: '櫃買指數', value: '251.86', change: '+2.34 +0.94%', isUp: true, sparkline: '0,26 14,20 26,18 38,12 50,8 60,3' },
+      { name: '台指期', value: '22,387', change: '+265 +1.20%', isUp: true, sparkline: '0,27 12,21 25,15 37,16 49,7 60,2' },
+      { name: '美元/台幣', value: '32.056', change: '-0.031 -0.10%', isUp: false, sparkline: '0,6 12,10 24,8 36,16 48,20 60,26' }
+    ]);
+
+    const dailyTasks = ref([
+      { name: '1. 3K 突破股掃描' },
+      { name: '2. 產業題材分析' },
+      { name: '3. 圓桌多空辯論' },
+      { name: '4. 風險控管審查' },
+      { name: '5. 模擬交易執行' },
+      { name: '6. 結果驗證結案' }
+    ]);
+
+    const apiStatusList = ref([
+      { name: 'Fugle 行情' },
+      { name: 'FinMind 籌碼' },
+      { name: 'Supabase DB' },
+      { name: 'Telegram 推播' }
+    ]);
+
+    const buildCandles = () => [
+      { open: 110, close: 102, high: 98, low: 114, vol: 14, up: true },
+      { open: 102, close: 106, high: 100, low: 110, vol: 10, up: false },
+      { open: 106, close: 96, high: 92, low: 108, vol: 18, up: true },
+      { open: 96, close: 99, high: 94, low: 103, vol: 11, up: false },
+      { open: 99, close: 90, high: 86, low: 101, vol: 20, up: true },
+      { open: 90, close: 84, high: 80, low: 92, vol: 22, up: true },
+      { open: 84, close: 88, high: 82, low: 92, vol: 13, up: false },
+      { open: 88, close: 78, high: 74, low: 90, vol: 24, up: true },
+      { open: 78, close: 72, high: 68, low: 80, vol: 26, up: true },
+      { open: 72, close: 76, high: 70, low: 80, vol: 14, up: false },
+      { open: 76, close: 66, high: 62, low: 78, vol: 28, up: true },
+      { open: 66, close: 60, high: 56, low: 68, vol: 29, up: true },
+      { open: 60, close: 64, high: 58, low: 68, vol: 15, up: false },
+      { open: 64, close: 54, high: 48, low: 66, vol: 32, up: true },
+      { open: 54, close: 48, high: 44, low: 56, vol: 30, up: true },
+      { open: 48, close: 52, high: 46, low: 56, vol: 16, up: false },
+      { open: 52, close: 42, high: 36, low: 54, vol: 34, up: true },
+      { open: 42, close: 36, high: 32, low: 44, vol: 36, up: true },
+      { open: 36, close: 40, high: 34, low: 44, vol: 18, up: false },
+      { open: 40, close: 30, high: 24, low: 42, vol: 38, up: true },
+      { open: 30, close: 22, high: 16, low: 32, vol: 42, up: true }
+    ];
+
+    const quickWatchlist = ref([
+      {
+        code: '2330', name: '台積電', price: '1,085', change: '+20', changePct: '+1.88%',
+        ma5: '1,078', ma20: '1,072', volume: '32,456',
+        highLabel: '1,100', midHighLabel: '1,085', midLowLabel: '1,070',
+        spark: '0,20 10,18 20,14 30,15 40,8 50,3',
+        ma5Path: '12,105 80,88 150,70 220,50 280,28',
+        ma20Path: '12,112 80,96 150,80 220,62 280,40',
+        ma60Path: '12,118 80,104 150,90 220,74 280,54',
+        candles: buildCandles()
+      },
+      {
+        code: '2317', name: '鴻海', price: '248.5', change: '+5.5', changePct: '+2.26%',
+        ma5: '245.2', ma20: '241.0', volume: '68,120',
+        highLabel: '252', midHighLabel: '246', midLowLabel: '240',
+        spark: '0,22 10,19 20,16 30,12 40,9 50,4',
+        ma5Path: '12,105 80,88 150,70 220,50 280,28',
+        ma20Path: '12,112 80,96 150,80 220,62 280,40',
+        ma60Path: '12,118 80,104 150,90 220,74 280,54',
+        candles: buildCandles()
+      },
+      {
+        code: '2454', name: '聯發科', price: '1,420', change: '+42', changePct: '+3.12%',
+        ma5: '1,398', ma20: '1,380', volume: '9,840',
+        highLabel: '1,440', midHighLabel: '1,410', midLowLabel: '1,380',
+        spark: '0,21 10,16 20,15 30,10 40,6 50,2',
+        ma5Path: '12,105 80,88 150,70 220,50 280,28',
+        ma20Path: '12,112 80,96 150,80 220,62 280,40',
+        ma60Path: '12,118 80,104 150,90 220,74 280,54',
+        candles: buildCandles()
+      },
+      {
+        code: '3231', name: '緯創', price: '186.5', change: '+7.5', changePct: '+4.18%',
+        ma5: '182.0', ma20: '178.5', volume: '54,890',
+        highLabel: '190', midHighLabel: '184', midLowLabel: '178',
+        spark: '0,23 10,20 20,15 30,11 40,6 50,1',
+        ma5Path: '12,105 80,88 150,70 220,50 280,28',
+        ma20Path: '12,112 80,96 150,80 220,62 280,40',
+        ma60Path: '12,118 80,104 150,90 220,74 280,54',
+        candles: buildCandles()
+      }
+    ]);
+
+    const selectedStock = ref(quickWatchlist.value[0]);
+
+    const monitorPool = ref([
+      { code: '2330', name: '台積電', price: '1,085', changePct: '+1.88%', volRatio: '3.2x' },
+      { code: '2317', name: '鴻海', price: '248.5', changePct: '+2.26%', volRatio: '2.8x' },
+      { code: '2454', name: '聯發科', price: '1,420', changePct: '+3.12%', volRatio: '2.6x' },
+      { code: '2382', name: '廣達', price: '325.0', changePct: '+1.56%', volRatio: '2.9x' },
+      { code: '3231', name: '緯創', price: '186.5', changePct: '+4.18%', volRatio: '3.1x' },
+      { code: '2357', name: '華碩', price: '612.0', changePct: '+3.45%', volRatio: '2.7x' }
+    ]);
+
+    const eventLogs = ref([
+      { time: '10:24:36', agent: 'Execution', badgeClass: 'bg-sky-500 text-white', message: '3231 模擬買進 186.5 元 1,000 股' },
+      { time: '10:24:32', agent: 'Risk', badgeClass: 'bg-rose-600 text-white', message: '2330 風險檢查通過 (波動正常)' },
+      { time: '10:24:28', agent: 'Research', badgeClass: 'bg-amber-500 text-slate-950', message: 'AI 伺服器需求強勁，法人上調目標價' },
+      { time: '10:24:20', agent: 'Quant', badgeClass: 'bg-emerald-600 text-white', message: '3231 符合 3K 突破條件 (量能 +2.8x)' }
+    ]);
+
+    const positions = ref([
+      { code: '2330', shares: '1,000', cost: '1,062', current: '1,085', pnl: '+23,000', pnlPct: '+2.17%' },
+      { code: '3231', shares: '2,000', cost: '180.5', current: '186.5', pnl: '+12,000', pnlPct: '+3.32%' },
+      { code: '2454', shares: '500', cost: '1,320', current: '1,420', pnl: '+50,000', pnlPct: '+3.79%' }
+    ]);
+
+    const sectorHeat = ref([
+      { name: 'AI 伺服器', score: 92, color: 'bg-rose-500' },
+      { name: '光通訊', score: 88, color: 'bg-orange-500' },
+      { name: '先進封裝', score: 75, color: 'bg-amber-400' },
+      { name: '設備材料', score: 68, color: 'bg-yellow-400' }
+    ]);
+
+    const formattedPortfolioValue = computed(() => portfolioValue.value.toLocaleString());
+    const formattedDailyPnL = computed(() => dailyPnL.value.toLocaleString());
+
+    const appendLog = (entry) => {
+      const timeStr = new Date().toTimeString().split(' ')[0];
+      eventLogs.value.unshift({ time: timeStr, ...entry });
+      if (eventLogs.value.length > 15) eventLogs.value.pop();
+    };
+
+    const nextScenarioStep = () => {
+      const nextIdx = (currentStepIndex.value + 1) % scenarios.length;
+      applyScenarioChoreography(nextIdx);
+    };
+
+    const selectStep = (idx) => {
+      applyScenarioChoreography(idx);
+    };
+
+    const selectStock = (stock) => {
+      selectedStock.value = stock;
+      // 點選股票時，讓 Quant 主動走去中央圓桌報告該股票
+      moveAgentTo('quant', 44, 72, '戰情圓桌', `切換標的至 ${stock.code} ${stock.name}，正在重算支撐壓力！`);
+      moveAgentTo('cio', 34, 68, '戰情圓桌', `大家注意，改看 ${stock.name} 的盤中走勢！`);
+    };
+
+    const inspectPoolStock = (item) => {
+      const found = quickWatchlist.value.find(s => s.code === item.code);
+      if (found) selectStock(found);
+      applyScenarioChoreography(1);
+    };
+
+    const triggerBuySignalAnimation = () => {
+      tradeCount.value += 1;
+      applyScenarioChoreography(4);
+    };
+
+    const toggleAutoLoop = () => {
+      isAutoPlaying.value = !isAutoPlaying.value;
+    };
+
+    onMounted(() => {
+      applyScenarioChoreography(0);
+      loopTimer = setInterval(() => {
+        if (isAutoPlaying.value) {
+          nextScenarioStep();
+        }
+      }, 4200);
+    });
+
+    onUnmounted(() => {
+      if (loopTimer) clearInterval(loopTimer);
+    });
+
+    return {
+      isAutoPlaying,
+      currentStepIndex,
+      selectedAgentId,
+      officeDesks,
+      flyingPacket,
+      agents,
+      scenarios,
+      currentScenario,
+      activeLinks,
+      marketIndices,
+      dailyTasks,
+      apiStatusList,
+      quickWatchlist,
+      selectedStock,
+      monitorPool,
+      eventLogs,
+      positions,
+      sentimentScore,
+      sectorHeat,
+      formattedPortfolioValue,
+      formattedDailyPnL,
+      tradeCount,
+      nextScenarioStep,
+      selectStep,
+      selectStock,
+      inspectPoolStock,
+      triggerBuySignalAnimation,
+      toggleAutoLoop,
+      commandAllToMeeting,
+      commandBackToDesks,
+      commandRandomRoam,
+      handleAgentClick,
+      handleFloorClick
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

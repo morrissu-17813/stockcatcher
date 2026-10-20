@@ -1,0 +1,10 @@
+{
+  "endpoint": "https://toalpha.tw/mcp",
+  "stocks_requested": 24,
+  "stocks_with_response": 24,
+  "stocks_with_normalized_rows": 0,
+  "normalized_rows": 0,
+  "days_requested": 1000,
+  "history_tool": "price_history",
+  "note": "Review raw response metadata and docs to confirm volume unit before calculating 2TON levels."
+}

@@ -1,0 +1,1274 @@
+[
+  {
+    "description": "把公司名稱或代號片段換成股票代號。所有其他工具都需要代號(例如 2330)。回最多 10 個候選,含市場與產業。",
+    "inputSchema": {
+      "properties": {
+        "query": {
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object",
+      "title": "resolve_stockArguments"
+    },
+    "name": "resolve_stock"
+  },
+  {
+    "description": "台股大盤概況:加權與櫃買指數、三大法人今日與近 20 日、連買賣天數、融資餘額近一年位置、全市場市值加權估值、漲跌家數。",
+    "inputSchema": {
+      "properties": {},
+      "type": "object",
+      "title": "market_overviewArguments"
+    },
+    "name": "market_overview"
+  },
+  {
+    "description": "個股法人級摘要,一個呼叫就能開始談這檔:價與 52 週位置、估值(本益比 TTM / 今明年前瞻、淨值比、殖利率)、成長(今明年營收與 EPS 成長率、分析師家數)、賣方共識(券商目標價中位數與 Upside、看多家數)、籌碼結構(外資持股比、融資使用率、券資比、法人近 20 日)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "stock_snapshotArguments"
+    },
+    "name": "stock_snapshot"
+  },
+  {
+    "description": "財報:營收、毛利率、營益率、淨利率、母公司淨利、EPS(已還原股數變動)、ROE 近四季,每項附年增。period = quarter(單季)或 annual(年度,四季加總);n 期數,最多 40。金額億元。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "period": {
+          "default": "quarter",
+          "title": "Period",
+          "type": "string"
+        },
+        "n": {
+          "default": 8,
+          "title": "N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "financialsArguments"
+    },
+    "name": "financials"
+  },
+  {
+    "description": "月營收(單檔):每月營收(億元)、年增、月增、累計年增,是否創 12 個月或歷史新高,連續年增月數。months 最多 60。要一次看很多檔請用 monthly_revenue_batch。有申報產品別的公司(約 220 家)另附 products:最新月各產品營收、占比、年增、近 12 個月占比變化與 12 個月占比走勢。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "months": {
+          "default": 24,
+          "title": "Months",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "monthly_revenueArguments"
+    },
+    "name": "monthly_revenue"
+  },
+  {
+    "description": "一次查很多檔的月營收(最多 100 檔):每檔最近 months 個月(最多 12)的營收(億元)、年增、月增、累計年增。\n    要掃一整批股票(同產業、自選清單、整個市場篩選)時用這個,不要逐檔呼叫 monthly_revenue;\n    單檔要看創高、連續年增、產品別,再用 monthly_revenue。stock_ids 可以是清單或逗號分隔字串。",
+    "inputSchema": {
+      "properties": {
+        "stock_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Stock Ids"
+        },
+        "months": {
+          "default": 3,
+          "title": "Months",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_ids"
+      ],
+      "type": "object",
+      "title": "monthly_revenue_batchArguments"
+    },
+    "name": "monthly_revenue_batch"
+  },
+  {
+    "description": "個股三大法人:外資 / 投信 / 自營商今日與 5 / 20 / 60 日累計買賣超(張與億)、連買賣天數、占成交量比例、外資持股比例與 20 日變化、近期單日最大買賣超與之後 5 日股價。days 只影響 big_days 的搜尋範圍(最多 250)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 60,
+          "title": "Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "institutional_flowsArguments"
+    },
+    "name": "institutional_flows"
+  },
+  {
+    "description": "融資融券:融資餘額(張)與近一年位置、使用率、券資比、5 / 20 / 60 日增減與股價、判讀(追價 / 攤平 / 洗籌 / 斷頭)、餘額要幾天成交量才消化、軋空條件。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "margin_balanceArguments"
+    },
+    "name": "margin_balance"
+  },
+  {
+    "description": "券商評等與目標價(來自公開報導)。給 stock_id:該股近 days 天各券商最新一篇評等、目標價(已還原除權減資)、中位數與 Upside、看多 / 中立 / 看空家數,附原報導連結;不給 stock_id:全市場最近 days 天(預設改 7 天)的評等列表。不提供觀點摘錄文字。\n    本站每小時 35 分同步公開報導。要看全市場最近誰被調升 / 調降評等或目標價(依股票彙整、附目標價調幅與距收盤)用 rating_changes。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "default": "",
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 90,
+          "title": "Days",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 30,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "broker_ratingsArguments"
+    },
+    "name": "broker_ratings"
+  },
+  {
+    "description": "個股新聞標題與連結(不含內文)。stock_ids 可以是清單或逗號分隔字串(最多 20 檔);topic: all / broker(券商評等)/ earn(營收財報)/ corp(公司動態)/ chips(籌碼與法人);days 最多 90。",
+    "inputSchema": {
+      "properties": {
+        "stock_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Stock Ids"
+        },
+        "days": {
+          "default": 7,
+          "title": "Days",
+          "type": "integer"
+        },
+        "topic": {
+          "default": "all",
+          "title": "Topic",
+          "type": "string"
+        },
+        "limit": {
+          "default": 30,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_ids"
+      ],
+      "type": "object",
+      "title": "newsArguments"
+    },
+    "name": "news"
+  },
+  {
+    "description": "分析師共識的衍生指標(不含原始預估值):今年、明年、後年的營收 / EPS / 淨利成長率、預估毛利率相對最近實績的變化、分析師家數、預估分歧度((最高 − 最低)÷ 平均),以及近 8 季 EPS 實際 vs 預估的 beat / miss。\n    這份是單一時點的快照(回傳的 as_of 是資料日);要看分析師最近把 EPS 往上或往下修(全市場排行、每日更新)用 estimate_revisions。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "estimatesArguments"
+    },
+    "name": "estimates"
+  },
+  {
+    "description": "股利:年度現金與股票股利(已還原股數變動)、配發率(總額 ÷ 淨利)、現金殖利率(近四期年化 ÷ 現價)與十年平均、連續配息 / 成長年數、近 10 次填息成功率與天數、即將除權息。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "dividendsArguments"
+    },
+    "name": "dividends"
+  },
+  {
+    "description": "財務結構:負債比率、流動比率、每股淨值、ROE / ROA 近四季、近四季營業現金流、資本支出、自由現金流、FCF 殖利率,近 8 季走勢。金額億元。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "balance_sheetArguments"
+    },
+    "name": "balance_sheet"
+  },
+  {
+    "description": "同業橫向比較:給代號清單或逗號分隔字串(最多 20 檔),回每檔的估值(TTM / 今明年本益比、淨值比、殖利率)、獲利(ROE、毛利率)、成長(月營收年增、今明年營收與 EPS 成長率)、籌碼(外資 / 投信 20 日)、券商目標價 Upside,並附這批的中位數。",
+    "inputSchema": {
+      "properties": {
+        "stock_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Stock Ids"
+        }
+      },
+      "required": [
+        "stock_ids"
+      ],
+      "type": "object",
+      "title": "compareArguments"
+    },
+    "name": "compare"
+  },
+  {
+    "description": "投信基金持股(公會前十大,月頻):最新月與前月分主動基金 / 被動 ETF / 主動式 ETF 的持有基金數、估計張數(市值 ÷ 月底收盤)與月變化、該類型權重、主動 − 被動權重差,以及持有最多的前 5 檔基金。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "fund_holdingsArguments"
+    },
+    "name": "fund_holdings"
+  },
+  {
+    "description": "主動式 ETF 持股(各投信每日 PCF):持有的 ETF 數 / 總數、合計張數、規模加權曝險與市值占比的差、各 ETF 的權重、張數、最新動作(前 10 檔)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "active_etf_holdersArguments"
+    },
+    "name": "active_etf_holders"
+  },
+  {
+    "description": "董監持股與質押(月頻):合計持股張數、質押張數與整體質押比、申報人數、持股前 5 大內部人及其質押比。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "insider_pledgeArguments"
+    },
+    "name": "insider_pledge"
+  },
+  {
+    "description": "排行榜。kind:next_rev_growth(明年營收成長)、next_eps_growth(明年 EPS 成長)、broker_upside(券商目標價 Upside)、dividend_yield、foreign_net_5d(外資 5 日買超)、foreign_net_sell_5d、trust_net_5d、trust_net_sell_5d、foreign_net_buy／foreign_net_sell／trust_net_buy／trust_net_sell(最新一個交易日的外資、投信買賣超)、turnover、rev_yoy(月營收年增)、roe、low_pe_fy1。limit 最多 50。",
+    "inputSchema": {
+      "properties": {
+        "kind": {
+          "default": "next_rev_growth",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "rankArguments"
+    },
+    "name": "rank"
+  },
+  {
+    "description": "選股:條件全部選填,比率用小數(roe_min=0.15 = 15%,rev_g2_min=0.2 = 20%)。pe_max / pb_max / yield_min(%) / roe_min / rev_yoy_min / gross_margin_min 為既有數字;pe_fy1_max / pe_fy2_max / rev_g1_min / rev_g2_min / eps_g1_min / eps_g2_min / analysts_min / upside_min 為分析師共識衍生;mcap_min_billion 市值(億);market twse / tpex;industry 產業名。sort 同 rank 的 kind。最多 50 檔,附中位數。",
+    "inputSchema": {
+      "properties": {
+        "pe_max": {
+          "default": null,
+          "title": "Pe Max",
+          "type": "number"
+        },
+        "pb_max": {
+          "default": null,
+          "title": "Pb Max",
+          "type": "number"
+        },
+        "yield_min": {
+          "default": null,
+          "title": "Yield Min",
+          "type": "number"
+        },
+        "roe_min": {
+          "default": null,
+          "title": "Roe Min",
+          "type": "number"
+        },
+        "rev_yoy_min": {
+          "default": null,
+          "title": "Rev Yoy Min",
+          "type": "number"
+        },
+        "gross_margin_min": {
+          "default": null,
+          "title": "Gross Margin Min",
+          "type": "number"
+        },
+        "pe_fy1_max": {
+          "default": null,
+          "title": "Pe Fy1 Max",
+          "type": "number"
+        },
+        "pe_fy2_max": {
+          "default": null,
+          "title": "Pe Fy2 Max",
+          "type": "number"
+        },
+        "rev_g1_min": {
+          "default": null,
+          "title": "Rev G1 Min",
+          "type": "number"
+        },
+        "rev_g2_min": {
+          "default": null,
+          "title": "Rev G2 Min",
+          "type": "number"
+        },
+        "eps_g1_min": {
+          "default": null,
+          "title": "Eps G1 Min",
+          "type": "number"
+        },
+        "eps_g2_min": {
+          "default": null,
+          "title": "Eps G2 Min",
+          "type": "number"
+        },
+        "analysts_min": {
+          "default": null,
+          "title": "Analysts Min",
+          "type": "integer"
+        },
+        "upside_min": {
+          "default": null,
+          "title": "Upside Min",
+          "type": "number"
+        },
+        "mcap_min_billion": {
+          "default": null,
+          "title": "Mcap Min Billion",
+          "type": "number"
+        },
+        "market": {
+          "default": null,
+          "title": "Market",
+          "type": "string"
+        },
+        "industry": {
+          "default": null,
+          "title": "Industry",
+          "type": "string"
+        },
+        "sort": {
+          "default": "turnover",
+          "title": "Sort",
+          "type": "string"
+        },
+        "limit": {
+          "default": 30,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "screenArguments"
+    },
+    "name": "screen"
+  },
+  {
+    "description": "未來 days 天的事件:除權息預告、法說會,以及月營收公布窗口(每月 1~10 日)。stock_ids 可以是清單或逗號分隔字串,最多 20 檔。",
+    "inputSchema": {
+      "properties": {
+        "stock_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Stock Ids"
+        },
+        "days": {
+          "default": 60,
+          "title": "Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_ids"
+      ],
+      "type": "object",
+      "title": "eventsArguments"
+    },
+    "name": "events"
+  },
+  {
+    "description": "法說會:近 8 場(日期、地點、簡報連結)、法說後 1 / 5 日股價反應與上漲比例、依去年同季推估的下一場時間。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "conference_callsArguments"
+    },
+    "name": "conference_calls"
+  },
+  {
+    "description": "不用登入的組合檢視:holdings 格式「代號:張數[:成本價],…」例如 2330:5:850,2317:10。回市值、今日與未實現損益、集中度、估值 vs 大盤、近一年走勢與 beta / 波動 / 最大回撤、產業配置、法人流向、持股明細。",
+    "inputSchema": {
+      "properties": {
+        "holdings": {
+          "title": "Holdings",
+          "type": "string"
+        }
+      },
+      "required": [
+        "holdings"
+      ],
+      "type": "object",
+      "title": "portfolio_checkArguments"
+    },
+    "name": "portfolio_check"
+  },
+  {
+    "description": "(需要 API 金鑰)你存在 ToAlpha 帳號裡的雲端投資組合:不給 name 用最近更新的一組,回跟 portfolio_check 一樣的分析,並列出你所有組合的名稱。",
+    "inputSchema": {
+      "properties": {
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "title": "my_portfolioArguments"
+    },
+    "name": "my_portfolio"
+  },
+  {
+    "description": "(需要 API 金鑰)你的自選股:每檔漲跌、52 週位置、估值、成長、外資 / 投信 20 日、券商目標價 Upside,以及未來 30 天事件。",
+    "inputSchema": {
+      "properties": {},
+      "type": "object",
+      "title": "my_watchlistArguments"
+    },
+    "name": "my_watchlist"
+  },
+  {
+    "description": "原始財報逐科目(公開資訊觀測站申報原值,千元):statement = income(損益表)/ balance(資產負債表)/ cashflow(現金流量表);periods 最近幾季(最多 8)。損益表每科目給單季 value_q 與累計 value_cum,資產負債表只有期末值,現金流量表為年初至今累計。item_filter 可給正則只取部分科目(例如「營業收入|毛利|淨利」)。level 是科目層級(2 = 小計、3 = 明細)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "statement": {
+          "default": "income",
+          "title": "Statement",
+          "type": "string"
+        },
+        "periods": {
+          "default": 4,
+          "title": "Periods",
+          "type": "integer"
+        },
+        "item_filter": {
+          "default": "",
+          "title": "Item Filter",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "financial_statementsArguments"
+    },
+    "name": "financial_statements"
+  },
+  {
+    "description": "每日行情原始列:日期、開、高、低、收、漲跌、成交張數、成交金額(億)、成交筆數,舊到新。days 最多 1000。adjusted = true 時開高低收乘上還原係數(面額變更與配股)。stock_id 給 TAIEX(加權指數)或 TPEX(櫃買指數)回大盤指數日線。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 250,
+          "title": "Days",
+          "type": "integer"
+        },
+        "adjusted": {
+          "default": false,
+          "title": "Adjusted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "price_historyArguments"
+    },
+    "name": "price_history"
+  },
+  {
+    "description": "每日三大法人原始列:外資(含外資自營)、投信、自營商自行、自營商避險買賣超(張)、收盤、成交張數、外資持股比例(%),舊到新。days 最多 500。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 120,
+          "title": "Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "flows_dailyArguments"
+    },
+    "name": "flows_daily"
+  },
+  {
+    "description": "每日融資融券原始列:融資買進 / 賣出 / 現償 / 餘額 / 限額、融券賣出 / 買進 / 券償 / 餘額、資券互抵、收盤(張),舊到新。days 最多 500。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 120,
+          "title": "Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "margin_dailyArguments"
+    },
+    "name": "margin_daily"
+  },
+  {
+    "description": "歷史估值:本益比、淨值比、殖利率在近 N 年裡的百分位與區間、本益比河流帶(10/30/50/70/90 分位 × 近四季 EPS 換算的價位),以及近 12 個月的月底本益比序列。years 最多 15。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "years": {
+          "default": 5,
+          "title": "Years",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "valuation_historyArguments"
+    },
+    "name": "valuation_history"
+  },
+  {
+    "description": "分析師評等分布:共識標籤(BUY / HOLD 等)、強力買進 / 買進 / 持有 / 賣出 / 強力賣出家數、分析師人數、目標價中位數距現價與高低區間的比率(不提供原始目標價)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "analyst_consensusArguments"
+    },
+    "name": "analyst_consensus"
+  },
+  {
+    "description": "投信比較。給 stock_id:各投信對這檔的權重(該投信同類型基金合計)與全類型平均的差,看誰重押、誰零持有;給 company(投信名稱片段):該投信的前 15 大持股與相對全類型的超配。class_code:AA1 主動基金(預設)/ AH11 被動 ETF / AL11 主動式 ETF。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "default": "",
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "company": {
+          "default": "",
+          "title": "Company",
+          "type": "string"
+        },
+        "class_code": {
+          "default": "AA1",
+          "title": "Class Code",
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "title": "fund_company_holdingsArguments"
+    },
+    "name": "fund_company_holdings"
+  },
+  {
+    "description": "基金績效與規模排名。class_code:AA1 主動基金 / AH11 被動 ETF / AL11 主動式 ETF;period:ytd / r3m / r6m / r1y / r2y / r3y / r5y。回報酬(%)、淨資產(億)、前三大持股。limit 最多 50。",
+    "inputSchema": {
+      "properties": {
+        "class_code": {
+          "default": "AA1",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "period": {
+          "default": "r1y",
+          "title": "Period",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "fund_rankingArguments"
+    },
+    "name": "fund_ranking"
+  },
+  {
+    "description": "主動式 ETF 本身:規模(受益權單位 × 淨值)、淨值與市價、折溢價、持股檔數、前 15 大持股(權重、張數、最新動作)、近 5 個交易日的加減碼與新增剔除。etf_id 例如 00981A。",
+    "inputSchema": {
+      "properties": {
+        "etf_id": {
+          "title": "Etf Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "etf_id"
+      ],
+      "type": "object",
+      "title": "etf_profileArguments"
+    },
+    "name": "etf_profile"
+  },
+  {
+    "description": "全市場主動式 ETF 最近的持股變動:哪些股票被新增、加碼、減碼、剔除,附 ETF、張數與權重變化。action 可濾 新增 / 加碼 / 減碼 / 剔除;days 最多 20;limit 最多 100。",
+    "inputSchema": {
+      "properties": {
+        "days": {
+          "default": 3,
+          "title": "Days",
+          "type": "integer"
+        },
+        "action": {
+          "default": "",
+          "title": "Action",
+          "type": "string"
+        },
+        "limit": {
+          "default": 40,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "etf_changesArguments"
+    },
+    "name": "etf_changes"
+  },
+  {
+    "description": "全市場行事曆:未來 days 天的除權息(現金股利、殖利率以現價算)與法說會(含受邀場次)。kind 可濾 除權息 / 法說會;days 最多 90。",
+    "inputSchema": {
+      "properties": {
+        "days": {
+          "default": 14,
+          "title": "Days",
+          "type": "integer"
+        },
+        "kind": {
+          "default": "",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "default": 60,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "calendarArguments"
+    },
+    "name": "calendar"
+  },
+  {
+    "description": "精選新聞:近 18 小時全市場新聞依 ToAlpha 的評分挑出(來源等級、標題點名個股、該股當日異常報酬與成交金額、法人與主動式 ETF 動作、事件關鍵詞,扣除農場文、例行行情文、權證廣告),每檔股票只留一則。limit 最多 40。",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 15,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "top_newsArguments"
+    },
+    "name": "top_news"
+  },
+  {
+    "description": "產業清單:各產業的上市櫃檔數、市值合計(億)、本益比中位數、今日市值加權漲跌、近 20 日外資買賣超合計(億)。拿產業名去呼叫 industry_overview。",
+    "inputSchema": {
+      "properties": {},
+      "type": "object",
+      "title": "industriesArguments"
+    },
+    "name": "industries"
+  },
+  {
+    "description": "單一產業彙總:檔數、市值合計、本益比 / 淨值比 / 殖利率中位數、今明年 EPS 成長中位數、近 20 日外資與投信買賣超合計、市值前 N 檔的估值與成長。產業名用 industries 回的名稱。",
+    "inputSchema": {
+      "properties": {
+        "industry": {
+          "title": "Industry",
+          "type": "string"
+        },
+        "limit": {
+          "default": 15,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "industry"
+      ],
+      "type": "object",
+      "title": "industry_overviewArguments"
+    },
+    "name": "industry_overview"
+  },
+  {
+    "description": "股數變動紀錄:面額變更、減資、股票股利等事件的日期、還原係數與說明。本站每股數字(EPS、股利、還原股價)就是用這些係數還原的。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "corporate_actionsArguments"
+    },
+    "name": "corporate_actions"
+  },
+  {
+    "description": "資料新鮮度:各來源最後一次成功更新的期間與時間(行情、三大法人、融資融券、估值、外資持股、ETF 持股與淨值、投信持股、法說會、股利、月營收、新聞、集保股權分散),以及今天有沒有失敗的抓取。先問這個再解讀當天的數字。",
+    "inputSchema": {
+      "properties": {},
+      "type": "object",
+      "title": "data_statusArguments"
+    },
+    "name": "data_status"
+  },
+  {
+    "description": "集保股權分散(大戶 / 散戶籌碼,每週):大戶(帳戶持股市值 5,000 萬元以上，依股價換算成張數門檻)持股比例、散戶(門檻以下)比例、股東人數;\n    1 / 4 / 13 / 52 週變化與同期股價、近一年位置、連續增減週數、本週大戶增減在全市場的排名;\n    大戶變化拆解(外資 / 投信 / 自營 / 融資 / 其他大戶);15 個持股級距與 13 週前比較;股本異動週會標出來。weeks 是序列長度(最多 52)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "weeks": {
+          "default": 13,
+          "title": "Weeks",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "shareholder_distributionArguments"
+    },
+    "name": "shareholder_distribution"
+  },
+  {
+    "description": "集保大戶籌碼每週排行(上市櫃普通股)。kind:big_up / big_down(大戶持股比例增減;大戶 = 持股市值 5,000 萬元以上，依股價換算成張數門檻)、\n    holders_down / holders_up(股東人數減少 / 增加 %)。weeks:1 = 本週、4 = 近 4 週累計。market:all / twse / tpex。limit 最多 50。\n    新股入庫、減資、減資換發等股本異動造成的假訊號會排除並列出;每檔附大戶門檻張數、散戶、股東人數、同期股價、融資增減、券資比與大戶變化拆解。",
+    "inputSchema": {
+      "properties": {
+        "kind": {
+          "default": "big_up",
+          "title": "Kind",
+          "type": "string"
+        },
+        "weeks": {
+          "default": 1,
+          "title": "Weeks",
+          "type": "integer"
+        },
+        "market": {
+          "default": "all",
+          "title": "Market",
+          "type": "string"
+        },
+        "limit": {
+          "default": 30,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "shareholder_rankArguments"
+    },
+    "name": "shareholder_rank"
+  },
+  {
+    "description": "全市場券商評等與目標價異動,依股票彙整:誰被調升 / 調降評等、調高 / 調低目標價、首次評等。\n    days:1 = 今天與昨天(預設),最多 30。direction:all / up(調升、調高、首評)/ down(調降、調低)。limit 最多 50。\n    每檔給:各券商的動作、評等、目標價(舊 → 新與調幅,已還原除權減資)、調升 / 調降家數、新目標價中位數距收盤、今日漲跌,附原報導連結。\n    「重申 / 維持」且目標價沒變的不算異動。轉述自公開報導,不提供觀點摘錄。本站每小時 35 分同步。\n    要看單一股票所有券商的最新評等與共識用 broker_ratings(stock_id)。",
+    "inputSchema": {
+      "properties": {
+        "days": {
+          "default": 1,
+          "title": "Days",
+          "type": "integer"
+        },
+        "direction": {
+          "default": "all",
+          "title": "Direction",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "rating_changesArguments"
+    },
+    "name": "rating_changes"
+  },
+  {
+    "description": "全市場 EPS 預估修正排行:分析師近 window_days 天把今年(year=current)或明年(next)的 EPS 共識往上(direction=up)或往下(down)改了多少。\n    window_days:7 / 30 / 90。min_analysts:至少幾位分析師(預設 3,太少的一家改就跳很大)。limit 最多 50。\n    每檔給:修正幅度、近 7 / 30 天調高與調低的分析師人數、預估 EPS 年成長、同期股價漲跌(看股價反映了沒),只給比率,不給原始預估值。\n    只列這段期間至少一位分析師實際往同方向調整的(共識變了卻沒人調整,多半是分析師名單換人)。\n    預估修正的方向常比預估的絕對值更有訊號;覆蓋約 450~500 檔,三位以上分析師的約 200 檔。資料每日 21:00 前後更新。",
+    "inputSchema": {
+      "properties": {
+        "year": {
+          "default": "current",
+          "title": "Year",
+          "type": "string"
+        },
+        "window_days": {
+          "default": 30,
+          "title": "Window Days",
+          "type": "integer"
+        },
+        "direction": {
+          "default": "up",
+          "title": "Direction",
+          "type": "string"
+        },
+        "min_analysts": {
+          "default": 3,
+          "title": "Min Analysts",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 20,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "estimate_revisionsArguments"
+    },
+    "name": "estimate_revisions"
+  },
+  {
+    "description": "重大訊息清單(公開資訊觀測站):發言日期時間、主旨、符合條款、事實發生日,附說明開頭。\n    給 stock_id 查單一公司(days 預設 365,最多 3650);不給則查全市場(days 預設 1 = 今天與昨天,最多 90)。\n    keyword 可用「|」分隔多個關鍵字,比對主旨與說明,例如「庫藏股|減資|私募」「取得.*設備」。\n    important_only=True 只列重要公告(澄清報導、營運風險、增減資與庫藏股、股利決議、財報與更正、關鍵人事、重大合約與投資),\n    濾掉代子公司理財、資金貸與、自結財務比率、注意股等例行公告;category 可指定單一類別:\n    澄清報導 / 營運風險 / 資本與股權 / 股利 / 財報營收 / 人事異動 / 合約投資 / 股東會 / 資金背書 / 理財投資 / 交易資訊 / 其他。\n    **查到 0 筆時會自動放寬並回 fallback**:先拿掉關鍵字／類別／重要篩選,再放寬期間(單一公司放到十年、全市場放到 90 天),\n    fallback.relaxed 寫明放寬了什麼——每家上市櫃公司近 90 天內都有重大訊息,0 筆通常是條件太窄而不是沒資料。\n    即時清單每 10 分鐘更新;要看某則全文用 material_news_detail(stock_id, date, seq)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "default": "",
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 0,
+          "title": "Days",
+          "type": "integer"
+        },
+        "keyword": {
+          "default": "",
+          "title": "Keyword",
+          "type": "string"
+        },
+        "important_only": {
+          "default": false,
+          "title": "Important Only",
+          "type": "boolean"
+        },
+        "category": {
+          "default": "",
+          "title": "Category",
+          "type": "string"
+        },
+        "limit": {
+          "default": 30,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "material_newsArguments"
+    },
+    "name": "material_news"
+  },
+  {
+    "description": "單則重大訊息全文:發言人、主旨、符合條款、事實發生日與完整說明(公司申報原文)。\n    date 為發言日期 YYYY-MM-DD,seq 為當天序號(material_news 回傳的 seq)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string"
+        },
+        "seq": {
+          "default": 1,
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id",
+        "date"
+      ],
+      "type": "object",
+      "title": "material_news_detailArguments"
+    },
+    "name": "material_news_detail"
+  },
+  {
+    "description": "公司基本資料(公開資訊觀測站 公司基本資料,每天同步):公司全名、英文名、產業、董事長、總經理、發言人、主要經營業務、\n    成立 / 上市 / 上櫃 / 興櫃日期、實收資本額、已發行股數(含私募)、特別股、每股面額、股利分派頻率與決議層級、\n    簽證會計師事務所與會計師、股票過戶機構、公司網址與投資人關係窗口,以及近兩年基本資料變動(董事長換人、更換會計師、資本額變動)。\n    flags 會標出專業上要注意的地方:面額不是 10 元、非四大會計師事務所、近期更換會計師、有私募股。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "company_profileArguments"
+    },
+    "name": "company_profile"
+  },
+  {
+    "description": "內部人持股異動事後申報(公開資訊觀測站):董事、監察人、經理人、大股東(含配偶與未成年子女)每月在集中市場的買進、賣出,\n    其他原因的增減(贈與、信託、私募…)與設質 / 解質。單位:張。\n    給 stock_id:近 months 個月(最多 36)每月合計,與最近一個月有異動的人。\n    不給 stock_id:全市場最近一個完整申報月,內部人集中市場淨買進與淨賣出金額最大的各 15 家(金額 = 張數 × 當月均價)。\n    同一人兼任多職時觀測站會重複揭露,這裡已去重。\n    更新頻率:觀測站每月 15 日前申報上個月,本站每天 22:30 同步;申報期過後同一月份不再變動,不需要每天重抓。\n    要看全市場誰在大買 / 大賣(幾位內部人一起、董事長或總經理有沒有親自買、占股本、買在一年區間哪裡)用 insider_screen,一次回排好的結果。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "default": "",
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "months": {
+          "default": 6,
+          "title": "Months",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "insider_tradesArguments"
+    },
+    "name": "insider_trades"
+  },
+  {
+    "description": "財務報告公告的會計師查核(年報)/ 核閱(季報)意見、財報更(補)正、簽證會計師(公開資訊觀測站 財務報告公告)。\n    給 stock_id:近 quarters 季(最多 40)。不給:最近一季全市場意見不是「無保留」的公司,嚴重的(否定、無法表示、繼續經營有重大疑慮)排前面。\n    季報常見「保留結論--非重要子公司未經核閱」,屬程序性保留,和年報的保留意見意義不同。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "default": "",
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "quarters": {
+          "default": 8,
+          "title": "Quarters",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "audit_opinionsArguments"
+    },
+    "name": "audit_opinions"
+  },
+  {
+    "description": "除權息基準日公告(公開資訊觀測站 決定分配股息及紅利或其他利益):每股現金 / 股票股利、股利所屬期間、董事會或股東會決議日、\n    除權息交易日、權利分派基準日、停止過戶期間、現金股利發放日。\n    給 stock_id:最近 12 則。不給:未來 days 天(最多 90)內除權息交易日的公司。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "default": "",
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "days": {
+          "default": 30,
+          "title": "Days",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "dividend_datesArguments"
+    },
+    "name": "dividend_dates"
+  },
+  {
+    "description": "赴大陸投資與海外子公司(公開資訊觀測站 赴大陸投資資訊、投資海外子公司資訊),最近一季:\n    大陸被投資公司的主要業務、自台灣累計匯出、已匯回收益、持股比、本期認列損益、帳面價值,以及投審會核准額度與投資限額;\n    海外子公司的地區、持股比、原始投資、投資餘額、本期認列損益。另附近 8 季大陸投資認列損益合計,看大陸曝險的變化。單位:仟元。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "overseas_investmentsArguments"
+    },
+    "name": "overseas_investments"
+  },
+  {
+    "description": "權益變動表(公開資訊觀測站):年初至本季的權益變動,逐項列出對「歸屬於母公司業主之權益」與「權益總額」的影響\n    (期初餘額、現金股利、股票股利、現金增資、庫藏股買回 / 註銷、可轉債轉換、員工酬勞、本期淨利、其他綜合損益、期末餘額…)。\n    quarters 最近幾季(最多 4)。另附完整欄位名稱,需要逐欄(股本、資本公積、保留盈餘、其他權益、庫藏股)可看 matrix。單位:仟元。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "quarters": {
+          "default": 1,
+          "title": "Quarters",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "equity_changesArguments"
+    },
+    "name": "equity_changes"
+  },
+  {
+    "description": "公司申報的電子檔目錄(公開資訊觀測站 電子書):財務報告書(季報 / 年報 PDF,含英文版)、年報及股東會資料(開會通知、議事手冊、\n    股東會年報、議事錄)、公開說明書。kind:all / financial / annual / prospectus。years 最近幾年(最多 11)。\n    回傳檔名、類型、說明、大小、上傳時間與查詢頁連結(檔案本身在證交所 doc.twse.com.tw,本站不存檔)。",
+    "inputSchema": {
+      "properties": {
+        "stock_id": {
+          "title": "Stock Id",
+          "type": "string"
+        },
+        "kind": {
+          "default": "all",
+          "title": "Kind",
+          "type": "string"
+        },
+        "years": {
+          "default": 3,
+          "title": "Years",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stock_id"
+      ],
+      "type": "object",
+      "title": "company_documentsArguments"
+    },
+    "name": "company_documents"
+  },
+  {
+    "description": "全市場內部人(董事、監察人、經理人、10% 大股東)集中市場買賣排行,一次回排好的結果,不必逐檔查。\n    side:buy(淨買進,預設)/ sell(淨賣出)。\n    month:空白 = 最近一個申報齊全的月份;\"filing\" = 申報中的月份(每月 1~15 日陸續申報上個月,名單還會增加);或 \"YYYY-MM\"。\n    min_value_yi:淨買賣金額門檻(億元,預設 0.1 = 1,000 萬)。position:any / low(買在一年區間最低兩成)/ high(最高兩成)。\n    cluster_only=True 只列兩位以上內部人同方向買賣的。sort:value(金額)/ pct_shares(占股本)/ insiders(人數)/ days_volume(相當於幾天成交量)。\n    limit 最多 50。每檔給:淨買賣金額與張數、占股本、幾位內部人在買 / 在賣、買最多那位的職稱、董事長或總經理有沒有參與、\n    金額相當於幾天的成交金額、當月均價落在一年區間的位置(0 = 最低、1 = 最高)、距一年高點、月底到現在的漲跌、內部人設質淨增加。\n    另附 base_rates:歷史上同類情境申報公開後 6 個月贏大盤的比例(背景資料,不是預測)。\n    更新頻率:觀測站每月 15 日前申報上個月,本站每天 22:30 同步;申報期過後同一月份不再變動。",
+    "inputSchema": {
+      "properties": {
+        "side": {
+          "default": "buy",
+          "title": "Side",
+          "type": "string"
+        },
+        "month": {
+          "default": "",
+          "title": "Month",
+          "type": "string"
+        },
+        "min_value_yi": {
+          "default": 0.1,
+          "title": "Min Value Yi",
+          "type": "number"
+        },
+        "position": {
+          "default": "any",
+          "title": "Position",
+          "type": "string"
+        },
+        "cluster_only": {
+          "default": false,
+          "title": "Cluster Only",
+          "type": "boolean"
+        },
+        "sort": {
+          "default": "value",
+          "title": "Sort",
+          "type": "string"
+        },
+        "limit": {
+          "default": 20,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "title": "insider_screenArguments"
+    },
+    "name": "insider_screen"
+  }
+]

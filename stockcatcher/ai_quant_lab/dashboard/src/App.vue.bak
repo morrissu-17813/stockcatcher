@@ -1,0 +1,218 @@
+<script setup>
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+
+const API = 'http://127.0.0.1:8765'
+const roleDefaults = [
+  { id:'cio', name:'天機總指揮', role:'CIO', coat:'奶油白長毛', accessory:'策略指揮', task:'統籌團隊與策略', avatar:'/agents/cio-sprite.png', color:'#e8d9b8', seat:0, routine:0 },
+  { id:'quant', name:'量化研究員', role:'QUANT', coat:'黑白短毛', accessory:'量化模型', task:'計算趨勢與量能', avatar:'/agents/quant-sprite.png', color:'#d8e0eb', seat:1, routine:1 },
+  { id:'research', name:'產業研究員', role:'RESEARCH', coat:'金棕長毛', accessory:'產業情報', task:'整理產業資料', avatar:'/agents/research-sprite.png', color:'#f0d0a4', seat:2, routine:2 },
+  { id:'risk', name:'風控長', role:'RISK', coat:'深咖啡長毛', accessory:'風險監控', task:'檢查交易風險', avatar:'/agents/risk-sprite.png', color:'#c8a28c', seat:3, routine:3 },
+  { id:'execution', name:'交易執行員', role:'EXECUTION', coat:'黑金短毛', accessory:'模擬交易', task:'等待合格交易訊號', avatar:'/agents/execution-sprite.png', color:'#d6c6b0', seat:4, routine:4 },
+  { id:'auditor', name:'驗證員', role:'AUDITOR', coat:'淺灰白長毛', accessory:'稽核驗證', task:'核對事件與成交紀錄', avatar:'/agents/auditor-sprite.png', color:'#d9dce8', seat:5, routine:5 },
+]
+const roles = ref(roleDefaults.map(r => ({ ...r, status:'idle', motion:'sit', motionLabel:'坐姿工作', motionSource:'ambient', taskStartedAt:null })))
+const events = ref([])
+const apiOnline = ref(false)
+const autonomyOn = ref(false)
+const busy = ref(false)
+const sessionCount = ref(0)
+const cash = ref(1000000)
+const positions = ref(0)
+const realizedPnl = ref(0)
+const equity = ref(1000000)
+const equityHistory = ref([])
+const lastDataFreshness = ref('等待行情')
+const totalEvents = ref(0)
+const fillCount = ref(0)
+const currentView = ref('office')
+const market = ref([])
+const marketUpdatedAt = ref('尚未取得行情')
+const radarCandidates = ref([])
+const radarStats = ref({})
+const confirmationRows = ref([])
+const confirmationStatusText = s => ({breakout_pending:'等待第二筆快照',breakout_triggered:'突破觸發',fugle_5m_waiting:'等待5分K確認',projected_volume_waiting:'等待量能達標',paper_buy:'紙上買進',fugle_5m_rejected:'5分K未通過',history_trend_rejected:'趨勢不符',history_liquidity_rejected:'均量不足',already_held:'已有持倉',persistence_blocked:'持久化未就緒',paper_stop_loss:'紙上停損',confirmation_error:'確認鏈異常'})[s] || s || '待確認'
+const lastError = ref('')
+const lastEvent = computed(() => events.value[0] || null)
+const zoneCoordinates = { COMMAND_CENTER:{x:50,y:24}, ANALYST_DESKS:{x:22,y:43}, DEBATE_TABLE:{x:48,y:67}, TRADING_DESK:{x:76,y:43}, RISK_OFFICE:{x:78,y:68}, AUDIT_STATION:{x:49,y:82} }
+const defaultAgentCoordinates = { cio:{x:12,y:51}, quant:{x:27,y:50}, research:{x:42,y:50}, risk:{x:58,y:50}, execution:{x:73,y:50}, auditor:{x:88,y:51} }
+function agentPoint(r) { return zoneCoordinates[r.target_zone] || defaultAgentCoordinates[r.id] || {x:50,y:50} }
+function agentStageStyle(r) { const p=agentPoint(r); return { left:`${p.x}%`, top:`${p.y}%`, '--agent-accent':r.color, '--move-duration':r.status==='working'?'650ms':'900ms' } }
+const activeLinks = computed(() => {
+  const flow = [['cio','quant'],['quant','research'],['research','risk'],['risk','execution'],['execution','auditor'],['cio','risk']]
+  return flow.map(([from,to], index) => { const a=roles.value.find(r=>r.id===from), b=roles.value.find(r=>r.id===to); const p=agentPoint(a), q=agentPoint(b); const active=[a,b].some(r=>['working','warning','success'].includes(r.status)); return {id:`${from}-${to}`,x1:p.x,y1:p.y,x2:q.x,y2:q.y,active,index} }).filter(link=>link.active)
+})
+const chartGeometry = computed(() => {
+  const rows = (market.value[0]?.candles || []).filter(c => Number.isFinite(Number(c.close)))
+  if (rows.length < 2) return { line: '', area: '', points: [] }
+  const values = rows.map(c => Number(c.close)); const lo = Math.min(...values); const hi = Math.max(...values); const span = hi - lo || 1
+  const points = values.map((v, i) => ({ x: i * 700 / (values.length - 1), y: 190 - ((v - lo) / span) * 165, value: v, time: rows[i].timestamp }))
+  const line = points.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
+  return { line, area: `${line} L700 210 L0 210 Z`, points }
+})
+const equityLine = computed(() => { const a=equityHistory.value; if(a.length<2)return ''; const lo=Math.min(...a), hi=Math.max(...a), span=hi-lo||1; return a.map((v,i)=>`${i?'L':'M'}${(i*100/(a.length-1)).toFixed(2)} ${(38-((v-lo)/span)*30).toFixed(2)}`).join(' ') })
+const money = n => new Intl.NumberFormat('zh-TW', { style:'currency', currency:'TWD', maximumFractionDigits:0 }).format(Number(n || 0))
+const statusText = s => ({ idle:'待命', working:'工作中', success:'已完成', warning:'風險警示' })[s] || s || '待命'
+const motionText = m => ({ sit:'坐姿工作', think:'思考中', stand:'起身', walk:'移動中', report:'報告中', return:'返回座位', alert:'警示處理', celebrate:'任務完成' })[m] || '工作中'
+let pollHandle, choreographyHandle, choreographyIndex = 0, lastMotionSignature = ''
+let pendingTimers = []
+
+function setMotion(role, motion, source='ambient') {
+  role.motion = motion
+  role.motionLabel = motionText(motion)
+  role.motionSource = source
+}
+function planAmbientMotion() {
+  if (!roles.value.length) return
+  const role = roles.value[choreographyIndex % roles.value.length]
+  choreographyIndex++
+  if (role.status === 'working' || role.status === 'warning' || role.motionSource === 'runtime') return
+  // A deliberate office routine: review screen -> stand -> visit side console -> report -> return to desk.
+  // These are ambience-only motions and never create Agent work or trades.
+  const sequence = [
+    { motion: 'think', delay: 0 },
+    { motion: 'stand', delay: 1400 },
+    { motion: 'walk', delay: 2600 },
+    { motion: 'report', delay: 4700 },
+    { motion: 'return', delay: 6200 },
+    { motion: 'sit', delay: 8200 },
+  ]
+  const runId = `${role.id}-${Date.now()}`
+  role.ambientRunId = runId
+  sequence.forEach(({ motion, delay }) => {
+    const t = window.setTimeout(() => {
+      if (role.ambientRunId !== runId || role.status === 'working' || role.status === 'warning' || role.motionSource === 'runtime') return
+      setMotion(role, motion, 'ambient')
+    }, delay)
+    pendingTimers.push(t)
+  })
+}
+function applyRuntimeMotion(role, status, task) {
+  role.ambientRunId = null
+  if (status === 'warning') { setMotion(role, 'alert', 'runtime'); return }
+  if (status === 'working') {
+    const text = String(task || '')
+    setMotion(role, /報告|交付|回報|完成|核對結果/.test(text) ? 'report' : /分派|統籌|全局/.test(text) ? 'stand' : 'think', 'runtime')
+    return
+  }
+  if (status === 'success') { setMotion(role, 'celebrate', 'runtime'); return }
+  if (role.motionSource === 'runtime') setMotion(role, 'sit', 'ambient')
+}
+async function request(path, options={}) {
+  const response = await fetch(`${API}${path}`, { headers:{'Content-Type':'application/json', ...(options.headers||{})}, ...options })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`)
+  return result
+}
+async function refreshState() {
+  try {
+    const state = await request('/api/state')
+    apiOnline.value = true; lastError.value = ''
+    totalEvents.value = state.counts?.events || 0; fillCount.value = state.counts?.fills || 0
+    cash.value = Number(state.ledger?.cash || 0); equity.value = Number(state.ledger?.equity || 0); equityHistory.value = [...equityHistory.value, equity.value].slice(-60)
+    realizedPnl.value = Number(state.ledger?.realized_pnl || 0)
+    positions.value = (state.ledger?.positions || []).filter(p => p.quantity > 0).length
+    for (const sr of state.roles || []) {
+      const role = roles.value.find(r => r.id === sr.role_id)
+      if (!role) continue
+      const changed = role.status !== sr.status || role.task !== sr.task
+      role.status = sr.status; role.task = sr.task; role.target_zone = sr.target_zone || role.target_zone || 'COMMAND_CENTER'; role.bubble = sr.bubble || (['working','warning','success'].includes(sr.status) ? sr.task : '')
+      if (changed) applyRuntimeMotion(role, sr.status, sr.task)
+    }
+    events.value = (state.events || []).map(e => ({ id:e.event_id, time:new Date(e.processed_at || e.occurred_at).toLocaleTimeString('zh-TW',{hour12:false}), type:e.event_type, message:e.result?.error || `${e.status} · ${e.source}` }))
+    autonomyOn.value = Boolean(state.autonomy?.enabled)
+    const status = await request('/api/market').catch(() => null)
+    if (status) { autonomyOn.value = Boolean(status.enabled); market.value = status.market || []; radarCandidates.value = status.radar?.dynamic_candidates || []; radarStats.value = status.radar?.radar || {}; confirmationRows.value = status.confirmations || []; marketUpdatedAt.value = status.radar?.last_snapshot_at || status.last_cycle?.at || (status.market?.length ? '行情已取得，等待下一輪' : '等待首次掃描'); const fresh=status.market?.filter(q=>!q.stale).length||0; lastDataFreshness.value = `${fresh}/${status.market?.length||0} 檔資料有效` }
+  } catch (err) { apiOnline.value = false; lastError.value = String(err.message || err) }
+}
+async function toggleAutonomy() {
+  busy.value = true
+  try {
+    const result = await request(autonomyOn.value ? '/api/autonomy/stop' : '/api/autonomy/start', { method:'POST', body:'{}' })
+    autonomyOn.value = autonomyOn.value ? false : Boolean(result.started)
+    if (!result.started && result.error) lastError.value = result.error
+    events.value.unshift({ id:crypto.randomUUID(), time:new Date().toLocaleTimeString('zh-TW',{hour12:false}), type:'AUTONOMY', message:autonomyOn.value ? '已啟動自主行情掃描（模擬交易）' : '已送出停止自主掃描指令' })
+    await refreshState()
+  } catch (err) { lastError.value = String(err.message || err) }
+  finally { busy.value = false }
+}
+async function scanOnce() {
+  busy.value = true
+  try { const result = await request('/api/autonomy/scan-once',{method:'POST',body:'{}'}); events.value.unshift({id:crypto.randomUUID(),time:new Date().toLocaleTimeString('zh-TW',{hour12:false}),type:'SCAN',message:`單次掃描完成：${(result.results||[]).length} 檔`}); await refreshState() }
+  catch(err) { lastError.value=String(err.message||err) } finally { busy.value=false }
+}
+async function demoCycle() {
+  if (busy.value) return
+  busy.value = true
+  try {
+    const result = await request('/api/demo', { method:'POST', body:JSON.stringify({symbol:'2330',side:'BUY',quantity:10,price:100}) })
+    sessionCount.value++; await refreshState()
+    if (result.status !== 'processed') lastError.value = result.error || result.status
+  } catch (err) { lastError.value = String(err.message || err) }
+  finally { busy.value = false }
+}
+async function generateReport() {
+  try { const result=await request('/api/report'); events.value.unshift({id:crypto.randomUUID(),time:new Date().toLocaleTimeString('zh-TW',{hour12:false}),type:'REPORT',message:`報告已產生 · ${result.persistence || 'memory-only-dev'}`}) }
+  catch(err) { lastError.value=String(err.message||err) }
+}
+function clearEvents(){events.value=[]}
+onMounted(() => { refreshState(); pollHandle=window.setInterval(refreshState,2500); choreographyHandle=window.setInterval(planAmbientMotion,1800) })
+onUnmounted(() => { if(pollHandle)clearInterval(pollHandle); if(choreographyHandle)clearInterval(choreographyHandle); pendingTimers.forEach(clearTimeout) })
+</script>
+
+<template>
+  <main class="lab-shell">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">天</div><div><p class="eyebrow">AUTONOMOUS PAPER TRADING OFFICE</p><h1>天機 AI Quant Lab</h1></div></div>
+      <div class="top-status"><span class="live-led" :class="{off:!apiOnline}"></span>{{apiOnline?'LAB API 已連線':'API 離線'}} <b>·</b> {{autonomyOn?'自主研究運作中':'自主研究待命'}} <b>·</b> PAPER ONLY</div>
+    </header>
+
+    <section class="radar-panel" aria-label="全市場盤中雷達">
+      <div class="board-heading"><div><span class="eyebrow">TWSE / TPEX · MIS SNAPSHOT</span><h2>全市場盤中雷達</h2></div><span class="market-badge"><i></i>{{radarStats.snapshot_symbols || 0}} 檔快照</span></div>
+      <div class="radar-stats"><span>股票池 {{radarStats.universe_symbols || 0}}</span><span>有效快照 {{radarStats.snapshot_symbols || 0}}</span><span>動態候選 {{radarCandidates.length}}</span><span>批次失敗 {{radarStats.failed_batches ?? '—'}}</span></div>
+      <div class="watchlist"><div v-for="c in radarCandidates.slice(0,8)" :key="c.symbol" class="watch-row"><span>{{c.symbol}}</span><span>{{c.name}} · {{c.market}}</span><b>{{Number(c.price).toLocaleString('zh-TW')}</b><em class="positive">+{{Number(c.up_pct).toFixed(2)}}%</em></div><div v-if="!radarCandidates.length" class="watch-empty">等待有效 MIS 快照；候選條件通過不代表 3K PASS 或交易訊號。</div></div>
+      <div class="confirmation-strip"><div class="confirmation-heading"><b>交易確認鏈</b><small>雙快照 → 歷史趨勢 → Fugle 5分K → 預估量能 ≥ 1.5x → 風控 → 紙上成交</small></div><div class="confirmation-rows"><div v-for="r in confirmationRows.slice(0,6)" :key="r.symbol+'-'+r.status+'-'+r.reason" class="confirmation-row"><b>{{r.symbol}}</b><span>{{r.name || '候選股'}}</span><em :class="['paper_buy','paper_stop_loss'].includes(r.status)?'positive':['confirmation_error','fugle_5m_rejected','risk_rejected'].includes(r.status)?'negative':''">{{confirmationStatusText(r.status)}}</em><small>{{r.reason || '檢查中'}}</small><small v-if="r.projected_volume?.projected_ratio">量能 {{Number(r.projected_volume.projected_ratio).toFixed(2)}}x</small></div><div v-if="!confirmationRows.length" class="watch-empty">尚無通過盤中確認鏈的候選紀錄。</div></div></div>
+    </section>
+    <section class="market-strip">
+      <div class="index-tile"><span>最新監控報價</span><strong>{{market[0]?.price ? Number(market[0].price).toLocaleString('zh-TW') : '等待行情'}}</strong><small>{{market[0]?.change_pct != null ? `${Number(market[0].change_pct).toFixed(2)}%` : '資料來源連線後更新'}}</small><div class="mini-chart"><i v-for="n in 12" :key="n" :style="{'--h':`${16+((n*17)%35)}px`}"/></div></div>
+      <div class="index-tile"><span>監控標的</span><strong>{{market.length || 5}} <em>檔</em></strong><small>公開行情監控池</small><div class="mini-chart blue"><i v-for="n in 12" :key="n" :style="{'--h':`${12+((n*13)%38)}px`}"/></div></div>
+      <div class="index-tile"><span>模擬資產</span><strong>{{money(equity)}}</strong><small :class="realizedPnl>=0?'positive':'negative'">已實現 {{money(realizedPnl)}} · {{lastDataFreshness}}</small><svg class="equity-sparkline" viewBox="0 0 100 42" preserveAspectRatio="none"><path v-if="equityLine" :d="equityLine" fill="none" stroke="#d9b575" stroke-width="2" vector-effect="non-scaling-stroke"/><text v-else x="50" y="24" text-anchor="middle" fill="#d9b575" font-size="7">等待權益變化</text></svg></div>
+      <div class="clock-tile"><span>交易室時間</span><strong>{{new Date().toLocaleTimeString('zh-TW',{hour12:false})}}</strong><small>{{marketUpdatedAt}}</small></div>
+    </section>
+
+    <section class="office-scene">
+      <div class="scene-ceiling"><div class="scene-sign"><span>🐾</span><div><b>天機 AI Quant Lab</b><small>自主研究 × 模擬交易 × 六大 AI Agent</small></div></div><div class="window-wall"><div class="city-tower tower-a"></div><div class="city-tower tower-b"></div><div class="city-tower tower-c"></div><div class="sunlight"></div></div><div class="office-clock">MARKET SESSION<br/><b>{{autonomyOn?'SCANNING':'STANDBY'}}</b></div></div>
+      <div class="office-main">
+        <aside class="office-sidebar"><h3>今日工作清單</h3><p>☑ 公開行情掃描</p><p>☑ 量價趨勢計算</p><p>☑ 模擬風險審查</p><p>☑ 事件與成交驗證</p><div class="side-note"><b>安全模式</b><span>不連接券商<br/>不送出實盤委託</span></div></aside>
+        <div class="central-board"><div class="board-heading"><div><span class="eyebrow">MARKET INTELLIGENCE</span><h2>即時交易研究中心</h2></div><span class="market-badge"><i></i>{{autonomyOn?'自主掃描中':'等待啟動'}}</span></div><div class="chart-meta"><b>{{market[0]?.symbol || '2330.TW'}}</b><span>{{market[0]?.name || '台積電／公開行情'}}</span><strong>{{market[0]?.price ? Number(market[0].price).toLocaleString('zh-TW') : '—'}}</strong></div><div class="chart-canvas"><div class="chart-grid"></div><svg viewBox="0 0 700 210" preserveAspectRatio="none" aria-label="行情來源回傳的實際走勢"><defs><linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#44d5a0" stop-opacity=".25"/><stop offset="1" stop-color="#44d5a0" stop-opacity="0"/></linearGradient></defs><path v-if="chartGeometry.area" :d="chartGeometry.area" fill="url(#areaFill)"/><path v-if="chartGeometry.line" :d="chartGeometry.line" fill="none" stroke="#57e0a8" stroke-width="3" vector-effect="non-scaling-stroke"/><text v-if="!chartGeometry.line" x="350" y="105" fill="#8da3b3" font-size="13" text-anchor="middle">等待有效行情 K 線資料</text></svg><div class="chart-legend"><span>{{market[0]?.source || '尚無行情來源'}}</span><span>{{market[0]?.market_timestamp || '尚未更新'}} · {{market[0]?.stale?'資料過期':'資料狀態已檢查'}}</span></div></div><div class="watchlist"><div v-for="(m,i) in market.slice(0,5)" :key="m.symbol" class="watch-row"><span>{{m.symbol}}</span><span>{{m.name || '監控標的'}}</span><b>{{m.price ? Number(m.price).toLocaleString('zh-TW') : '—'}}</b><em :class="Number(m.change_pct)>=0?'positive':'negative'">{{m.change_pct!=null?`${Number(m.change_pct).toFixed(2)}%`:'—'}}</em></div><div v-if="!market.length" class="watch-empty">行情資料載入中；離線或過期資料不會觸發模擬交易。</div></div></div>
+        <aside class="news-panel"><h3>Agent 工作狀態</h3><div v-for="r in roles" :key="r.id" class="status-mini"><span class="status-mini-dot" :class="`dot-${r.status}`"></span><div><b>{{r.role}}</b><small>{{r.task}}</small></div><em>{{statusText(r.status)}}</em></div><div class="news-foot">狀態由 Lab API 每 2.5 秒更新</div></aside>
+      </div>
+      <div class="office-floor"><div class="floor-label">TEAM FLOOR · 6 SPECIALISTS · LIVE MOTION</div><div class="agent-floor-grid">
+        <article v-for="r in roles" :key="r.id" class="desk-station" :class="[`state-${r.status}`,`motion-${r.motion}`,`station-${r.id}`]">
+          <div class="station-name"><span>{{r.role}}</span><i :class="`light-${r.status}`"></i></div>
+          <div class="monitor-bank"><div class="monitor-screen"><div class="screen-live-dot"></div><div class="screen-code"><i v-for="n in 5" :key="n" :style="{'--w':`${35+((n*13)%55)}%`}"/></div><div class="screen-chart"><i v-for="n in 7" :key="n" :style="{'--h':`${10+((n*7)%25)}px`}"/></div></div><div class="monitor-foot"></div></div>
+          <div class="character-lane"><div class="walk-shadow"></div><div class="character-actor" :class="`pose-${r.motion}`"><div class="motion-spark" v-if="r.motion==='celebrate'">✦</div><div class="alert-mark" v-if="r.motion==='alert'">!</div><img :src="r.avatar" :alt="r.name"/><div class="motion-caption">{{r.motionLabel}}</div></div></div>
+          <div class="desk-surface"><div class="desk-device"></div><div class="desk-mug">☕</div></div><div class="desk-leg"></div>
+          <div class="station-info"><b>{{r.name}}</b><span>{{r.task}}</span><small>{{r.motionSource==='runtime'?'● 真實任務動作':'◌ 辦公室日常動作'}}</small></div>
+        </article>
+      </div>
+      <div class="agent-route-layer" aria-label="由後端 Agent 狀態驅動的辦公室移動圖層">
+        <svg class="agent-signal-map" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="agentFlowGradient"><stop offset="0" stop-color="#55d8ff"/><stop offset=".5" stop-color="#c9a7ff"/><stop offset="1" stop-color="#54f0b0"/></linearGradient></defs>
+          <line v-for="link in activeLinks" :key="link.id" :x1="link.x1" :y1="link.y1" :x2="link.x2" :y2="link.y2" class="agent-signal-line"/>
+          <circle v-for="link in activeLinks" :key="`node-${link.id}`" :cx="(link.x1+link.x2)/2" :cy="(link.y1+link.y2)/2" r=".9" class="agent-signal-node"/>
+        </svg>
+        <div v-for="r in roles" :key="`route-${r.id}`" class="route-agent" :class="[`route-${r.motion}`, `route-state-${r.status}`]" :style="agentStageStyle(r)">
+          <div v-if="r.bubble" class="route-bubble">{{ r.bubble }}</div>
+          <img :src="r.avatar" :alt="r.name" />
+          <span>{{ r.role }}</span>
+          <i :class="`light-${r.status}`"></i>
+        </div>
+      </div></div>
+      <div class="office-bottom"><section class="console-panel"><div class="panel-heading"><h3>即時事件流</h3><button @click="currentView=currentView==='events'?'office':'events'">{{currentView==='events'?'返回辦公室':'查看全部 →'}}</button></div><div v-if="!events.length" class="console-empty">等待 Lab 事件；啟動掃描後會在這裡顯示實際處理紀錄。</div><div v-for="e in events.slice(0,5)" :key="e.id" class="console-event"><time>{{e.time}}</time><b>{{e.type}}</b><span>{{e.message}}</span></div></section><section class="console-panel progress-panel"><div class="panel-heading"><h3>六大 Agent 任務進度</h3><span class="muted">狀態同步</span></div><div v-for="r in roles" :key="r.id" class="progress-row"><span>{{r.role}}</span><div><i :class="`bar-${r.status}`" :style="{width:r.status==='success'?'100%':r.status==='working'?'68%':r.status==='warning'?'45%':'20%'}"></i></div><b>{{statusText(r.status)}}</b></div></section><section class="console-panel ledger-panel"><div class="panel-heading"><h3>模擬帳本</h3><span class="paper-label">PAPER ONLY</span></div><div class="ledger-metric"><span>可用現金</span><b>{{money(cash)}}</b></div><div class="ledger-metric"><span>持倉標的</span><b>{{positions}} 檔 · {{fillCount}} 筆成交</b></div><div class="ledger-metric"><span>已實現損益</span><b :class="realizedPnl>=0?'positive':'negative'">{{money(realizedPnl)}}</b></div><div class="ledger-metric"><span>總權益</span><b>{{money(equity)}}</b></div></section></div>
+    </section>
+
+    <section class="control-bar"><div><span class="eyebrow">CONTROL ROOM</span><h3>研究與模擬交易控制</h3><p>自主循環預設關閉；啟動後依公開行情與風控規則運作，絕不連接實盤券商。</p></div><div class="control-actions"><button class="btn-primary" :disabled="busy||!apiOnline" @click="toggleAutonomy">{{busy?'處理中…':autonomyOn?'■ 停止自主研究':'▶ 啟動自主研究'}}</button><button class="btn-secondary" :disabled="busy||!apiOnline" @click="scanOnce">單次掃描</button><button class="btn-secondary" :disabled="busy||!apiOnline" @click="demoCycle">模擬事件測試</button><button class="btn-secondary" :disabled="!apiOnline" @click="generateReport">產生報告</button></div></section>
+    <div v-if="lastError" class="error-banner"><b>系統訊息</b><span>{{lastError}}</span><button @click="lastError=''">關閉</button></div>
+    <footer>天機 AI QUANT LAB · ISOLATED WORKSPACE · SUPABASE-ONLY PERSISTENCE · NO LIVE ORDERS</footer>
+  </main>
+</template>

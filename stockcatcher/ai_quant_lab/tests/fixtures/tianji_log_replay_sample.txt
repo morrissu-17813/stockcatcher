@@ -1,0 +1,27 @@
+2026-10-16T01:14:57.4315497Z 天機 3K — Stage 0 Production Audit V3
+2026-10-16T01:14:57.4323318Z Stage 0 PASS（完整驗證） : 345
+2026-10-16T01:17:28.4193307Z 天機 3K — Stage 1 Trend Engine
+2026-10-16T01:17:28.4193874Z Stage 0 PASS input       : 344
+2026-10-16T01:17:28.4194343Z PASS                     : 145
+2026-10-16T01:17:29.6693493Z 天機 3K — Stage 2 Breakout Engine
+2026-10-16T01:17:29.6693908Z Stage 1 PASS input : 145
+2026-10-16T01:17:29.6694048Z PASS               : 2
+2026-10-16T01:17:29.6694192Z FAIL/UNKNOWN       : 143
+2026-10-16T01:17:30.3364874Z 天機 3K — Stage 3 Volume Engine
+2026-10-16T01:17:30.3365470Z Stage 2 PASS input : 2
+2026-10-16T01:17:30.3366124Z PASS               : 2
+2026-10-16T01:17:30.3366248Z FAIL/UNKNOWN       : 0
+2026-10-16T01:17:30.3600590Z 3K PASS : 2
+2026-10-16T01:17:30.3600797Z   4904 113.0 4.6296 108.5 2.9398
+2026-10-16T01:17:30.3601078Z   6278 303.0 4.4827 290.0 2.4605
+2026-10-16T01:17:46.5474692Z ⏱️ MIS FETCH TIMING | provider_ms=100 | wall_ms=100 | batches=1 | requested=100 | returned=40 | raw_items=100 | missing_z=60 | failed_batches=0
+2026-10-16T01:17:46.5481590Z 🔎 TIANJI 3K RADAR | 09:17:46 | 監控中 2 檔 | MIS 回傳 40 檔
+2026-10-16T01:17:46.5494013Z 📌 PREMARKET=2 | DYNAMIC=0 | TOTAL=2
+2026-10-16T01:22:29.4282198Z 🔔 BREAKOUT TRIGGER | 4906 正文 | price=44.85 | breakout=43.35 | snapshot=4906:4906|09:22:01|1|44.8500|11107|20261016
+2026-10-16T01:22:29.4290807Z 🟡 INTRADAY_3K_PREDICTION | 4906 | level=EARLY | evidence=MIS_LIVE | price=44.85 | breakout=43.35 | volume_delta_lots=232.0 | live_volume_ratio=2.35x | window_s=207.4 | projected_ratio=17.35 | trigger_age_s=0.0 | snapshot_received_age_s=0.00
+2026-10-16T03:51:17.7196336Z 🟡 INTRADAY_3K_PREDICTION | 3167 | level=STRONG | evidence=FUGLE_5M | price=100.00 | breakout=99.00 | projected_ratio=2.70 | trigger_age_s=48.3 | snapshot_received_age_s=12.21
+2026-10-16T04:00:00.0000000Z 🟡 INTRADAY_3K_PREDICTION | 2330 | level=STRONG | evidence=FUGLE_5M | price=100.00 | breakout=99.00 | projected_ratio=1.20 | trigger_age_s=10.0 | snapshot_received_age_s=1.0
+2026-10-16T05:28:27.6416928Z 3167    大量              DYNAMIC   TWSE          101.00TRIGGERED
+2026-10-16T05:30:00.7387991Z 🟢 PHASE -> GROUND_TRUTH | 13:30:00
+2026-10-16T05:30:00.7392116Z ❌ GROUND_TRUTH ERROR | TypeError | 'list' object is not callable
+2026-10-16T05:35:01.0628565Z 🧾 GROUND_TRUTH CUTOFF VALIDATION | predictions=3 | unavailable=3
