@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-20",
+  "symbol": "3234",
+  "name": "光環",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-10-20T00:00:00.000",
+  "previous_close": 185.5,
+  "k1_high": 181.0,
+  "k2_high": 183.0,
+  "breakout_level": 183.0,
+  "ma20": 177.45,
+  "ma60": 160.63500000000002,
+  "ma20_prev": 177.025,
+  "vma5_lots": 2331.071,
+  "yesterday_volume_lots": 2343.798,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

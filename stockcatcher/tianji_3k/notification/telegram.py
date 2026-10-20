@@ -27,22 +27,61 @@ class TelegramNotifier:
         if not self.enabled:
             return {"sent": False, "status": "DISABLED", "message_id": None}
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        r = requests.post(
-            url,
-            json={
-                "chat_id": self.chat_id,
-                "text": text,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True,
-            },
-            timeout=10,
-        )
-        r.raise_for_status()
-        p = r.json()
+        # Telegram sendMessage does not provide an idempotency key. A read timeout
+        # is therefore ambiguous: Telegram may have accepted the message even
+        # though this client did not receive the response. Never raise a transport
+        # error into the Radar loop and never label an ambiguous result as FAILED
+        # (which would invite an automatic duplicate retry).
+        try:
+            r = requests.post(
+                url,
+                json={
+                    "chat_id": self.chat_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True,
+                },
+                timeout=(5, 10),
+            )
+        except requests.exceptions.ConnectTimeout as exc:
+            # Connection establishment timed out before a response was received.
+            return {
+                "sent": False, "status": "FAILED", "message_id": None,
+                "error_type": type(exc).__name__, "error": str(exc)[:300],
+            }
+        except requests.exceptions.RequestException as exc:
+            # ReadTimeout/ConnectionError can occur after the request reached
+            # Telegram. Mark UNKNOWN and let reconciliation avoid blind resend.
+            return {
+                "sent": False, "status": "UNKNOWN", "message_id": None,
+                "error_type": type(exc).__name__, "error": str(exc)[:300],
+            }
+
+        status_code = int(getattr(r, "status_code", 200))
+        if status_code >= 500:
+            # A server-side error can still leave delivery ambiguous.
+            return {
+                "sent": False, "status": "UNKNOWN", "message_id": None,
+                "error_type": "HTTPServerError", "error": f"HTTP {status_code}",
+            }
+        if status_code >= 400:
+            return {
+                "sent": False, "status": "FAILED", "message_id": None,
+                "error_type": "HTTPError", "error": f"HTTP {status_code}",
+            }
+        try:
+            p = r.json()
+        except (ValueError, requests.exceptions.RequestException) as exc:
+            return {
+                "sent": False, "status": "UNKNOWN", "message_id": None,
+                "error_type": type(exc).__name__, "error": str(exc)[:300],
+            }
+        ok = bool(p.get("ok")) if isinstance(p, dict) else False
         return {
-            "sent": bool(p.get("ok")),
-            "status": "SENT" if p.get("ok") else "FAILED",
-            "message_id": (p.get("result") or {}).get("message_id"),
+            "sent": ok,
+            "status": "SENT" if ok else "FAILED",
+            "message_id": ((p.get("result") or {}).get("message_id") if isinstance(p, dict) else None),
+            "error": None if ok else (p.get("description") if isinstance(p, dict) else "invalid Telegram response"),
         }
 
     def send_premarket_watchlist(self, trade_date, pool):

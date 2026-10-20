@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-20",
+  "symbol": "4566",
+  "name": "時碩工業",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-20T00:00:00.000",
+  "previous_close": 85.8,
+  "k1_high": 84.1,
+  "k2_high": 81.8,
+  "breakout_level": 84.1,
+  "ma20": 74.76,
+  "ma60": 70.13833333333334,
+  "ma20_prev": 73.705,
+  "vma5_lots": 4109.386,
+  "yesterday_volume_lots": 9605.176,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

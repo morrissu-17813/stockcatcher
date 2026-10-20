@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-20",
+  "symbol": "4960",
+  "name": "誠美材",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-20T00:00:00.000",
+  "previous_close": 30.55,
+  "k1_high": 27.8,
+  "k2_high": 26.05,
+  "breakout_level": 27.8,
+  "ma20": 24.31,
+  "ma60": 21.930833333333332,
+  "ma20_prev": 23.8825,
+  "vma5_lots": 8797.9802,
+  "yesterday_volume_lots": 19184.659,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

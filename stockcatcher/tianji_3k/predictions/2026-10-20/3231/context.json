@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-10-20",
+  "symbol": "3231",
+  "name": "緯創",
+  "market": "TWSE",
+  "industry": "",
+  "source_data_date": "2026-10-20T00:00:00.000",
+  "previous_close": 189.0,
+  "k1_high": 180.5,
+  "k2_high": 183.0,
+  "breakout_level": 183.0,
+  "ma20": 185.425,
+  "ma60": 184.36666666666667,
+  "ma20_prev": 185.3,
+  "vma5_lots": 39098.3702,
+  "yesterday_volume_lots": 24238.363,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

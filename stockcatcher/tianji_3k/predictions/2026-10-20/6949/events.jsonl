@@ -1,0 +1,3 @@
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"ValueError","message":"FETCH_EMPTY","attempt":1,"retry_after":"2026-10-20T23:48:14.169385+08:00","observed_at":"2026-10-20T23:47:14.169560+08:00"}
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"ValueError","message":"FETCH_EMPTY","attempt":2,"retry_after":"2026-10-20T23:50:33.357472+08:00","observed_at":"2026-10-20T23:48:33.357598+08:00"}
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"ValueError","message":"FETCH_EMPTY","attempt":3,"retry_after":"2026-10-20T23:54:55.140229+08:00","observed_at":"2026-10-20T23:50:55.140339+08:00"}

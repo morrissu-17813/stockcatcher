@@ -38,6 +38,7 @@ from .notification.gate import evaluate_intraday_notification
 from .notification.telegram import TelegramNotifier
 from .validation.prediction_ledger import PredictionLedger
 from .validation.prediction_chain import PredictionChain
+from .validation.post_signal_tracker import PostSignalTracker
 from .validation.recovery_ledger import RecoveryLedger
 from .core.recovery import RecoveryManager
 from .core.process_lock import SingleInstanceLock
@@ -63,6 +64,7 @@ class TianjiProductionRunner:
         self.pred_root = self.tianji / "predictions"
         self.ledger = PredictionLedger(self.pred_root)
         self.prediction_chain = PredictionChain(self.ledger)
+        self.post_signal_tracker = PostSignalTracker(self.pred_root, self.ledger)
         self.recovery_ledger = RecoveryLedger(self.tianji / "validation" / "recovery_events")
         self.recovery = RecoveryManager(self.pred_root / "runtime_checkpoint.json")
         self.notifier = TelegramNotifier() if telegram else TelegramNotifier("", "")
@@ -431,6 +433,78 @@ class TianjiProductionRunner:
         self.notification_events.append(event)
         self.ledger.append_daily_event(self.trade_date, event)
 
+    def _send_prediction_notification(self, event: dict, *, recovered: bool = False) -> dict:
+        """Send one durable prediction notification without letting Telegram failures stop Radar.
+
+        UNKNOWN means delivery is ambiguous (for example Telegram accepted the
+        request but its response timed out). Such events must not be auto-resubmitted.
+        """
+        sid = str(event.get("symbol", ""))
+        prediction_id = str(event.get("prediction_id", ""))
+        td = str(event.get("trade_date") or self.trade_date)
+        current_status = self.ledger.notification_status(td, sid, prediction_id)
+        if current_status in {"SENT", "SUPPRESSED", "UNKNOWN", "SENDING"}:
+            return {"sent": current_status == "SENT", "status": current_status, "message_id": None, "skipped": True}
+
+        started = time.monotonic()
+        started_at = datetime.now(TAIPEI).isoformat()
+        # Persist intent before the network call. If the process is killed during
+        # the request, reconciliation will treat the stale SENDING state as
+        # ambiguous instead of blindly sending a duplicate.
+        self.ledger.append_event(td, sid, {
+            "event_type": "NOTIFICATION", "prediction_id": prediction_id,
+            "notification_status": "SENDING", "recovered": recovered,
+            "sent_at": started_at,
+        })
+        self._record_notification(
+            event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status="SENDING",
+            prediction_id=prediction_id, symbol=sid, recovered=recovered,
+        )
+
+        try:
+            result = self.notifier.send_intraday_prediction(event)
+            if not isinstance(result, dict):
+                result = {"sent": False, "status": "UNKNOWN", "message_id": None,
+                          "error": "Notifier returned a non-dict result"}
+        except Exception as exc:
+            # Defensive boundary: no notification implementation error should
+            # terminate the production Radar loop.
+            result = {"sent": False, "status": "UNKNOWN", "message_id": None,
+                      "error_type": type(exc).__name__, "error": str(exc)[:300]}
+
+        status = str(result.get("status") or "UNKNOWN").upper()
+        if status not in {"SENT", "FAILED", "UNKNOWN", "DISABLED"}:
+            status = "UNKNOWN"
+        finished_at = datetime.now(TAIPEI).isoformat()
+        elapsed_ms = (time.monotonic() - started) * 1000
+        trigger = event.get("trigger_snapshot", {}) or {}
+        volume = event.get("volume_snapshot", {}) or {}
+        print(
+            f"📨 TELEGRAM SEND RESULT | {sid} | status={status} "
+            f"| elapsed_ms={elapsed_ms:.1f} | recovered={recovered} "
+            f"| error_type={result.get('error_type', '-')} "
+            f"| error={str(result.get('error') or '-')[:180]}",
+            flush=True,
+        )
+        self.ledger.append_event(td, sid, {
+            "event_type": "NOTIFICATION", "prediction_id": prediction_id,
+            "notification_status": status,
+            "telegram_message_id": result.get("message_id"),
+            "recovered": recovered, "sent_at": finished_at,
+            "error_type": result.get("error_type"), "error": result.get("error"),
+            "snapshot_id": trigger.get("snapshot_id"),
+            "current_price": trigger.get("current_price"),
+            "signal_level": trigger.get("signal_level"),
+        })
+        self._record_notification(
+            event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
+            message_id=result.get("message_id"), prediction_id=prediction_id,
+            symbol=sid, recovered=recovered, error_type=result.get("error_type"),
+            error=result.get("error"),
+        )
+        result["status"] = status
+        return result
+
     def _radar_rows(self):
         if not self.universe_cache:
             self.universe_cache = {str(x["symbol"]): x for x in StockUniverseProvider().fetch()}
@@ -761,29 +835,7 @@ class TianjiProductionRunner:
             flush=True,
         )
         if gate["should_send"] and self.notifier.enabled:
-            telegram_started = time.monotonic()
-            telegram_started_at = datetime.now(TAIPEI).isoformat()
-            result = self.notifier.send_intraday_prediction(event)
-            telegram_elapsed_ms = (time.monotonic() - telegram_started) * 1000
-            status = result.get("status", "FAILED")
-            print(
-                f"📨 TELEGRAM SEND TIMING | {sid} | evidence=MIS_LIVE | status={status} "
-                f"| elapsed_ms={telegram_elapsed_ms:.1f} | started_at={telegram_started_at}",
-                flush=True,
-            )
-            self._record_notification(
-                event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
-                message_id=result.get("message_id"), prediction_id=event["prediction_id"],
-                symbol=sid, up_pct=snap.up_pct,
-            )
-            self.ledger.append_event(ctx["trade_date"], sid, {
-                "event_type": "NOTIFICATION", "prediction_id": event["prediction_id"],
-                "notification_status": status, "telegram_message_id": result.get("message_id"),
-                "sent_at": datetime.now(TAIPEI).isoformat(), "snapshot_id": snap.snapshot_id,
-                "current_price": snap.current_price, "signal_level": "EARLY",
-                "early_evidence_source": "MIS_LIVE",
-                "mis_live_volume_ratio": volume_evidence["live_volume_ratio"],
-            })
+            self._send_prediction_notification(event)
         else:
             status = "SUPPRESSED" if not gate["should_send"] else "DISABLED"
             self._record_notification(
@@ -920,22 +972,7 @@ class TianjiProductionRunner:
             flush=True,
         )
         if gate["should_send"] and self.notifier.enabled:
-            telegram_started = time.monotonic()
-            telegram_started_at = datetime.now(TAIPEI).isoformat()
-            result = self.notifier.send_intraday_prediction(event)
-            telegram_elapsed_ms = (time.monotonic() - telegram_started) * 1000
-            status = result.get("status", "FAILED")
-            print(
-                f"📨 TELEGRAM SEND TIMING | {sid} | evidence={evidence_source} | status={status} "
-                f"| elapsed_ms={telegram_elapsed_ms:.1f} | started_at={telegram_started_at}",
-                flush=True,
-            )
-            self._record_notification(event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
-                message_id=result.get("message_id"), prediction_id=event["prediction_id"], symbol=sid, up_pct=snap.up_pct)
-            self.ledger.append_event(ctx["trade_date"], sid, {"event_type":"NOTIFICATION", "prediction_id":event["prediction_id"],
-                "notification_status":status, "telegram_message_id":result.get("message_id"),
-                "sent_at":datetime.now(TAIPEI).isoformat(), "snapshot_id":snap.snapshot_id,
-                "current_price":snap.current_price, "signal_level":signal_level})
+            self._send_prediction_notification(event)
         else:
             status = "SUPPRESSED" if not gate["should_send"] else "DISABLED"
             self._record_notification(event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status=status,
@@ -1280,6 +1317,21 @@ class TianjiProductionRunner:
             f"| fugle_inflight={len(self._fugle_futures)}",
             flush=True,
         )
+        # Track post-signal prices from the MIS snapshots already fetched above.
+        # This must not issue any extra market-data requests or block Radar on history APIs.
+        try:
+            tracked = self.post_signal_tracker.observe(self.trade_date or self._today(), self._latest_snapshots)
+            if tracked:
+                print(f"📈 POST-SIGNAL TRACKING | updated_predictions={tracked} | source=MIS_SNAPSHOT", flush=True)
+        except Exception as exc:
+            self.ledger.append_daily_event(self.trade_date or self._today(), {
+                "event_type": "POST_SIGNAL_TRACKING_ERROR",
+                "error_type": type(exc).__name__,
+                "message": str(exc)[:300],
+                "at": datetime.now(TAIPEI).isoformat(),
+            })
+            print(f"🟡 POST-SIGNAL TRACKING ERROR | {type(exc).__name__} | {str(exc)[:200]} | RADAR=CONTINUE", flush=True)
+
         self._save_runtime_state()
 
         self.recovery.heartbeat("RADAR_COMPLETE", success=True)
@@ -1339,39 +1391,66 @@ class TianjiProductionRunner:
                 sm.last_trigger_price = float(last_pred.get("trigger_snapshot", {}).get("current_price") or sm.last_trigger_price or 0)
 
     def reconcile_pending_notifications(self) -> int:
-        """Retry only predictions whose durable ledger lacks a successful send.
+        """Recover safe-to-retry notifications without duplicating ambiguous sends.
 
-        This closes the crash window: prediction is persisted first, Telegram second.
-        Restart can safely resend a prediction whose notification was never confirmed.
+        SENT/SUPPRESSED are terminal. UNKNOWN and SENDING are not auto-retried:
+        Telegram sendMessage has no idempotency key, so a timeout may mean the
+        message was accepted but its response was lost. FAILED is retried only
+        after a cooldown; missing status (crash before send intent) is recoverable.
         """
         if not self.trade_date or not self.notifier.enabled:
             return 0
         resent = 0
+        now = datetime.now(TAIPEI)
         for event in self.ledger.iter_predictions(self.trade_date):
             sid = str(event.get("symbol"))
-            status = self.ledger.notification_status(self.trade_date, sid, event["prediction_id"])
-            if status in {"SENT", "SUPPRESSED"}:
+            prediction_id = str(event.get("prediction_id", ""))
+            events = [
+                x for x in self.ledger.events_for_symbol(self.trade_date, sid)
+                if x.get("prediction_id") == prediction_id
+                and x.get("event_type") in {"NOTIFICATION", "INTRADAY_3K_PREDICTION_NOTIFICATION"}
+            ]
+            latest = events[-1] if events else None
+            status = (latest or {}).get("notification_status") or (latest or {}).get("status")
+            if status in {"SENT", "SUPPRESSED", "UNKNOWN", "DISABLED"}:
                 continue
             gate = event.get("notification", {})
             if gate.get("should_send") is False:
                 continue
-            result = self.notifier.send_intraday_prediction(event)
-            self.ledger.append_event(self.trade_date, sid, {
-                "event_type":"NOTIFICATION",
-                "prediction_id":event["prediction_id"],
-                "notification_status":result.get("status", "FAILED"),
-                "telegram_message_id":result.get("message_id"),
-                "recovered":True,
-                "sent_at":datetime.now(TAIPEI).isoformat(),
-            })
-            self._record_notification(
-                event_type="INTRADAY_3K_PREDICTION_NOTIFICATION",
-                status=result.get("status", "FAILED"),
-                message_id=result.get("message_id"),
-                prediction_id=event["prediction_id"],
-                symbol=sid,
-                recovered=True,
-            )
+            if status == "SENDING":
+                # A stale in-flight attempt has an ambiguous delivery result.
+                # Mark it UNKNOWN, never blindly resend it.
+                try:
+                    attempt_at = datetime.fromisoformat(str((latest or {}).get("sent_at") or (latest or {}).get("created_at")).replace("Z", "+00:00"))
+                    if attempt_at.tzinfo is None:
+                        attempt_at = attempt_at.replace(tzinfo=TAIPEI)
+                    age = (now - attempt_at.astimezone(TAIPEI)).total_seconds()
+                except (TypeError, ValueError):
+                    age = 999999
+                if age >= 120:
+                    self.ledger.append_event(self.trade_date, sid, {
+                        "event_type": "NOTIFICATION", "prediction_id": prediction_id,
+                        "notification_status": "UNKNOWN", "error_type": "STALE_SENDING_STATE",
+                        "error": "Prior send attempt ended without a durable response; not auto-resubmitted.",
+                        "sent_at": now.isoformat(),
+                    })
+                    self._record_notification(
+                        event_type="INTRADAY_3K_PREDICTION_NOTIFICATION", status="UNKNOWN",
+                        prediction_id=prediction_id, symbol=sid,
+                        error_type="STALE_SENDING_STATE", recovered=True,
+                    )
+                    print(f"🟠 TELEGRAM DELIVERY UNKNOWN | {sid} | prediction_id={prediction_id} | stale_sending_s={age:.1f}", flush=True)
+                continue
+            if status == "FAILED" and latest:
+                try:
+                    failed_at = datetime.fromisoformat(str(latest.get("sent_at") or latest.get("created_at")).replace("Z", "+00:00"))
+                    if failed_at.tzinfo is None:
+                        failed_at = failed_at.replace(tzinfo=TAIPEI)
+                    if (now - failed_at.astimezone(TAIPEI)).total_seconds() < 60:
+                        continue
+                except (TypeError, ValueError):
+                    pass
+            result = self._send_prediction_notification(event, recovered=True)
             if result.get("status") == "SENT":
                 resent += 1
         return resent
@@ -1635,6 +1714,19 @@ class TianjiProductionRunner:
                 self.ledger._append(self.ledger.validation_root / "master_prediction_validation_log.jsonl", row)
 
         self.validation_rows = validation_rows
+        if predictions and self._prediction_ground_truth_complete(td, results):
+            try:
+                finalized = self.post_signal_tracker.finalize_close(td, gt_map)
+                report_paths = self.post_signal_tracker.write_report(td)
+                if finalized or int(report_paths.get("rows", 0)):
+                    print(f"📈 POST-SIGNAL TRACKING FINAL | finalized_predictions={finalized} | rows={report_paths.get('rows')} | csv={report_paths.get('csv')} | trade_date={td}", flush=True)
+            except Exception as exc:
+                self.ledger.append_daily_event(td, {
+                    "event_type": "POST_SIGNAL_TRACKING_FINAL_ERROR",
+                    "error_type": type(exc).__name__,
+                    "message": str(exc)[:300],
+                    "at": datetime.now(TAIPEI).isoformat(),
+                })
         daily_events_path = self.ledger.validation_root / "daily_events" / f"{td}.jsonl"
         durable_daily_events = self.ledger.read_jsonl(daily_events_path)
         report_events = self.events + durable_daily_events
@@ -1749,11 +1841,15 @@ class TianjiProductionRunner:
                 print("🧭 啟動後會持續執行 MIS Radar，並列出目前實際進入監控的股票", flush=True)
             print("=" * 72, flush=True)
             if recovered:
+                recovered_predictions = len(self._load_today_predictions())
                 self.recovery_ledger.append(trade_date, {
                     "event_type": "RECOVERY_DETECTED",
                     "checkpoint": self.recovery.status(),
+                    "prediction_count": recovered_predictions,
+                    "post_signal_tracking_state": str(self.pred_root / trade_date / "post_signal_tracking.json"),
                     "at": datetime.now(TAIPEI).isoformat(),
                 })
+                print(f"♻️ RECOVERY DETECTED | trade_date={trade_date} | ledger_predictions={recovered_predictions} | action=RESUME_FROM_DURABLE_LEDGER", flush=True)
 
             gt_done = False
             gt_first_pass_done = False
@@ -1852,8 +1948,17 @@ class TianjiProductionRunner:
                         self.recovery_ledger.append(trade_date, {"event_type": "RADAR_FATAL_ERROR", **err, "at": datetime.now(TAIPEI).isoformat()})
                     now_ts = time.monotonic()
                     if now_ts - self._last_notification_retry_at >= 60:
-                        self.reconcile_pending_notifications()
-                        self._last_notification_retry_at = now_ts
+                        try:
+                            self.reconcile_pending_notifications()
+                        except Exception as exc:
+                            # Notification reconciliation is a side channel. A
+                            # ledger/network issue must not terminate market Radar.
+                            print(
+                                f"❌ NOTIFICATION RECONCILE ERROR | {type(exc).__name__} | {str(exc)[:300]}",
+                                flush=True,
+                            )
+                        finally:
+                            self._last_notification_retry_at = time.monotonic()
                     schedule_now = time.monotonic()
                     delay = max(0.5, self._next_radar_deadline - schedule_now)
                     cycle_elapsed = schedule_now - cycle_started
@@ -1896,6 +2001,29 @@ class TianjiProductionRunner:
                             print(f"❌ GROUND_TRUTH CUTOFF ERROR | {type(exc).__name__} | {str(exc)[:300]}", flush=True)
                     if not gt_done:
                         self._finalize_unavailable_prediction_validations(trade_date)
+                        try:
+                            gt_by_symbol = {
+                                str(e.get("symbol")): e
+                                for e in self.ledger.iter_predictions(trade_date)
+                                if e.get("event_type") == "GROUND_TRUTH"
+                            }
+                            # Prefer the canonical persisted GT files; do not infer missing close prices.
+                            for pred in self.ledger.iter_predictions(trade_date):
+                                sid = str(pred.get("symbol"))
+                                persisted = self._read_persisted_ground_truth(trade_date, sid)
+                                if persisted is not None:
+                                    gt_by_symbol[sid] = persisted
+                            finalized = self.post_signal_tracker.finalize_close(trade_date, gt_by_symbol)
+                            report_paths = self.post_signal_tracker.write_report(trade_date)
+                            if finalized or int(report_paths.get("rows", 0)):
+                                print(f"📈 POST-SIGNAL TRACKING FINAL | finalized_predictions={finalized} | rows={report_paths.get('rows')} | csv={report_paths.get('csv')} | cutoff=13:35", flush=True)
+                        except Exception as exc:
+                            self.recovery_ledger.append(trade_date, {
+                                "event_type": "POST_SIGNAL_TRACKING_FINAL_ERROR",
+                                "error_type": type(exc).__name__,
+                                "message": str(exc)[:300],
+                                "at": datetime.now(TAIPEI).isoformat(),
+                            })
                     if not gt_done and not self._gt_cutoff_recorded:
                         self.ledger.append_daily_event(trade_date, {
                             "event_type": "GROUND_TRUTH_CUTOFF_UNAVAILABLE",

@@ -1,3 +1,13 @@
 ﻿checks,first_fail,latest_date,pass,symbol,unknown,vma5_lots,volume_lots,volume_ratio,yesterday_volume_lots
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-15T00:00:00.000,True,4904,False,5421.325,15938.061,2.9398829621909774,4814.834
-"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-15T00:00:00.000,True,6278,False,23268.5196,57252.548,2.460515279192923,12673.539
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,1809,False,2111.2146000000002,17231.333,8.16181026789034,2692.42
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,3031,False,1790.4558000000002,5491.837,3.067284319445361,1098.162
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,3231,False,39098.3702,83442.016,2.134155863100401,24238.363
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,3234,False,2331.071,5143.505,2.2064986437564538,2343.798
+"{'vma5_ge_1000': False, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",vma5_ge_1000,2026-10-20T00:00:00.000,False,3441,False,931.3441999999999,8365.117,8.981767428196795,672.257
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,4566,False,4109.386,10989.222,2.674176142129262,9605.176
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,4720,False,6506.7784,10937.804,1.680986092902749,2201.002
+"{'vma5_ge_1000': True, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",,2026-10-20T00:00:00.000,True,4960,False,8797.9802,44773.642,5.0890819235987825,19184.659
+"{'vma5_ge_1000': False, 'today_gt_yesterday': True, 'volume_ratio_ge_1_5': True}",vma5_ge_1000,2026-10-20T00:00:00.000,False,5228,False,972.2268,3782.184,3.8902280825832,1068.88
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': True}",today_gt_yesterday,2026-10-20T00:00:00.000,False,5475,False,5279.6822,13569.199,2.570078744512312,15930.674
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-20T00:00:00.000,False,6209,False,37203.6388,31114.422,0.8363273863415747,48023.425
+"{'vma5_ge_1000': True, 'today_gt_yesterday': False, 'volume_ratio_ge_1_5': False}",today_gt_yesterday,2026-10-20T00:00:00.000,False,6925,False,2368.5194,2376.558,1.0033939346243057,5006.201

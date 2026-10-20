@@ -6,7 +6,7 @@ def test_v12_notification_levels():
 
 def test_v12_threshold_constants_in_runner_source():
     from pathlib import Path
-    source = Path(__file__).parents[1].joinpath("runner.py").read_text()
+    source = Path(__file__).parents[1].joinpath("runner.py").read_text(encoding="utf-8")
     assert "min_volume_ratio=1.05" in source
     assert "projected_strong" in source
     assert "projected_early" in source
