@@ -59,7 +59,15 @@ print(message)
 
 # 測試 Tier 3: 終極 (Tier2 + 大戶 + 連買)
 print('\n\n✓ Test 3: Tier 3 終極觸發 (加上大戶400張+連買)\n')
-chip = {'foreign': 150, 'investment': 100, 'dealer': 50, 'big_holder': 500, 'net_buy': 800}
+chip = {
+    'foreign': 150,
+    'investment': 100,
+    'dealer': 50,
+    'big_holder': 0,
+    'net_buy': 800,
+    'tdcc_available': True,
+    'big_holder_change_400k_pp': 0.2,
+}
 insider = {'net_buy': 5000, 'buy_count': 3, 'buy_streak': 3, 'annotation': '連買'}
 decision = engine.evaluate_alert_triggers('2330', snapshot=snap_adjusted, chip=chip, insider=insider)
 print(f"  Tier Level: {decision['tier_level']}")

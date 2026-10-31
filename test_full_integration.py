@@ -49,7 +49,15 @@ snap_tier3['is_3k_breakout'] = True
 snap_tier3['rsi14'] = 55.0
 snap_tier3['macd_hist'] = 0.5
 
-chip = {'foreign': 250, 'investment': 180, 'dealer': 90, 'big_holder': 500, 'net_buy': 1020}
+chip = {
+    'foreign': 250,
+    'investment': 180,
+    'dealer': 90,
+    'big_holder': 0,
+    'net_buy': 1020,
+    'tdcc_available': True,
+    'big_holder_change_400k_pp': 0.2,
+}
 insider = {'net_buy': 2000, 'buy_count': 3, 'buy_streak': 3, 'annotation': '連三買'}
 
 decision = engine.evaluate_alert_triggers('2330', snapshot=snap_tier3, chip=chip, insider=insider)
@@ -129,7 +137,15 @@ test_cases = [
     },
     {
         "name": "Tier 3 終極",
-        "chip": {'foreign': 200, 'investment': 150, 'dealer': 100, 'big_holder': 500, 'net_buy': 1200},
+        "chip": {
+            'foreign': 200,
+            'investment': 150,
+            'dealer': 100,
+            'big_holder': 0,
+            'net_buy': 1200,
+            'tdcc_available': True,
+            'big_holder_change_400k_pp': 0.2,
+        },
         "insider": {'net_buy': 3000, 'buy_count': 3, 'buy_streak': 3, 'annotation': '連三買'},
         "snapshot_override": {'volume_ratio': 3.0, 'score': 70.0, 'is_3k_breakout': True, 'rsi14': 65, 'macd_hist': 0.5},
     },

@@ -17,6 +17,8 @@ import urllib3
 _ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 load_dotenv(dotenv_path=_ENV_PATH)
 
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 FUGLE_API_KEY = "NTMyNDYzMzItZDkxYS00MmQwLThiMGEtMTY2NjkyZTM4MTExIGYzNDRjNWNmLTdhYWQtNDc4Ny1hODVmLTQ5ZjZhOWUwYjYzZA=="
 FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiRVNCMTc4MTMiLCJlbWFpbCI6Im0yOTk0MDUwOUBob3RtYWlsLmNvbSJ9.iGsA_PLkanve2aATgXU-RD2i7RKOHSLzMEmASMBOcDE"
 TELEGRAM_BOT_TOKEN = "8480482512:AAGin83kwa61oa5F5rBj4NQMow-C9jsbJug"
@@ -45,6 +47,10 @@ WARRANT_VOLUME_GROWTH_PERCENT = 20.0
 WARRANT_VOLUME_GROWTH_MINIMUM = 500
 WARRANT_POOL_QUOTA = 50
 TELEGRAM_ALERT_COOLDOWN_MINUTES = 30
+INSIDER_SIGNAL_CACHE_SECONDS = 3600
+TDCC_SIGNAL_CACHE_SECONDS = 21600
+TDCC_UNAVAILABLE_CACHE_SECONDS = 300
+TDCC_MAX_REPORT_AGE_DAYS = 14
 EFFECTIVE_3K_MIN_VOLUME_RATIO = 1.2
 SAME_TIME_VOLUME_LOOKBACK_DAYS = 5
 SAME_TIME_VOLUME_RATIO_THRESHOLD = 1.5
@@ -164,6 +170,7 @@ def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: 
         "volume": third_volume,
         "required_volume": required_volume,
         "volume_ratio": third_volume / previous_average_volume if previous_average_volume else 0.0,
+        "ma5": sum(float(bar["close"]) for bar in previous_bars[-5:]) / 5,
         "ma20": sum(float(bar["close"]) for bar in previous_bars) / len(previous_bars),
         "stop_price": min(float(first_bar["low"]), float(second_bar["low"]), float(third_bar["low"])),
     }
@@ -510,6 +517,98 @@ class FundamentalChipDataLayer:
             result[sid]["last_date"] = date_str
 
         return result
+
+    @staticmethod
+    def fetch_tdcc_big_holder_changes(
+        symbols: List[str],
+        now: Optional[datetime] = None,
+    ) -> Dict[str, Dict[str, Any]]:
+        """Fetch recent TDCC 400-lot holder ratios and their report-to-report change."""
+        valid_symbols = sorted({str(symbol).strip() for symbol in symbols if re.fullmatch(r"\d{4}", str(symbol).strip())})
+        if not valid_symbols or not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+            return {}
+
+        try:
+            response = request_get(
+                f"{SUPABASE_URL}/rest/v1/tdcc_history",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={
+                    "select": "symbol,date,ratio_400k,ratio_1000k",
+                    "symbol": f"in.({','.join(valid_symbols)})",
+                    "order": "date.desc,symbol.asc",
+                    "limit": "1000",
+                },
+                timeout=10,
+            )
+            rows = response.json()
+            if not isinstance(rows, list):
+                return {}
+        except (requests.RequestException, ValueError, TypeError) as exc:
+            print(f"[TDCC大戶] Supabase 查詢失敗: {type(exc).__name__}", flush=True)
+            return {}
+
+        current_date = (now or get_taipei_now()).date()
+        grouped: Dict[str, Dict[str, Dict[str, float]]] = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            symbol = str(row.get("symbol", "")).strip()
+            report_date = str(row.get("date", "")).strip()
+            parsed_date = (
+                pd.to_datetime(report_date, format="%Y%m%d", errors="coerce")
+                if re.fullmatch(r"\d{8}", report_date)
+                else pd.to_datetime(report_date, errors="coerce")
+            )
+            if not re.fullmatch(r"\d{4}", symbol) or pd.isna(parsed_date):
+                continue
+            report_day = parsed_date.date()
+            if report_day > current_date:
+                continue
+            grouped.setdefault(symbol, {})[report_date] = {
+                "date_ordinal": float(report_day.toordinal()),
+                "ratio_400k": _safe_cast(row.get("ratio_400k"), float, -1.0),
+                "ratio_1000k": _safe_cast(row.get("ratio_1000k"), float, -1.0),
+            }
+
+        results: Dict[str, Dict[str, Any]] = {}
+        for symbol in valid_symbols:
+            reports = grouped.get(symbol, {})
+            ordered_dates = sorted(
+                reports,
+                key=lambda report_date: reports[report_date]["date_ordinal"],
+                reverse=True,
+            )
+            if len(ordered_dates) < 2:
+                continue
+
+            latest_date, previous_date = ordered_dates[:2]
+            latest = reports[latest_date]
+            previous = reports[previous_date]
+            latest_day = datetime.fromordinal(int(latest["date_ordinal"])).date()
+            if (current_date - latest_day).days > TDCC_MAX_REPORT_AGE_DAYS:
+                continue
+            if latest["ratio_400k"] < 0 or previous["ratio_400k"] < 0:
+                continue
+
+            results[symbol] = {
+                "tdcc_available": True,
+                "tdcc_latest_date": latest_date,
+                "tdcc_previous_date": previous_date,
+                "big_holder_ratio_400k": latest["ratio_400k"],
+                "big_holder_ratio_1000k": latest["ratio_1000k"],
+                "big_holder_change_400k_pp": round(
+                    latest["ratio_400k"] - previous["ratio_400k"], 2
+                ),
+                "big_holder_change_1000k_pp": (
+                    round(latest["ratio_1000k"] - previous["ratio_1000k"], 2)
+                    if latest["ratio_1000k"] >= 0 and previous["ratio_1000k"] >= 0
+                    else None
+                ),
+            }
+        return results
 
     @classmethod
     def rank_by_priority(cls, symbol_list: List[str]) -> Dict[str, Dict[str, Any]]:
@@ -858,6 +957,7 @@ class TechnicalSignalEngine:
                 "symbol": symbol,
                 "date": str(latest.get("date")),
                 "close": float(latest.get("close", 0.0)),
+                "daily_close": float(latest.get("close", 0.0)),
                 "open": float(latest.get("open", 0.0)),
                 "high": float(latest.get("high", 0.0)),
                 "low": float(latest.get("low", 0.0)),
@@ -876,8 +976,11 @@ class TechnicalSignalEngine:
                 "support_20": float(latest.get("支撐價_20", 0.0)),
                 "is_3k_breakout": bool(latest.get("is_3k_breakout", False)),
                 "is_5k_breakout": bool(latest.get("is_5k_breakout", False)),
+                "daily_is_3k_breakout": bool(latest.get("is_3k_breakout", False)),
+                "daily_is_5k_breakout": bool(latest.get("is_5k_breakout", False)),
                 "volume_ratio": float(latest.get("VOL_RATIO", 0.0)),
                 "score": score,
+                "daily_score": score,
                 "trend": self._score_to_trend(score, rsi, macd, hist),
             }
         )
@@ -985,7 +1088,7 @@ class TechnicalSignalEngine:
         累積式觸發優先級：
         - Tier 1 (基礎): 技術分數達標 + 日線多頭型態優 -> 發送；同時段量比作為通知旗標
         - Tier 2 (進階): Tier1 + 內部人買超存在 -> 直接發送
-        - Tier 3 (終極): Tier2 + 大戶買超 >= 400張 + 連買(3天+) -> 直接發送
+        - Tier 3 (終極): Tier2 + insider 連買(3天+) + TDCC 400張以上戶持股比例上升 -> 發送
         """
         if snapshot is None:
             snapshot = dict(self.build_signal_snapshot(symbol))
@@ -996,6 +1099,13 @@ class TechnicalSignalEngine:
             "dealer": float(chip.get("dealer", 0.0) if chip else 0.0),
             "big_holder": float(chip.get("big_holder", 0.0) if chip else 0.0),
             "net_buy": float(chip.get("net_buy", 0.0) if chip else 0.0),
+            "tdcc_available": bool(chip.get("tdcc_available", False) if chip else False),
+            "big_holder_ratio_400k": float(chip.get("big_holder_ratio_400k", 0.0) if chip else 0.0),
+            "big_holder_ratio_1000k": float(chip.get("big_holder_ratio_1000k", 0.0) if chip else 0.0),
+            "big_holder_change_400k_pp": float(chip.get("big_holder_change_400k_pp", 0.0) if chip else 0.0),
+            "big_holder_change_1000k_pp": float(chip.get("big_holder_change_1000k_pp", 0.0) if chip else 0.0),
+            "tdcc_latest_date": str(chip.get("tdcc_latest_date", "") if chip else ""),
+            "tdcc_previous_date": str(chip.get("tdcc_previous_date", "") if chip else ""),
         }
         insider = {
             "net_buy": float(insider.get("net_buy", 0.0) if insider else 0.0),
@@ -1004,13 +1114,14 @@ class TechnicalSignalEngine:
             "annotation": str(insider.get("annotation", "買超") if insider else "買超"),
         }
 
-        close_price = float(snapshot.get("close", 0.0))
-        score = float(snapshot.get("score", 0.0))
+        close_price = float(snapshot.get("daily_close", snapshot.get("close", 0.0)))
+        daily_score = float(snapshot.get("daily_score", snapshot.get("score", 0.0)))
+        intraday_score = float(snapshot.get("intraday_score", 0.0))
         volume_ratio = float(snapshot.get("volume_ratio", 0.0))
         same_time_volume_available = bool(snapshot.get("same_time_volume_available", True))
         trend = snapshot.get("trend", "")
-        is_3k_breakout = bool(snapshot.get("is_3k_breakout", False))
-        is_5k_breakout = bool(snapshot.get("is_5k_breakout", False))
+        is_3k_breakout = bool(snapshot.get("daily_is_3k_breakout", snapshot.get("is_3k_breakout", False)))
+        is_5k_breakout = bool(snapshot.get("daily_is_5k_breakout", snapshot.get("is_5k_breakout", False)))
         ma5 = float(snapshot.get("ma5", 0.0))
         ma20 = float(snapshot.get("ma20", 0.0))
         rsi14 = float(snapshot.get("rsi14", 0.0))
@@ -1020,8 +1131,8 @@ class TechnicalSignalEngine:
         same_time_volume_flag = (
             same_time_volume_available and volume_ratio >= min_volume_ratio
         )
-        score_threshold = score >= min_score
-        # 日線多頭型態優: 價格 > MA5 > MA20 OR 突破 OR RSI > 50 OR MACD > 0
+        score_threshold = daily_score >= min_score
+        # Daily trend uses daily-bar values only; intraday confirmation is evaluated separately.
         daily_bullish = (
             (ma5 > 0 and ma20 > 0 and close_price > ma5 > ma20) or
             is_3k_breakout or is_5k_breakout or
@@ -1036,10 +1147,13 @@ class TechnicalSignalEngine:
         tier1_insider = insider.get("net_buy", 0.0) > 0
         tier2_advanced = tier1_base and tier1_insider
 
-        # Tier 3: 終極 (Tier2 + 大戶買超 >= 400張 + 連買 >= 3天)
-        big_holder_shares = float(chip.get("big_holder", 0.0))
+        # TDCC stores the share percentage held by 400-lot accounts, not shares bought.
+        big_holder_change_400k_pp = float(chip["big_holder_change_400k_pp"])
+        tdcc_big_holder_accumulating = (
+            chip["tdcc_available"] and big_holder_change_400k_pp > 0.0
+        )
         is_consecutive_buy = insider.get("buy_streak", 0) >= 3  # 3天連買
-        tier3_ultimate = tier2_advanced and big_holder_shares >= 400.0 and is_consecutive_buy
+        tier3_ultimate = tier2_advanced and tdcc_big_holder_accumulating and is_consecutive_buy
 
         # 優先級判斷 (從高到低)
         tier_level = 0
@@ -1049,7 +1163,10 @@ class TechnicalSignalEngine:
         if tier3_ultimate:
             should_send = True
             tier_level = 3
-            trigger_reason = f"有效3K + 內部人連買 + 大戶{big_holder_shares:.0f}張"
+            trigger_reason = (
+                f"有效3K + 內部人連買 + 400張以上戶持股比"
+                f"增加{big_holder_change_400k_pp:+.2f}百分點"
+            )
         elif tier2_advanced:
             should_send = True
             tier_level = 2
@@ -1083,17 +1200,21 @@ class TechnicalSignalEngine:
             "tier3_ultimate": bool(tier3_ultimate),
             "effective_3k": effective_3k,
             "three_k_confirmed": three_k_confirmed,
+            "tdcc_big_holder_accumulating": bool(tdcc_big_holder_accumulating),
             "same_time_volume_available": same_time_volume_available,
             "same_time_volume_flag": bool(same_time_volume_flag),
             "is_consecutive_buy": bool(is_consecutive_buy),
             "volume_ratio": volume_ratio,
-            "score": score,
+            "score": daily_score,
+            "daily_score": daily_score,
+            "intraday_score": intraday_score,
             "annotation": annotation,
             "chip": chip,
             "insider": insider,
             "snapshot": snapshot,
             "reason": [
-                f"Tier1基礎: 技術{score:.1f} + 日線型態" if tier1_base else "未達技術或日線型態條件",
+                f"Tier1基礎: 日線分數{daily_score:.1f} + 日線型態" if tier1_base else "未達日線分數或型態條件",
+                f"盤中確認分數: {intraday_score:.1f}",
                 (
                     f"同時段量能旗標: {'達標' if same_time_volume_flag else '未達標'} "
                     f"({volume_ratio:.2f}x / {min_volume_ratio:.2f}x)"
@@ -1101,7 +1222,12 @@ class TechnicalSignalEngine:
                     else "同時段量能旗標: 無歷史基準"
                 ),
                 f"Tier2進階: 內部人買超{insider.get('net_buy', 0):.0f}" if tier1_insider else "無內部人買超",
-                f"Tier3終極: 大戶{big_holder_shares:.0f}張 + 連買{insider.get('buy_streak', 0)}天" if is_consecutive_buy else f"無連買記錄",
+                (
+                    f"Tier3終極: 400張以上戶持股比變化{big_holder_change_400k_pp:+.2f}百分點"
+                    if tdcc_big_holder_accumulating
+                    else "TDCC 400張以上戶持股比未增加或資料不可用"
+                ),
+                f"內部人連買記錄: {insider.get('buy_streak', 0)}天",
             ],
         }
 
@@ -1126,6 +1252,8 @@ class TechnicalSignalEngine:
         snap = decision["snapshot"]
         trigger_reason = decision.get("trigger_reason", "")
         tier_level = decision.get("tier_level", 0)
+        daily_score = float(snap.get("daily_score", snap.get("score", 0.0)))
+        intraday_score = float(snap.get("intraday_score", 0.0))
 
         tier_markers = {
             0: "",
@@ -1165,6 +1293,7 @@ class TechnicalSignalEngine:
             f"─────────\n"
             f"📊 技術面:\n"
             f"  趨勢: {snap.get('trend', 'N/A')}\n"
+            f"  分數: 日線 {daily_score:.1f} / 盤中 {intraday_score:.1f}\n"
             f"  量能比: {float(snap.get('volume_ratio', 0.0)):.2f}x\n"
             f"{effective_3k_line}"
             f"═════════════════════"
@@ -1678,6 +1807,10 @@ class WarrantTelegramAlertRunner:
         self.last_alert_at: Dict[str, datetime] = {}
         self.last_effective_3k: Dict[str, Dict[str, Any]] = {}
         self.intraday_volume_history_cache: Dict[str, List[Dict[str, Any]]] = {}
+        self.insider_signal_cache: Dict[str, Dict[str, Any]] = {}
+        self.insider_signal_cache_expires_at = 0.0
+        self.tdcc_big_holder_cache: Dict[str, Dict[str, Any]] = {}
+        self.tdcc_big_holder_cache_expires_at: Dict[str, float] = {}
 
     @staticmethod
     def _fallback_underlyings() -> List[str]:
@@ -1789,8 +1922,11 @@ class WarrantTelegramAlertRunner:
         grade_badges = {"A": "🎯 A", "AA": "🔥 AA", "AAA": "🚀 AAA"}
         snapshot = snapshot or {}
         volume_ratio = float(snapshot.get("volume_ratio", signal.get("volume_ratio", 0.0)))
-        score = float(snapshot.get("score", 0.0))
+        daily_score = float(snapshot.get("daily_score", snapshot.get("score", 0.0)))
+        intraday_score = float(snapshot.get("intraday_score", 0.0))
         trend = str(snapshot.get("trend", "N/A"))
+        tier_level = int(snapshot.get("tier_level", 0))
+        tier_trigger_reason = str(snapshot.get("trigger_reason", "")).strip()
         same_time_volume_available = bool(snapshot.get("same_time_volume_available", True))
         same_time_volume_flag = (
             same_time_volume_available
@@ -1802,20 +1938,24 @@ class WarrantTelegramAlertRunner:
                 f"有效3K突破、第3K量能{float(signal['volume_ratio']):.2f}x、"
                 f"現價站上5分K MA20（{float(signal['ma20']):.2f}）"
             )
+            if tier_level >= 2 and tier_trigger_reason:
+                trigger_reason = f"{tier_trigger_reason}；{trigger_reason}"
         else:
             trigger_reason = (
-                f"量能{volume_ratio:.2f}x 、 技術分數{score:.1f}、"
+                f"量能{volume_ratio:.2f}x 、 日線分數{daily_score:.1f}、"
                 f"{surge_reason}、{trend}"
             )
         message_lines = [
             "🚨 [訊號觸發]",
             f"🎯 *核心策略：* 🎫 [權證主力標的] 有效3K突破 {grade_badges[grade]}",
+            f"🏷️ *通知分級：* Tier {tier_level}" if tier_level else "",
             "━━━━━━━━━━━━",
             f"📈 *標的：* [{stock_code} {stock['name']}](https://www.nstock.tw/stock_info?stock_id={stock_code})",
             f"💰 *現價：* `{float(stock['price']):.2f}`",
             f"🎯 *觸發原因：* {trigger_reason}",
             f"📐 *3K收盤／突破價：* `{float(signal['close']):.2f}` / `{float(signal['breakout_price']):.2f}`",
             f"📊 *第3K量能：* `{float(signal['volume']):,.0f}張`（5分K均量的 `{float(signal['volume_ratio']):.2f}x`）",
+            f"🧮 *分數：* 日線 `{daily_score:.1f}` / 盤中 `{intraday_score:.1f}`",
             (
                 f"📈 *5日同時段量比：* `{volume_ratio:.2f}x`\n"
                 f"🏷️ *同時段量能旗標：* {'✅ 達標' if same_time_volume_flag else '⚪ 未達標'} "
@@ -1898,10 +2038,68 @@ class WarrantTelegramAlertRunner:
 
         return result
 
+    def _get_cached_insider_buy_data(self) -> Dict[str, Dict[str, Any]]:
+        now = time.monotonic()
+        if now >= self.insider_signal_cache_expires_at:
+            self.insider_signal_cache = FundamentalChipDataLayer.fetch_insider_buy_data(
+                lookback_days=30
+            )
+            self.insider_signal_cache_expires_at = now + INSIDER_SIGNAL_CACHE_SECONDS
+        return self.insider_signal_cache
+
+    def _get_cached_tdcc_big_holder_changes(
+        self, symbols: List[str]
+    ) -> Dict[str, Dict[str, Any]]:
+        now = time.monotonic()
+        symbols = list(dict.fromkeys(str(symbol).strip() for symbol in symbols))
+        expired_symbols = [
+            symbol for symbol in symbols
+            if now >= self.tdcc_big_holder_cache_expires_at.get(symbol, 0.0)
+        ]
+        if expired_symbols:
+            fresh_data = FundamentalChipDataLayer.fetch_tdcc_big_holder_changes(expired_symbols)
+            for symbol in expired_symbols:
+                data = fresh_data.get(symbol, {"tdcc_available": False})
+                self.tdcc_big_holder_cache[symbol] = data
+                ttl = (
+                    TDCC_SIGNAL_CACHE_SECONDS
+                    if data.get("tdcc_available")
+                    else TDCC_UNAVAILABLE_CACHE_SECONDS
+                )
+                self.tdcc_big_holder_cache_expires_at[symbol] = now + ttl
+        return {
+            symbol: self.tdcc_big_holder_cache.get(symbol, {"tdcc_available": False})
+            for symbol in symbols
+        }
+
+    @staticmethod
+    def _score_intraday_setup(
+        snapshot: Dict[str, Any],
+        effective_3k: Dict[str, Any],
+        same_time_volume_flag: bool,
+    ) -> Dict[str, Any]:
+        """Return a descriptive confirmation score; it is not an alert gate."""
+        current_price = float(snapshot.get("close", 0.0))
+        k3_volume_ratio = float(effective_3k.get("volume_ratio", 0.0))
+        components = {
+            "effective_3k": 30,
+            "above_5m_ma20": 25 if current_price > float(effective_3k["ma20"]) else 0,
+            "holding_k3_close": 15 if current_price >= float(effective_3k["close"]) else 0,
+            "k3_volume_strength": 15 if k3_volume_ratio >= 1.5 else 0,
+            "same_time_volume_flag": 15 if same_time_volume_flag else 0,
+        }
+        return {"score": sum(components.values()), "components": components}
+
     def _safe_snapshot(self, symbol: str, hit: Dict[str, Any]) -> Dict[str, Any]:
         if symbol not in self.engine.cache:
             self.engine.fetch_historical_candles(symbol, timeframe="D", lookback_days=60)
         daily_df = self.engine.cache[symbol]
+        if "date" in daily_df.columns:
+            daily_dates = pd.to_datetime(daily_df["date"], utc=True).dt.tz_convert("Asia/Taipei").dt.date
+            completed_daily_df = daily_df.loc[daily_dates < get_taipei_now().date()]
+            if completed_daily_df.empty:
+                raise ValueError(f"No completed daily candles available for {symbol}.")
+            daily_df = completed_daily_df
         signal = dict(self.engine.build_signal_snapshot(symbol, daily_df))
         last_price = _safe_cast(hit.get("current_price"), float, 0.0)
         total_volume = _safe_cast(hit.get("total_vol"), float, 0.0)
@@ -1911,6 +2109,8 @@ class WarrantTelegramAlertRunner:
             total_volume * 1000 * TRADING_MINUTES_PER_DAY / get_market_elapsed_minutes()
         )
         previous_day_volume = float(signal.get("volume", 0.0))
+        signal["daily_close"] = float(signal.get("daily_close", signal.get("close", 0.0)))
+        signal["daily_score"] = float(signal.get("daily_score", signal.get("score", 0.0)))
         estimated_volume_ratio = (
             estimated_daily_volume / previous_day_volume if previous_day_volume > 0 else 0.0
         )
@@ -1975,7 +2175,7 @@ class WarrantTelegramAlertRunner:
 
         recent_dates = sorted(daily_volumes, reverse=True)[:SAME_TIME_VOLUME_LOOKBACK_DAYS]
         if len(recent_dates) < SAME_TIME_VOLUME_LOOKBACK_DAYS:
-            print(f"[5日同時段量比] {symbol} 歷史交易日不足，略過本輪通知")
+            print(f"[5日同時段量比] {symbol} 歷史交易日不足，僅略過量能旗標")
             return None
         samples = [daily_volumes[trade_date] for trade_date in recent_dates]
         median_volume = float(np.median(samples))
@@ -2018,6 +2218,20 @@ class WarrantTelegramAlertRunner:
         )
         fugle_elapsed = time.perf_counter() - fugle_started
         self.last_effective_3k = effective_3k_by_symbol
+        chip_candidate_symbols = [
+            str(hit.get("sid", "")).strip()
+            for hit in hits[:20]
+            if str(hit.get("sid", "")).strip() in effective_3k_by_symbol
+            and float(hit.get("current_price", 0.0))
+            > float(effective_3k_by_symbol[str(hit.get("sid", "")).strip()]["ma20"])
+        ]
+        insider_by_symbol = (
+            self._get_cached_insider_buy_data() if chip_candidate_symbols else {}
+        )
+        tdcc_by_symbol = (
+            self._get_cached_tdcc_big_holder_changes(chip_candidate_symbols)
+            if chip_candidate_symbols else {}
+        )
 
         alerts: List[Dict[str, Any]] = []
         rejected = {
@@ -2065,7 +2279,6 @@ class WarrantTelegramAlertRunner:
                 float(effective_3k["completed_day_volume"]),
             )
             snapshot["effective_3k"] = effective_3k
-            snapshot["is_3k_breakout"] = True
             snapshot["same_time_volume_available"] = same_time_baseline is not None
             snapshot["same_time_volume_median"] = (
                 same_time_baseline["median_volume"] if same_time_baseline else None
@@ -2073,14 +2286,34 @@ class WarrantTelegramAlertRunner:
             snapshot["same_time_volume_ratio"] = (
                 same_time_baseline["volume_ratio"] if same_time_baseline else None
             )
+            same_time_volume_flag = bool(
+                same_time_baseline
+                and same_time_baseline["volume_ratio"] >= SAME_TIME_VOLUME_RATIO_THRESHOLD
+            )
+            snapshot["same_time_volume_flag"] = same_time_volume_flag
             snapshot["volume_ratio"] = (
                 same_time_baseline["volume_ratio"] if same_time_baseline else 0.0
             )
+            snapshot["effective_3k_confirmed"] = True
+            intraday_score = self._score_intraday_setup(
+                snapshot,
+                effective_3k,
+                same_time_volume_flag,
+            )
+            snapshot["intraday_score"] = intraday_score["score"]
+            snapshot["intraday_score_components"] = intraday_score["components"]
+            insider_signal = insider_by_symbol.get(symbol, {})
+            tdcc_signal = tdcc_by_symbol.get(symbol, {"tdcc_available": False})
             decision = self.engine.evaluate_alert_triggers(
                 symbol,
                 snapshot=snapshot,
+                chip=tdcc_signal,
+                insider=insider_signal,
                 effective_3k=effective_3k,
             )
+            snapshot["tier_level"] = decision["tier_level"]
+            snapshot["trigger_reason"] = decision["trigger_reason"]
+            snapshot.update(tdcc_signal)
             if not decision["same_time_volume_available"]:
                 volume_flags["unavailable"] += 1
             else:
@@ -2128,8 +2361,16 @@ class WarrantTelegramAlertRunner:
                 "warrant_grade": warrant_grade,
                 "warrant_volume_change": warrant_info.get("warrant_volume_change", 0),
                 "warrant_volume_growth_percent": warrant_info.get("warrant_volume_growth_percent", 0.0),
-                "chip_source": "",
-                "real_chip": {},
+                "chip_source": "+".join(
+                    source for source, present in (
+                        ("FinMind內部人", float(insider_signal.get("net_buy", 0.0)) > 0),
+                        ("Supabase TDCC", bool(tdcc_signal.get("tdcc_available"))),
+                    ) if present
+                ),
+                "real_chip": {
+                    "insider": insider_signal,
+                    "tdcc": tdcc_signal,
+                },
                 "decision": decision,
                 "telegram": payload,
             })

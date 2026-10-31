@@ -1,5 +1,7 @@
 # 🚀 權證現股即時逆向監控系統 - 快速啟動指南
 
+> **設計文件更新**：本快速指南中的舊量能倍率與 Tier gate 描述可能已過期。現行 3K、日線／盤中分數、同時段量能旗標、Supabase TDCC Tier 3 與已知限制，請以 [TECHNICAL_INDICATOR_ENGINE_DESIGN.md](TECHNICAL_INDICATOR_ENGINE_DESIGN.md) 為準。
+
 ## 📋 已完成集成
 
 ### ✅ 1. nstock 超連結
