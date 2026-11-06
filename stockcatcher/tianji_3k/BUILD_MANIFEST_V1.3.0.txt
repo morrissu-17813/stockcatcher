@@ -1,0 +1,29 @@
+# Tianji 3K v1.3.0 Build Manifest
+
+Base: user-uploaded `tianji_3k_20261106版本.zip`
+Base SHA-256: `22ce0b5932e1022987d0beeb1401d65e62757c232db8c5352181e7865e60741e`
+
+Version:
+- VERSION: 1.3.0
+- RELEASE_VERSION: 1.3.0
+
+New files:
+- validation/strategy_intelligence.py
+- tests/test_strategy_intelligence.py
+- CHANGELOG_V1.3.0.md
+
+Updated files:
+- VERSION
+- RELEASE_VERSION
+- README.md
+
+Production isolation:
+- runner.py unchanged
+- core/ unchanged
+- strategy/ unchanged
+- stage1/, stage2/, stage3/ unchanged
+- notification/ unchanged
+- MIS polling and market-data API request logic unchanged
+- Telegram delivery flow unchanged
+
+Release excludes generated Python bytecode and pytest caches only. Existing cache, prediction, validation, and runtime records are retained from the uploaded archive.

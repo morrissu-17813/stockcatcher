@@ -142,9 +142,15 @@ def get_monitor_stop_at(started_at: Optional[datetime] = None) -> datetime:
     return datetime.combine(stop_date, MONITOR_STOP_TIME, tzinfo=TAIPEI_TIMEZONE)
 
 
-def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
+def detect_effective_3k_breakout(
+    bars: List[Dict[str, Any]],
+    volume_multiplier: float = KLINE_VOLUME_MULTIPLIER,
+    diagnostics: Optional[Dict[str, int]] = None,
+) -> Optional[Dict[str, Any]]:
     """判斷 K3 突破 K1/K2，並以 K3 前五根量能與前二十根均線確認。"""
     if len(bars) < 21:
+        if diagnostics is not None:
+            diagnostics["insufficient_bars"] = 1
         return None
 
     first_bar, second_bar, third_bar = bars[-3:]
@@ -160,7 +166,13 @@ def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: 
     )
     third_close = float(third_bar["close"])
     third_volume = float(third_bar["volume"])
-    if third_close <= breakout_price or third_volume < required_volume:
+    if third_close <= breakout_price:
+        if diagnostics is not None:
+            diagnostics["price_not_breaking"] = 1
+        return None
+    if third_volume < required_volume:
+        if diagnostics is not None:
+            diagnostics["k3_volume_below_threshold"] = 1
         return None
 
     return {
@@ -176,9 +188,15 @@ def detect_effective_3k_breakout(bars: List[Dict[str, Any]], volume_multiplier: 
     }
 
 
-def fetch_effective_3k_breakout(symbol: str, volume_multiplier: float = KLINE_VOLUME_MULTIPLIER) -> Optional[Dict[str, Any]]:
+def fetch_effective_3k_breakout(
+    symbol: str,
+    volume_multiplier: float = KLINE_VOLUME_MULTIPLIER,
+    diagnostics: Optional[Dict[str, int]] = None,
+) -> Optional[Dict[str, Any]]:
     """從 Fugle 取得5分K，只使用已收盤資料判斷有效3K。"""
     if not FUGLE_API_KEY:
+        if diagnostics is not None:
+            diagnostics["missing_api_key"] = 1
         return None
 
     url = f"https://api.fugle.tw/marketdata/v1.0/stock/intraday/candles/{symbol}"
@@ -192,6 +210,8 @@ def fetch_effective_3k_breakout(symbol: str, volume_multiplier: float = KLINE_VO
     payload = response.json()
     raw_bars = payload.get("data", payload.get("candles", []))
     if not isinstance(raw_bars, list):
+        if diagnostics is not None:
+            diagnostics["invalid_candle_payload"] = 1
         return None
 
     completed_bars: List[Dict[str, Any]] = []
@@ -208,7 +228,11 @@ def fetch_effective_3k_breakout(symbol: str, volume_multiplier: float = KLINE_VO
             continue
 
     completed_bars.sort(key=lambda bar: bar["date"])
-    signal = detect_effective_3k_breakout(completed_bars, volume_multiplier)
+    signal = detect_effective_3k_breakout(
+        completed_bars,
+        volume_multiplier,
+        diagnostics=diagnostics,
+    )
     if signal is not None:
         current_trade_date = get_taipei_now().date()
         signal["completed_day_volume"] = sum(
@@ -224,21 +248,38 @@ def fetch_effective_3k_breakouts(
     volume_multiplier: float = KLINE_VOLUME_MULTIPLIER,
     max_workers: int = 5,
     failures: Optional[List[str]] = None,
+    diagnostics: Optional[Dict[str, Dict[str, int]]] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """並行取得命中標的的已收盤5分K，避免逐檔等待 Fugle 網路回應。"""
     results: Dict[str, Dict[str, Any]] = {}
     if not symbols:
         return results
 
+    def fetch_with_diagnostics(symbol: str):
+        symbol_diagnostics: Dict[str, int] = {}
+        signal = fetch_effective_3k_breakout(
+            symbol,
+            volume_multiplier,
+            diagnostics=symbol_diagnostics,
+        )
+        return signal, symbol_diagnostics
+
     with ThreadPoolExecutor(max_workers=min(max_workers, len(symbols))) as executor:
         futures = {
-            executor.submit(fetch_effective_3k_breakout, symbol, volume_multiplier): symbol
+            executor.submit(fetch_with_diagnostics, symbol): symbol
             for symbol in symbols
         }
         for future in as_completed(futures):
             symbol = futures[future]
             try:
-                signal = future.result()
+                signal, symbol_diagnostics = future.result()
+                if diagnostics is not None:
+                    diagnostics[symbol] = symbol_diagnostics
+            except requests.HTTPError as exc:
+                if failures is not None:
+                    status_code = exc.response.status_code if exc.response is not None else "unknown"
+                    failures.append(f"{symbol}:HTTP_{status_code}")
+                continue
             except Exception as exc:
                 if failures is not None:
                     failures.append(f"{symbol}:{type(exc).__name__}")
@@ -1201,6 +1242,8 @@ class TechnicalSignalEngine:
             "effective_3k": effective_3k,
             "three_k_confirmed": three_k_confirmed,
             "tdcc_big_holder_accumulating": bool(tdcc_big_holder_accumulating),
+            "daily_score_passed": bool(score_threshold),
+            "daily_bullish": bool(daily_bullish),
             "same_time_volume_available": same_time_volume_available,
             "same_time_volume_flag": bool(same_time_volume_flag),
             "is_consecutive_buy": bool(is_consecutive_buy),
@@ -2210,14 +2253,20 @@ class WarrantTelegramAlertRunner:
             else KLINE_VOLUME_MULTIPLIER
         )
         fugle_failures: List[str] = []
+        kline_diagnostics: Dict[str, Dict[str, int]] = {}
         fugle_started = time.perf_counter()
         effective_3k_by_symbol = fetch_effective_3k_breakouts(
             symbols,
             volume_multiplier,
             failures=fugle_failures,
+            diagnostics=kline_diagnostics,
         )
         fugle_elapsed = time.perf_counter() - fugle_started
         self.last_effective_3k = effective_3k_by_symbol
+        kline_rejections: Dict[str, int] = {}
+        for symbol_diagnostics in kline_diagnostics.values():
+            for reason, count in symbol_diagnostics.items():
+                kline_rejections[reason] = kline_rejections.get(reason, 0) + count
         chip_candidate_symbols = [
             str(hit.get("sid", "")).strip()
             for hit in hits[:20]
@@ -2314,6 +2363,24 @@ class WarrantTelegramAlertRunner:
             snapshot["tier_level"] = decision["tier_level"]
             snapshot["trigger_reason"] = decision["trigger_reason"]
             snapshot.update(tdcc_signal)
+            same_time_ratio_text = (
+                f"{snapshot['volume_ratio']:.2f}x"
+                if decision["same_time_volume_available"]
+                else "N/A"
+            )
+            tdcc_change = tdcc_signal.get("big_holder_change_400k_pp")
+            tdcc_change_text = f"{float(tdcc_change):+.2f}pp" if tdcc_change is not None else "N/A"
+            print(
+                f"[候選評估] {symbol}: daily_score={decision['daily_score']:.1f}/60 "
+                f"daily_bullish={decision['daily_bullish']} "
+                f"intraday_score={decision['intraday_score']:.1f} "
+                f"K3_volume={float(effective_3k.get('volume_ratio', 0.0)):.2f}x "
+                f"same_time={same_time_ratio_text} "
+                f"TDCC400={tdcc_change_text} "
+                f"insider_streak={decision['insider']['buy_streak']} "
+                f"tier={decision['tier_level']} send={decision['should_send']}",
+                flush=True,
+            )
             if not decision["same_time_volume_available"]:
                 volume_flags["unavailable"] += 1
             else:
@@ -2378,6 +2445,7 @@ class WarrantTelegramAlertRunner:
             f"[掃描診斷] MIS命中={len(hits)}/{len(pool)}({mis_elapsed:.2f}s); "
             f"Fugle有效3K={len(effective_3k_by_symbol)}/{len(symbols)} "
             f"API失敗={len(fugle_failures)}({fugle_elapsed:.2f}s); "
+            f"3K未通過={kline_rejections}; "
             f"略過={rejected}; 同時段量能旗標={volume_flags}; 通知={len(alerts)}; "
             f"總耗時={time.perf_counter() - cycle_started:.2f}s",
             flush=True,

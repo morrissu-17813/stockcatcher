@@ -45,3 +45,9 @@ python -X utf8 -m tianji_3k.validation.shadow_validation `
 ### 完整套件內容
 
 本發行包包含完整 `tianji_3k/` 原始碼、測試、文件、設定範本及本次基準包中既有的 Prediction/Validation 歷史紀錄；不包含 Python 編譯快取、pytest 快取、虛擬環境及可重建的行情快取。請先備份本機資料夾，再以本包的 `tianji_3k/` 完整資料夾替換原資料夾。不要刪除你本機後續新增、且未包含在本次基準包中的紀錄。
+
+## v1.3.0 Strategy Intelligence（離線研究）
+
+本版新增唯讀策略研究分析器。先執行 `shadow_validation` 產生標準化資料集，再執行 `strategy_intelligence` 產生 JSON／CSV／Markdown 分析報告。詳細命令與限制請見 `CHANGELOG_V1.3.0.md`。
+
+本功能不載入 Production Runner，不呼叫即時行情 API、不發送 Telegram，也不會修改 Stage 0～3 選股條件。缺少收盤結果的訊號維持 UNKNOWN；Excel 代理報酬與 Ledger 收盤結果分開統計。

@@ -3,8 +3,49 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pandas as pd
+import requests
 
 from stockcatcher import technical_indicator_engine as engine_module
+
+
+def _make_3k_bars(k3_close=111.0, k3_volume=100.0):
+    bars = [
+        {"date": str(index), "high": 100.0, "low": 99.0, "close": 100.0, "volume": 100.0}
+        for index in range(18)
+    ]
+    bars.extend([
+        {"date": "K1", "high": 110.0, "low": 99.0, "close": 105.0, "volume": 100.0},
+        {"date": "K2", "high": 112.0, "low": 99.0, "close": 106.0, "volume": 100.0},
+        {"date": "K3", "high": max(k3_close, 112.0), "low": 99.0, "close": k3_close, "volume": k3_volume},
+    ])
+    return bars
+
+
+def test_effective_3k_diagnostics_identify_first_failed_gate():
+    price_reason = {}
+    assert engine_module.detect_effective_3k_breakout(
+        _make_3k_bars(k3_close=111.0), diagnostics=price_reason
+    ) is None
+    assert price_reason == {"price_not_breaking": 1}
+
+    volume_reason = {}
+    assert engine_module.detect_effective_3k_breakout(
+        _make_3k_bars(k3_close=113.0, k3_volume=100.0), diagnostics=volume_reason
+    ) is None
+    assert volume_reason == {"k3_volume_below_threshold": 1}
+
+
+def test_batch_3k_fetch_preserves_http_error_status():
+    response = requests.Response()
+    response.status_code = 429
+    http_error = requests.HTTPError("rate limited", response=response)
+    failures = []
+
+    with patch.object(engine_module, "fetch_effective_3k_breakout", side_effect=http_error):
+        signals = engine_module.fetch_effective_3k_breakouts(["2330"], failures=failures)
+
+    assert signals == {}
+    assert failures == ["2330:HTTP_429"]
 
 
 def test_intraday_breakout_does_not_replace_daily_trend_condition():

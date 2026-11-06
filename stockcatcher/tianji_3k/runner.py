@@ -85,6 +85,7 @@ class TianjiProductionRunner:
         self._last_notification_retry_at = 0.0
         self._gt_cutoff_recorded = False
         self.trade_date: str | None = None
+        self._premarket_built = False
         self._premarket_notified = False
         self.runtime_state_path: Path | None = None
         self.finmind_budget = FinMindRequestBudget(limit=580)
@@ -158,6 +159,7 @@ class TianjiProductionRunner:
         payload = {
             "schema_version": "runtime-v2.1",
             "trade_date": self.trade_date,
+            "premarket_built": self._premarket_built,
             "premarket_notified": self._premarket_notified,
             "dynamic_attempts": self.dynamic_attempts,
             "dynamic_retry_after": self.dynamic_retry_after,
@@ -177,6 +179,7 @@ class TianjiProductionRunner:
             return
         try:
             data = json.loads(self.runtime_state_path.read_text(encoding="utf-8"))
+            self._premarket_built = bool(data.get("premarket_built", self._premarket_built))
             self._premarket_notified = bool(data.get("premarket_notified", False))
             self.dynamic_attempts = {str(k): int(v) for k, v in (data.get("dynamic_attempts", {}) or {}).items()}
             self.dynamic_retry_after = {str(k): str(v) for k, v in (data.get("dynamic_retry_after", {}) or {}).items()}
@@ -194,6 +197,7 @@ class TianjiProductionRunner:
 
     def build_premarket_pool(self, trade_date: str | None = None):
         """Build a NEW trading-day watchlist from the latest completed daily data."""
+        self._premarket_built = False
         self.trade_date = trade_date or self._today()
         self.recovery.start(self.trade_date, "BUILD_PREMARKET_POOL")
         self.recovery_ledger.append(self.trade_date, {"event_type":"RUN_START", "phase":"BUILD_PREMARKET_POOL", "at":datetime.now(TAIPEI).isoformat()})
@@ -241,6 +245,7 @@ class TianjiProductionRunner:
                 self.pool = existing_pool
                 self._load_pool_from_memory()
                 self._load_runtime_state()
+                self._premarket_built = True
                 if self.pool and self.notifier.enabled and not self._premarket_notified:
                     result = self.notifier.send_premarket_watchlist(self.trade_date, self.pool)
                     self._record_notification(
@@ -249,7 +254,7 @@ class TianjiProductionRunner:
                         message_id=result.get("message_id"),
                     )
                     self._premarket_notified = result.get("status") == "SENT"
-                    self._save_runtime_state()
+                self._save_runtime_state()
                 return self.pool
             # Stale daily pool: do not reuse it. Rebuild from refreshed cache.
             daily_pool.unlink(missing_ok=True)
@@ -396,6 +401,7 @@ class TianjiProductionRunner:
             self.ledger.write_context(context)
 
         daily_pool.write_text(json.dumps(self.pool, ensure_ascii=False, indent=2), encoding="utf-8")
+        self._premarket_built = True
         self._set_runtime_path()
         self._record_premarket_event()
         if self.pool and self.notifier.enabled and not self._premarket_notified:
@@ -1463,6 +1469,7 @@ class TianjiProductionRunner:
             self.build_premarket_pool(self.trade_date)
             return
         self.pool = json.loads(daily_pool.read_text(encoding="utf-8"))
+        self._premarket_built = True
         # A fresh process may not have run the premarket initialization in
         # this process, so restore the T-1 completed-K date from the durable
         # pool before dynamic history enrichment.
@@ -1861,7 +1868,7 @@ class TianjiProductionRunner:
                     if phase != getattr(self, "_last_phase", None):
                         print(f"🧪 MANUAL PHASE | TradingSession={phase} | {now.strftime('%H:%M:%S')}", flush=True)
                         self._last_phase = phase
-                    if not self.pool:
+                    if not self._premarket_built:
                         try:
                             self._load_pool()
                         except Exception as exc:
@@ -1905,7 +1912,7 @@ class TianjiProductionRunner:
                     time.sleep(min(30, MIS_INTERVAL_SECONDS))
                     continue
                 if phase == "PREMARKET":
-                    if not self.pool:
+                    if not self._premarket_built:
                         try:
                             self.build_premarket_pool(trade_date)
                         except Exception as exc:
@@ -1919,7 +1926,7 @@ class TianjiProductionRunner:
                 if phase == "RADAR":
                     if self._next_radar_deadline <= time.monotonic():
                         self._next_radar_deadline = time.monotonic()
-                    if not self.pool:
+                    if not self._premarket_built:
                         try:
                             self.build_premarket_pool(trade_date)
                         except Exception as exc:

@@ -208,3 +208,16 @@ Prioritize these in order; do not add several indicators and tune all thresholds
 - [QuantConnect: Research Guide](https://www.quantconnect.com/docs/v2/writing-algorithms/key-concepts/research-guide): hypothesis-driven testing, look-ahead/survivorship bias, and overfitting guidance.
 - [QuantConnect: ATR](https://www.quantconnect.com/docs/v2/writing-algorithms/indicators/supported-indicators/average-true-range): ATR measures smoothed true range and is useful as a volatility/risk input, not a standalone buy signal.
 - [QuantConnect: Slippage](https://www.quantconnect.com/docs/v2/writing-algorithms/reality-modeling/slippage/key-concepts) and [Transaction Fees](https://www.quantconnect.com/docs/v2/writing-algorithms/reality-modeling/transaction-fees/key-concepts): realistic execution costs matter in backtests.
+
+## 12. 2026-11-06 Log Review and Next-Version Diagnostics
+
+The 2026-11-06 GitHub Actions run covered 1,609 scan cycles. It recorded 1,265 MIS hits, one effective 3K, 30 Fugle HTTP errors, one daily-score rejection, and no Telegram send attempts. The single effective 3K passed the 1.5x same-time volume flag but failed Tier 1's daily score gate. The log did not include that candidate's symbol, exact daily score, or daily bullish result, so the precise score deficit cannot be reconstructed from this run.
+
+Scan cadence averaged 10.04 seconds (P95 about 10.01 seconds; maximum gap 21.60 seconds). Cycle runtime averaged 1.51 seconds (P95 7.53 seconds; maximum 13.87 seconds). Fugle call time averaged 0.34 seconds, with a maximum of 8.28 seconds. Thus occasional API errors exist, but the measured cadence does not support latency as the reason for zero alerts on this date; the observed 3K was rejected by the score gate.
+
+Next-version changes add observability without changing entry thresholds:
+
+- 3K no-signal results report the first failed condition: insufficient completed bars, K3 close not above K1/K2 highs, or K3 volume below its threshold.
+- Fugle HTTP errors include their HTTP status code in the failed-symbol list.
+- Each effective-3K/MA20 candidate logs daily score and pass/fail, daily bullish result, intraday score, K3 volume ratio, same-time ratio/availability, TDCC change, insider streak, tier, and final send decision.
+- These details identify whether future low alert counts come from signal frequency or later filters. They intentionally do not relax any gate.
