@@ -1,15 +1,15 @@
 {
-  "trade_date": "2026-10-20",
-  "latest_completed_date": "2026-10-20",
-  "cache_latest_before": "2026-10-15",
-  "cache_latest_after": "2026-10-15",
+  "trade_date": "2026-11-06",
+  "latest_completed_date": "2026-11-06",
+  "cache_latest_before": "2026-10-20",
+  "cache_latest_after": "2026-10-20",
   "symbols_requested": 0,
   "symbols_refreshed": 0,
   "symbols_failed": 0,
   "rows_fetched": 0,
   "status": "READY",
   "reason": "calendar_bootstrapped; symbol refresh deferred until Stage 0 candidates",
-  "calendar_rows": 6936,
+  "calendar_rows": 6935,
   "history_repairs": 0,
   "history_failures": 0,
   "provider_stats": {
@@ -47,8 +47,8 @@
   },
   "calendar": {
     "source": "finmind",
-    "fetched_at": "2026-10-20T23:32:10.378731+08:00",
-    "rows": 6936,
+    "fetched_at": "2026-11-06T22:25:01.792060+08:00",
+    "rows": 6935,
     "min_date": "1999-01-05",
     "max_date": "2026-12-31"
   }

@@ -95,6 +95,34 @@ class PostSignalTracker:
                 continue
             snap_id = str(_snapshot_id(snapshot) or "")
             item = state.get(prediction_id)
+            # The append-only ledger is authoritative if the process crashed
+            # after writing the close-final event but before persisting state.
+            # Never append post-signal samples after a prediction is finalized.
+            final_event = next((
+                e for e in reversed(self.ledger.events_for_symbol(trade_date, symbol))
+                if e.get("event_type") == "POST_SIGNAL_TRACKING_FINAL"
+                and e.get("prediction_id") == prediction_id
+            ), None)
+            if final_event is not None:
+                final_status = (
+                    "FINALIZED" if final_event.get("ground_truth_available")
+                    else "FINALIZED_GT_UNAVAILABLE"
+                )
+                if not isinstance(item, dict):
+                    item = {
+                        "prediction_id": prediction_id,
+                        "trade_date": trade_date,
+                        "symbol": symbol,
+                        "status": final_status,
+                        "finalized_at": final_event.get("finalized_at"),
+                    }
+                    state[prediction_id] = item
+                    changed += 1
+                elif item.get("status") != final_status:
+                    item["status"] = final_status
+                    item["finalized_at"] = final_event.get("finalized_at")
+                    changed += 1
+                continue
             if isinstance(item, dict) and str(item.get("status", "")).startswith("FINALIZED"):
                 continue
             # The append-only ledger is authoritative if a crash happened after
@@ -198,7 +226,10 @@ class PostSignalTracker:
             if any(e.get("event_type") == "POST_SIGNAL_TRACKING_FINAL" and e.get("prediction_id") == prediction_id for e in events):
                 continue
             gt = ground_truth_by_symbol.get(symbol)
-            item = state.get(prediction_id, {})
+            item = state.get(prediction_id)
+            if not isinstance(item, dict):
+                item = {}
+                state[prediction_id] = item
             entry = prediction.get("trigger_snapshot", {}) or {}
             entry_price = _price(entry)
             close = None

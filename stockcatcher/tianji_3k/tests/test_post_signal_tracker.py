@@ -140,3 +140,28 @@ def test_tracker_recovers_ledger_sample_if_state_save_was_interrupted(tmp_path):
     restarted.observe(TD, {"5340": snapshot("5340", 101, datetime(2026, 10, 20, 9, 5, tzinfo=TZ), "milestone")})
     samples = [e for e in ledger.events_for_symbol(TD, "5340") if e.get("event_type") == "POST_SIGNAL_PRICE_SAMPLE"]
     assert len(samples) == 1
+
+
+def test_tracker_does_not_append_samples_after_final_event_even_if_state_save_was_interrupted(tmp_path):
+    ledger = PredictionLedger(tmp_path / "predictions")
+    p = prediction(ledger)
+    tracker = PostSignalTracker(tmp_path / "predictions", ledger)
+    assert tracker.finalize_close(TD, {"5340": {"close": 101, "ground_truth_3k": True}}) == 1
+
+    # Simulate a crash after the final ledger event was written but before the
+    # tracking state was durably marked finalized.
+    import json
+    state_path = tmp_path / "predictions" / TD / "post_signal_tracking.json"
+    state = json.loads(state_path.read_text())
+    # Remove the state record entirely to simulate a crash before its save.
+    state.pop(p["prediction_id"], None)
+    state_path.write_text(json.dumps(state))
+
+    restarted = PostSignalTracker(tmp_path / "predictions", ledger)
+    restarted.observe(TD, {"5340": snapshot("5340", 105, datetime(2026, 10, 20, 9, 5, tzinfo=TZ), "after-close-final")})
+    events = ledger.events_for_symbol(TD, "5340")
+    assert not any(e.get("event_type") == "POST_SIGNAL_PRICE_SAMPLE" for e in events)
+    assert sum(e.get("event_type") == "POST_SIGNAL_TRACKING_FINAL" for e in events) == 1
+    restored = json.loads(state_path.read_text())
+    assert restored[p["prediction_id"]]["status"] == "FINALIZED"
+    assert restored[p["prediction_id"]]["finalized_at"]

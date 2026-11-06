@@ -1,2 +1,11 @@
 .vercel
 .env*.local
+# Python / test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local shadow-validation output (keep source predictions and validation ledgers)
+shadow_reports/

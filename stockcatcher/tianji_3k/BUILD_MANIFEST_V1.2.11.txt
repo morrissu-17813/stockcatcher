@@ -1,0 +1,11 @@
+Tianji 3K v1.2.11 full package
+
+Base source: /mnt/data/tianji_3k_20261020.zip (v1.2.10 baseline uploaded in this project)
+Base ZIP SHA-256: ce919c5046e8fe21769a0a69133ce5693ec7a3398ded1f79f127247b32baa971
+Overlay: Tianji_3K_v1.2.11_shadow_validation_patch.zip
+Version: 1.2.11
+
+Included: complete tianji_3k source tree, tests, docs, baseline Prediction/Validation records, and 2026-10-14 historical signal workbook.
+Excluded: __pycache__, *.pyc, .pytest_cache, virtual environments, rebuildable market-data cache directories.
+
+This package has not been committed, pushed, or deployed to GitHub.
