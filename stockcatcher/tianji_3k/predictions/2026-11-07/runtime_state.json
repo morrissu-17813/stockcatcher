@@ -1,0 +1,12 @@
+{
+  "schema_version": "runtime-v2.1",
+  "trade_date": "2026-11-07",
+  "premarket_built": true,
+  "premarket_notified": false,
+  "dynamic_attempts": {},
+  "dynamic_retry_after": {},
+  "states": {},
+  "fugle_pending": {},
+  "fugle_health_status": "NOT_CHECKED",
+  "updated_at": "2026-11-07T00:41:38.025097+08:00"
+}
