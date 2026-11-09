@@ -1,8 +1,8 @@
 {
-  "trade_date": "2026-11-07",
-  "latest_completed_date": "2026-11-06",
-  "cache_latest_before": "2026-11-06",
-  "cache_latest_after": "2026-11-06",
+  "trade_date": "2026-11-10",
+  "latest_completed_date": "2026-11-09",
+  "cache_latest_before": "2026-11-09",
+  "cache_latest_after": "2026-11-09",
   "symbols_requested": 0,
   "symbols_refreshed": 0,
   "symbols_failed": 0,
@@ -47,7 +47,7 @@
   },
   "calendar": {
     "source": "finmind",
-    "fetched_at": "2026-11-07T00:37:10.654096+08:00",
+    "fetched_at": "2026-11-10T00:23:02.670300+08:00",
     "rows": 6935,
     "min_date": "1999-01-05",
     "max_date": "2026-12-31"

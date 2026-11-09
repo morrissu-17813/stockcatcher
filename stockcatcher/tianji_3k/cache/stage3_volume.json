@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "symbol": "4741",
+    "pass": true,
+    "unknown": false,
+    "latest_date": "2026-11-09T00:00:00.000",
+    "volume_lots": 3917.759,
+    "yesterday_volume_lots": 2374.051,
+    "vma5_lots": 2138.4364,
+    "volume_ratio": 1.832067112213391,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": true
+    },
+    "first_fail": ""
+  },
+  {
+    "symbol": "5230",
+    "pass": false,
+    "unknown": false,
+    "latest_date": "2026-11-09T00:00:00.000",
+    "volume_lots": 3350.914,
+    "yesterday_volume_lots": 1678.872,
+    "vma5_lots": 3670.6398,
+    "volume_ratio": 0.9128964383811237,
+    "checks": {
+      "vma5_ge_1000": true,
+      "today_gt_yesterday": true,
+      "volume_ratio_ge_1_5": false
+    },
+    "first_fail": "volume_ratio_ge_1_5"
+  }
+]

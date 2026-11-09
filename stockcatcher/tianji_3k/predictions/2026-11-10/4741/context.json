@@ -1,0 +1,22 @@
+{
+  "trade_date": "2026-11-10",
+  "symbol": "4741",
+  "name": "泓瀚",
+  "market": "TPEx",
+  "industry": "",
+  "source_data_date": "2026-11-09T00:00:00.000",
+  "previous_close": 63.0,
+  "k1_high": 57.3,
+  "k2_high": 61.7,
+  "breakout_level": 61.7,
+  "ma20": 48.355000000000004,
+  "ma60": 43.1975,
+  "ma20_prev": 47.235,
+  "vma5_lots": 2138.4364,
+  "yesterday_volume_lots": 2374.051,
+  "stage0_pass": true,
+  "stage1_pass": true,
+  "stage2_pass": true,
+  "stage3_pass": true,
+  "final_pool": true
+}

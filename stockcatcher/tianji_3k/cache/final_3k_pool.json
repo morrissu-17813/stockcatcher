@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "symbol": "4741",
+    "date": "2026-11-09T00:00:00.000",
+    "k0_date": "2026-11-09",
+    "k1_date": "2026-11-06",
+    "k2_date": "2026-11-05",
+    "open": 59.5,
+    "close": 63.0,
+    "high": 63.0,
+    "k1_high": 57.3,
+    "k2_high": 61.7,
+    "gain_pct": 9.947643979057608,
+    "breakout_level": 61.7,
+    "checks": {
+      "bullish": true,
+      "gain_ge_4pct": true,
+      "high_gt_k1": true,
+      "high_gt_k2": true,
+      "close_gt_prev_2_highs": true
+    },
+    "pass": true,
+    "first_fail": "",
+    "stage3": {
+      "symbol": "4741",
+      "pass": true,
+      "unknown": false,
+      "latest_date": "2026-11-09T00:00:00.000",
+      "volume_lots": 3917.759,
+      "yesterday_volume_lots": 2374.051,
+      "vma5_lots": 2138.4364,
+      "volume_ratio": 1.832067112213391,
+      "checks": {
+        "vma5_ge_1000": true,
+        "today_gt_yesterday": true,
+        "volume_ratio_ge_1_5": true
+      },
+      "first_fail": ""
+    },
+    "three_k_pass": true
+  }
+]

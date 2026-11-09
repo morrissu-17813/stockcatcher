@@ -1,0 +1,1 @@
+{"event_type":"DYNAMIC_CANDIDATE_HISTORY_ERROR","error_type":"FinMindBudgetExceeded","message":"FinMind rolling safety gate reached: 580","attempt":1,"retry_after":"2026-11-10T00:21:36.889276+08:00","observed_at":"2026-11-10T00:20:36.889470+08:00"}

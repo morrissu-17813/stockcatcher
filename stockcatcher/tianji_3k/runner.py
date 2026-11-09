@@ -1003,20 +1003,17 @@ class TianjiProductionRunner:
             )
         else:
             print(f"📡 RADAR INTERVAL | first_cycle=1 | target_s={max(1, MIS_INTERVAL_SECONDS)}", flush=True)
-        # If the premarket lifecycle has already been built and the resulting
-        # pool is empty, do not rebuild it on every Radar cycle.  Rebuilding
-        # here can unexpectedly invoke daily-refresh/FinMind calendar
-        # bootstrap and turns an empty watchlist into a liveness failure.
+        # An empty premarket pool must NOT stop intraday MIS discovery.
+        # Build the premarket pool only once; after that, continue with the
+        # market-wide MIS snapshot so Dynamic Candidates can still be found.
         if not self.pool:
             if self._premarket_built:
-                self._last_radar_cycle_duration_seconds = time.monotonic() - poll_started
                 print(
-                    f"⏱️ RADAR TIMING | early_return=EMPTY_POOL "
-                    f"| cycle_ms={self._last_radar_cycle_duration_seconds * 1000:.1f}",
+                    "ℹ️ RADAR | PREMARKET_POOL_EMPTY | continue_to_MIS_DYNAMIC_DISCOVERY=1",
                     flush=True,
                 )
-                return 0
-            self._load_pool()
+            else:
+                self._load_pool()
         rows = self._radar_rows()
         if not self.universe_cache:
             self.universe_cache = {str(x["symbol"]): x for x in StockUniverseProvider().fetch()}

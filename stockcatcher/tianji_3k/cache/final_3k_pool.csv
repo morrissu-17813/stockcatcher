@@ -1,1 +1,2 @@
 ﻿symbol,date,close,high,k1_high,k2_high,gain_pct,breakout_level,latest_date,volume_lots,yesterday_volume_lots,vma5_lots,volume_ratio,three_k_pass
+4741,2026-11-09T00:00:00.000,63.0,63.0,57.3,61.7,9.947643979057608,61.7,2026-11-09T00:00:00.000,3917.759,2374.051,2138.4364,1.832067112213391,True

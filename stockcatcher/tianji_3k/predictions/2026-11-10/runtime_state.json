@@ -1,0 +1,23 @@
+{
+  "schema_version": "runtime-v2.1",
+  "trade_date": "2026-11-10",
+  "premarket_built": true,
+  "premarket_notified": true,
+  "dynamic_attempts": {},
+  "dynamic_retry_after": {},
+  "states": {
+    "4741": {
+      "schema_version": "state-v1",
+      "state": "WATCHING",
+      "last_snapshot_id": "",
+      "last_data_identity": "",
+      "pending_count": 0,
+      "trigger_count": 0,
+      "last_trigger_price": 0.0,
+      "seen_data_identities": []
+    }
+  },
+  "fugle_pending": {},
+  "fugle_health_status": "NOT_CHECKED",
+  "updated_at": "2026-11-10T00:28:07.088255+08:00"
+}
